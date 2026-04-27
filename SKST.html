@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tam Hòa Master V24.3 - Full Sticker Tray</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-success: #006100; --text-mid: #9c5700; --text-bad: #9c0006; }
+        body { font-family: Arial, sans-serif; background: var(--bg); margin: 0; padding: 5px; -webkit-text-size-adjust: 100%; }
+        .header-controls { background: white; padding: 6px; border-radius: 6px; display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
+        textarea { flex: 1; height: 35px; font-size: 10px; border: 1px solid #ccc; border-radius: 4px; padding: 4px; }
+        .btn { padding: 8px 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 10px; cursor: pointer; }
+        .sk-header-row { display: flex; gap: 3px; margin-bottom: 6px; }
+        .sk-card { flex: 1; background: #fff; padding: 3px 1px; border-radius: 4px; text-align: center; border-top: 3px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-height: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .sk-label { font-size: 7px; font-weight: 950; color: #666; text-transform: uppercase; }
+        .sk-value { font-size: 13px; font-weight: 950; color: var(--primary); line-height: 1.1; }
+        .sk-groups-wrapper { background: #fff; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; border: 1px solid #aaa; }
+        .sk-groups-table { border-collapse: collapse; width: 100%; font-size: 8px; text-align: center; table-layout: fixed; }
+        .sk-groups-table th { background: var(--primary); color: white; padding: 2px 1px; border: 1px solid #aaa; font-weight: 950; height: 35px; word-wrap: break-word; line-height: 1; }
+        .sk-groups-table td { padding: 3px 1px; border: 1px solid #aaa; font-weight: 950; font-size: 10px; line-height: 1.1; }
+        .num-sub { display: block; font-size: 7px; font-weight: normal; color: #333; }
+        .num-rem { display: block; font-size: 7px; font-weight: 900; color: #d63031; }
+        .excel-table-wrapper { background: white; border-radius: 4px; overflow-x: auto; border: 1px solid #aaa; width: 100%; }
+        table { border-collapse: collapse; width: 100%; font-size: 9px; text-align: center; table-layout: fixed; }
+        th, td { border: 1px solid #aaa; padding: 4px 1px; }
+        thead th { background: var(--primary); color: white; height: 32px; font-size: 8px; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; font-weight: 950; text-align: left; z-index: 5; border-right: 2px solid var(--primary); width: 50px !important; color: #000; padding-left: 2px; }
+        .bg-good { background-color: var(--success) !important; color: var(--text-success) !important; } 
+        .bg-mid { background-color: var(--mid) !important; color: var(--text-mid) !important; } 
+        .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
+        .stk-tray { background: #f8f9fa; padding: 8px; border-radius: 8px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 12px; border: 2px solid var(--primary); max-height: 150px; overflow-y: auto; }
+        .stk-btn { font-size: 18px; text-align: center; padding: 5px 0; background: #fff; border-radius: 4px; border: 1px solid #eee; cursor: pointer; }
+        #reportOutput { display:none; background:#fff; padding:10px; margin-bottom:10px; border: 2px solid #e67e22; font-size: 11px; white-space: pre-wrap; border-radius: 4px; }
+        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
+        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:450px; padding:15px; border-radius:10px; z-index:9001; max-height: 85vh; overflow-y: auto; }
+        .alias-input { width: 60px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px; padding: 2px; }
+    </style>
+</head>
+<body>
+<div class="header-controls">
+    <button class="btn" style="background:#6c757d" onclick="openSettings()">⚙️</button>
+    <textarea id="jsonInput" placeholder="Dán JSON vào đây ông Thông ơi..."></textarea>
+    <button class="btn" style="background:#004a99" onclick="renderAll()">XUẤT BẢNG</button>
+    <button id="btnScreenshot" class="btn" style="background:#28a745; display:none;" onclick="captureReport()">ẢNH 📷</button>
+    <button id="btnMML" class="btn" style="background:#e67e22; display:none;" onclick="generateMMLReport()">TEXT 🚀</button>
+</div>
+<div id="reportOutput" onclick="copyAgain()"></div>
+<div id="screenshotArea">
+    <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead id="skGroupsHead"></thead><tbody id="skGroupsBody"></tbody></table></div>
+    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table><colgroup id="colGroups"></colgroup><thead id="hHead"></thead><tbody id="hBody"></tbody></table></div>
+</div>
+<div class="overlay" id="overlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+    <strong style="color:var(--primary); font-size:13px;">⚙️ BỘ STICKER ĐẦY ĐỦ CỦA ÔNG THÔNG</strong>
+    <div class="stk-tray" id="stkTray"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0;">
+        <div>Target DT (X):<input type="number" id="targetX" step="0.1" style="width:100%;"></div>
+        <div>Target NH (Y):<input type="number" id="targetY" step="0.1" style="width:100%;"></div>
+    </div>
+    <div id="gList" style="border:1px solid #eee; padding:5px; margin-bottom:10px; max-height:120px; overflow-y:auto; font-size:10px;"></div>
+    <div id="sList" style="border:1px solid #eee; padding:5px; max-height:120px; overflow-y:auto; font-size:10px;"></div>
+    <button onclick="saveSettings()" style="width:100%; padding:15px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight:bold;">LƯU CÀI ĐẶT</button>
+</div>
+<script>
+    let rawData = null, activeGsForReport = [], lastFocusedInput = null;
+    let config = JSON.parse(localStorage.getItem('tamHoaV24')) || { targetX: 1.0, targetY: 1.3, hiddenGroups: [], hiddenStaff: [], aliases: {} };
+    const DMX_KW = ["Tivi", "Tủ lạnh", "Máy giặt", "Máy lạnh", "Gia dụng", "Loa", "Máy lọc nước", "Quạt", "Bếp", "Nước nóng"];
+    // TRẢ LẠI FULL STICKER TRAY
+    const STICKERS = ["📱","📲","🤳","📑","💻","🖥️","🖱️","⌨️","🎧","👂","🔊","🎶","🎸","🔋","⚡","🔌","⌚","⏰","📺","📽️","🧊","❄️","🧺","🧼","🌡️","💵","💰","💸","🎯","🚀","🔥","🏎️","💪","👏","🏆","🏧","🏦","💳","📝","🤝","🧾","🛡️","✨","🆔","🎫","🌐","📶","📊","📉","🚂","✈️","📞","📄","🍎","🍏","🤖","🌌","🖼️","💎","🔭","🎮","👾","💼","🖋️","💾","🗄️","🗃️","🆕","⏩","🔮","🍀","🐉","♾️","🌪️","🍲","🍳","🥘","💧","🥛","🌬️","🍃","🔪","🥢","🥄","🏃","👦","👧","📈","📢","👥","🏷️","🧨","💥","👑","🎖️","🙌","👤","🕵️","👨‍👩‍👧‍👦","🥰","✅","🆘","🤯","🛠️","😊","👋","🙇","🗣️","💡","👨‍🔧","⚙️","🧹","🚪","🙋‍♂️","🙋‍♀️","🏹","🧗‍♂️","🏁","🚩","🥇","🏃‍♂️","💨","⚠️","🚨","🎆","🎇","🥂","✊","🔗","🧧","👇","👌","👍","👊","📦","🔴","🔵","📷","📡","炊","🏠","🛁","🛒","💹","🛵","🚲","🚗","🎁","🍕","🍺","☕","🥤","🥩","🌟","📣","📍","🧰","🖨️","🎤","🎹","🎻","🎺","📻","🎥","🌍"]
+;
+
+    const isDMX = (n) => DMX_KW.some(k => n.includes(k));
+    const getDN = (n) => config.aliases[n] || n.replace(/Thi đua doanh thu |Thi đua |Nhóm |hàng /gi, "").trim();
+    const getSN = (n) => config.aliases[n] || n.trim().split(" ").pop();
+    const getStkNum = (n) => String(n).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
+    function getFixedColor(pct) { return pct >= 100 ? "bg-good" : (pct >= 90 ? "bg-mid" : "bg-bad"); }
+    function getRankClasses(v, a, rev = false) {
+        if (!a || a.length < 2) return { bg: "bg-good" };
+        const u = [...new Set(a)].sort((x,y) => y-x);
+        const r = u.indexOf(v) / (u.length - 1 || 1);
+        let f = rev ? (1 - r) : r;
+        return f <= 0.35 ? { bg: "bg-good" } : f <= 0.65 ? { bg: "bg-mid" } : { bg: "bg-bad" };
+    }
+
+    function renderAll() {
+        let s = document.getElementById('jsonInput').value.trim();
+        if(!s) return;
+        try {
+            rawData = JSON.parse(s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, ""));
+            const info = rawData.storeInfo, X = parseFloat(config.targetX), Y = parseFloat(config.targetY);
+            const daysLeft = (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1) || 1;
+            activeGsForReport = info.groups.map((g, idx) => ({ ...g, forecastEp: g.p / Y, originalIdx: idx, isDMX: isDMX(g.n) }))
+                .filter(g => !config.hiddenGroups.includes(g.n) && (g.r > 0 || g.t > 0))
+                .sort((a, b) => (a.isDMX !== b.isDMX) ? (a.isDMX ? -1 : 1) : (b.p - a.p));
+            
+            document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET (x${X})</div><div class="sk-value">${Math.round(info.dtqd)}/${Math.round(info.target * X)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(info.percent/X)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${daysLeft} ngày</div><div class="sk-value">${Math.round(((info.target*X)-info.dtqd)/daysLeft)}tr</div><div class="sk-label">MỖI NGÀY</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${activeGsForReport.filter(g => g.p >= 100).length}/${activeGsForReport.length}</div></div>`;
+            
+            let gh = '<tr>', gb = '<tr>';
+            activeGsForReport.forEach(g => {
+                const luyKe = Math.round(g.r), targetGoc = Math.round(g.t), phanTram = Math.round(g.p), conLai = targetGoc - luyKe;
+                gh += `<th>${getDN(g.n)}</th>`;
+                gb += `<td class="${getFixedColor(phanTram)}">${phanTram}%<span class="num-sub">${luyKe}/${targetGoc}</span><span class="num-rem">${conLai > 0 ? 'C:'+conLai : '🏁'}</span></td>`;
+            });
+            document.getElementById('skGroupsHead').innerHTML = gh + '</tr>'; document.getElementById('skGroupsBody').innerHTML = gb + '</tr>';
+            document.getElementById('skGroups').style.display = 'block';
+
+            let h = '<tr><th class="sticky-col">TÊN</th><th>DT</th><th>BK</th><th>TG</th>';
+            activeGsForReport.forEach(g => h += `<th>${getDN(g.n)}</th>`);
+            h += '<th>BTM</th></tr>';
+            document.getElementById('hHead').innerHTML = h;
+            let colH = '<col class="sticky-col" style="width:50px;"><col style="width:30px;"><col style="width:25px;"><col style="width:25px;">';
+            activeGsForReport.forEach(() => colH += '<col style="width:35px;">');
+            document.getElementById('colGroups').innerHTML = colH + '<col style="width:25px;">';
+            
+            const staff = rawData.staffData.filter(s => !config.hiddenStaff.includes(s.name));
+            const gVals = activeGsForReport.map(g => staff.map(s => s.data[g.originalIdx] || 0));
+            let b = ''; const staffRes = staff.map(s => {
+                let btm = 0; activeGsForReport.forEach((g, i) => { if(getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg === 'bg-bad') btm++; });
+                return { ...s, btm };
+            });
+            staffRes.forEach(s => {
+                b += `<tr><td class="sticky-col">${getSN(s.name)}</td><td class="${getRankClasses(s.dt, staff.map(x=>x.dt)).bg}">${Math.round(s.dt)}</td><td class="${getRankClasses(s.bk, staff.map(x=>x.bk)).bg}">${Math.floor(s.bk)}%</td><td class="${getRankClasses(s.tg, staff.map(x=>x.tg)).bg}">${Math.round(s.tg)}%</td>`;
+                activeGsForReport.forEach((g, i) => b += `<td class="${getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg}">${Math.round(s.data[g.originalIdx] || 0)}</td>`);
+                b += `<td class="${getRankClasses(s.btm, staffRes.map(x=>x.btm), true).bg}"><b>${s.btm}</b></td></tr>`;
+            });
+            document.getElementById('hBody').innerHTML = b;
+            document.getElementById('skStore').style.display = 'flex'; document.getElementById('reportArea').style.display = 'block';
+            document.getElementById('btnMML').style.display = 'block'; document.getElementById('btnScreenshot').style.display = 'block';
+        } catch(e) { alert("Lỗi JSON!"); }
+    }
+
+    function generateMMLReport() {
+        if(!rawData) return;
+        const info = rawData.storeInfo; const staff = rawData.staffData.filter(s => !config.hiddenStaff.includes(s.name));
+        const X = parseFloat(config.targetX); const daysLeft = (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1) || 1;
+        const coreGs = activeGsForReport.filter(g => !isDMX(g.n));
+        const groupsDat = coreGs.filter(g => g.p >= 100).map(g => getDN(g.n)).join(", ");
+        const groupsGan = coreGs.filter(g => g.p >= 80 && g.p < 100).map(g => `${getDN(g.n)} (${Math.round(g.p)}%)`).join(", ");
+        const groupsThap = coreGs.sort((a,b) => a.p - b.p).slice(0, 5);
+        const sortedDT = [...staff].sort((a,b) => b.dt - a.dt);
+        const gVals = activeGsForReport.map(g => staff.map(s => s.data[g.originalIdx] || 0));
+        const btmData = staff.map(s => {
+            let btm = 0; activeGsForReport.forEach((g, i) => { if(getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg === 'bg-bad') btm++; });
+            return { name: getSN(s.name), btm: btm };
+        });
+        const uniqueValues = [...new Set(btmData.map(x => x.btm))].sort((a, b) => a - b);
+        const badValues = [...uniqueValues].filter(v => v > 0).reverse();
+        
+        let r = `🚀 SỨC KHỎE SIÊU THỊ ĐẾN NGÀY ${new Date().getDate().toString().padStart(2,'0')}/${(new Date().getMonth()+1).toString().padStart(2,'0')} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: Đạt ${Math.round(info.dtqd)} / ${Math.round(info.target * X)}\n👉 Dự kiến: ${getStkNum(Math.round(info.percent/X))}% (Còn ${getStkNum(daysLeft)} ngày cuối)\n👉 Áp lực: ${getStkNum(Math.round(((info.target * X) - info.dtqd)/daysLeft))}tr/ngày.\n💸 Trả góp: ${Math.round(info.traGop)}%.\n📦 Nhóm hàng: Đạt ${activeGsForReport.filter(g => g.p >= 100).length} / ${activeGsForReport.length} nhóm.\n✅ Nhóm hoàn thành: ${groupsDat || 'Chưa có'}.\n🎯 Nhóm gần đạt: ${groupsGan || 'Chưa có'}.\n🛑 5 Nhóm thấp nhất (TGDĐ):\n`;
+        groupsThap.forEach((g, i) => r += `${getStkNum(i+1)} ${getDN(g.n)} (${Math.round(g.p)}%)\n`);
+        r += `\n👤 2. SỨC KHỎE NHÂN VIÊN\n💰 Doanh thu cá nhân:\n🌟 ${getSN(sortedDT[0].name)} và ${getSN(sortedDT[1].name)} dẫn đầu.\n🏃‍♂️ ${sortedDT.slice(-5).reverse().map(s => getSN(s.name)).join(", ")}: Doanh thu thấp.\n\n✨ Chỉ số Bán kèm (BK):\n👏 Tốt nhất: ${getSN([...staff].sort((a,b)=>b.bk-a.bk)[0].name)}.\n\n🎯 Nhóm hàng chiến lược (Bottom):\n🏅 Khen ngợi Top đầu:\n🌟 Dẫn đầu: ${btmData.filter(x => x.btm === uniqueValues[0]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")}.\n`;
+        if (uniqueValues[1] !== undefined) r += `👉 Theo sát: ${btmData.filter(x => x.btm === uniqueValues[1]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")}.\n`;
+        r += `Các bạn đang kiểm soát tốt chỉ số, duy trì phong độ giúp anh!\n\n`;
+        if (badValues[0] !== undefined) {
+            r += `💥 Cảnh báo Top cuối:\n🔴 Báo động: ${btmData.filter(x => x.btm === badValues[0]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")} nhóm hàng lùi sâu.\n`;
+            if (badValues[1] !== undefined) r += `⚠️ Áp chót: ${btmData.filter(x => x.btm === badValues[1]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")} nhóm.\n`;
+            r += `Yêu cầu team nhóm dưới nắm thông tin và cải thiện chỉ số gấp giúp anh!\n\n`;
+        }
+        r += `💪 Team mình cập nhật sức khỏe, push số rực rỡ. GO! GO! 🚀🔥`;
+        document.getElementById('reportOutput').innerText = r; document.getElementById('reportOutput').style.display = 'block';
+        navigator.clipboard.writeText(r); alert("Đã Copy Báo Cáo!");
+    }
+    async function captureReport() {
+        const area = document.getElementById('screenshotArea');
+        const btn = document.getElementById('btnScreenshot'); btn.innerText = "...";
+        try { const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#f0f2f5" }); const l = document.createElement('a'); l.download = "BaoCao.png"; l.href = canvas.toDataURL(); l.click(); } catch (e) { alert("Lỗi!"); }
+        btn.innerText = "ẢNH 📷";
+    }
+    function openSettings() {
+        if(!rawData) return;
+        document.getElementById('stkTray').innerHTML = STICKERS.map(s => `<div class="stk-btn" onclick="insStk('${s}')">${s}</div>`).join('');
+        document.getElementById('targetX').value = config.targetX; document.getElementById('targetY').value = config.targetY;
+        document.getElementById('gList').innerHTML = rawData.storeInfo.groups.map(g => `<div style="display:flex;margin-bottom:5px;align-items:center;"><input type="checkbox" class="g-chk" data-name="${g.n}" ${config.hiddenGroups.includes(g.n)?'':'checked'}><span style="flex:1;font-size:9px;margin-left:3px;">${g.n}</span><input type="text" class="g-alias alias-input" data-orig="${g.n}" value="${config.aliases[g.n]||''}" onfocus="lastFocusedInput=this"></div>`).join("");
+        document.getElementById('sList').innerHTML = rawData.staffData.map(s => `<div style="display:flex;margin-bottom:5px;align-items:center;"><input type="checkbox" class="s-chk" data-name="${s.name}" ${config.hiddenStaff.includes(s.name)?'':'checked'}><span style="flex:1;font-size:9px;margin-left:3px;">${s.name}</span><input type="text" class="s-alias alias-input" data-orig="${s.name}" value="${config.aliases[s.name]||''}" onfocus="lastFocusedInput=this"></div>`).join("");
+        document.getElementById('overlay').style.display = 'block'; document.getElementById('settingsPanel').style.display = 'block';
+    }
+    function insStk(s) { if(lastFocusedInput) { lastFocusedInput.value += s; lastFocusedInput.focus(); } }
+    function saveSettings() {
+        config.targetX = document.getElementById('targetX').value; config.targetY = document.getElementById('targetY').value;
+        config.hiddenGroups = Array.from(document.querySelectorAll('.g-chk')).filter(c => !c.checked).map(c => c.getAttribute('data-name'));
+        config.hiddenStaff = Array.from(document.querySelectorAll('.s-chk')).filter(c => !c.checked).map(c => c.getAttribute('data-name'));
+        document.querySelectorAll('.g-alias, .s-alias').forEach(i => { const o = i.getAttribute('data-orig'); if(i.value.trim()) config.aliases[o] = i.value.trim(); else delete config.aliases[o]; });
+        localStorage.setItem('tamHoaV24', JSON.stringify(config)); closeSettings(); renderAll();
+    }
+    function closeSettings() { document.getElementById('overlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; }
+    function copyAgain() { navigator.clipboard.writeText(document.getElementById('reportOutput').innerText); alert("Copy!"); }
+</script>
+</body>
+</html>
