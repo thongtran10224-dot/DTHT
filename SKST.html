@@ -2,190 +2,234 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tam Hòa Master V24.3 - Full Sticker Tray</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+    <title>Tam Hòa Master V31.28 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-success: #006100; --text-mid: #9c5700; --text-bad: #9c0006; }
-        body { font-family: Arial, sans-serif; background: var(--bg); margin: 0; padding: 5px; -webkit-text-size-adjust: 100%; }
-        .header-controls { background: white; padding: 6px; border-radius: 6px; display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
-        textarea { flex: 1; height: 35px; font-size: 10px; border: 1px solid #ccc; border-radius: 4px; padding: 4px; }
-        .btn { padding: 8px 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 10px; cursor: pointer; }
-        .sk-header-row { display: flex; gap: 3px; margin-bottom: 6px; }
-        .sk-card { flex: 1; background: #fff; padding: 3px 1px; border-radius: 4px; text-align: center; border-top: 3px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-height: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .sk-label { font-size: 7px; font-weight: 950; color: #666; text-transform: uppercase; }
-        .sk-value { font-size: 13px; font-weight: 950; color: var(--primary); line-height: 1.1; }
-        .sk-groups-wrapper { background: #fff; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; border: 1px solid #aaa; }
-        .sk-groups-table { border-collapse: collapse; width: 100%; font-size: 8px; text-align: center; table-layout: fixed; }
-        .sk-groups-table th { background: var(--primary); color: white; padding: 2px 1px; border: 1px solid #aaa; font-weight: 950; height: 35px; word-wrap: break-word; line-height: 1; }
-        .sk-groups-table td { padding: 3px 1px; border: 1px solid #aaa; font-weight: 950; font-size: 10px; line-height: 1.1; }
-        .num-sub { display: block; font-size: 7px; font-weight: normal; color: #333; }
-        .num-rem { display: block; font-size: 7px; font-weight: 900; color: #d63031; }
-        .excel-table-wrapper { background: white; border-radius: 4px; overflow-x: auto; border: 1px solid #aaa; width: 100%; }
-        table { border-collapse: collapse; width: 100%; font-size: 9px; text-align: center; table-layout: fixed; }
-        th, td { border: 1px solid #aaa; padding: 4px 1px; }
-        thead th { background: var(--primary); color: white; height: 32px; font-size: 8px; }
-        .sticky-col { position: sticky; left: 0; background: #fff !important; font-weight: 950; text-align: left; z-index: 5; border-right: 2px solid var(--primary); width: 50px !important; color: #000; padding-left: 2px; }
-        .bg-good { background-color: var(--success) !important; color: var(--text-success) !important; } 
-        .bg-mid { background-color: var(--mid) !important; color: var(--text-mid) !important; } 
+        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
+        body { font-family: Arial, sans-serif; background: var(--bg); margin: 0; padding: 5px; }
+        .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .input-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        textarea { width: 100%; height: 35px; font-size: 8px; border: 1px solid #ccc; border-radius: 4px; padding: 4px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 4px; margin-top: 5px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
+        
+        /* 5 Ô SỨC KHỎE TỔNG - ĐÃ ĐÔN SIZE[cite: 1] */
+        .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
+        .sk-card { background: #fff; padding: 5px 2px; border-radius: 4px; text-align: center; border-top: 4px solid var(--primary); min-height: 60px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .sk-label { font-size: 8px; font-weight: 950; color: #666; margin-bottom: 2px; }
+        .sk-value { font-size: 14px; font-weight: 950; color: var(--primary); }
+
+        .sk-groups-wrapper, .excel-table-wrapper { background: white; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; border: 1px solid #aaa; width: 100%; }
+        table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
+        th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        thead th { background: var(--primary); color: white; font-size: 9px; }
+        
+        .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
+        .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
+        .btm-header { background: var(--highlight) !important; color: white !important; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+        
+        .bg-good { background-color: var(--success) !important; color: #006100 !important; } 
+        .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; } 
         .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
-        .stk-tray { background: #f8f9fa; padding: 8px; border-radius: 8px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 12px; border: 2px solid var(--primary); max-height: 150px; overflow-y: auto; }
-        .stk-btn { font-size: 18px; text-align: center; padding: 5px 0; background: #fff; border-radius: 4px; border: 1px solid #eee; cursor: pointer; }
-        #reportOutput { display:none; background:#fff; padding:10px; margin-bottom:10px; border: 2px solid #e67e22; font-size: 11px; white-space: pre-wrap; border-radius: 4px; }
+        .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
+
+        #reportOutput { display:none; background:#fffbe6; padding:10px; margin-bottom:10px; border: 2px solid #e67e22; font-size: 11px; white-space: pre-wrap; border-radius: 4px; line-height: 1.5; }
+        
+        .sk-groups-table td span.main-percent { display:block; font-size:11px; font-weight:900; }
+        .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
+        .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
+
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
-        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:450px; padding:15px; border-radius:10px; z-index:9001; max-height: 85vh; overflow-y: auto; }
-        .alias-input { width: 60px; font-size: 10px; border: 1px solid #ddd; border-radius: 3px; padding: 2px; }
+        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .set-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .set-table td { padding: 4px 2px; border-bottom: 1px solid #eee; }
+        .col-tick { width: 20px; text-align: center; }
+        .col-stk { width: 30px; text-align: center; }
+        .col-name { min-width: 80px; }
+        .alias-input { width: 95%; font-size: 11px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; }
+        #stkTrayBox { border: 2px solid var(--highlight); padding: 8px; margin-bottom: 10px; border-radius: 8px; background: #fffaf5; }
+        #stkTrayContent { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+        .stk-item { font-size: 20px; cursor: pointer; text-align: center; padding: 2px; }
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .toggle-all-btn { float: right; padding: 2px 6px; font-size: 10px; background: #f0f0f0; border: 1px solid #bbb; border-radius: 4px; cursor: pointer; color: #004a99; font-weight: bold; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 4px 0; }
     </style>
 </head>
 <body>
 <div class="header-controls">
-    <button class="btn" style="background:#6c757d" onclick="openSettings()">⚙️</button>
-    <textarea id="jsonInput" placeholder="Dán JSON vào đây ông Thông ơi..."></textarea>
-    <button class="btn" style="background:#004a99" onclick="renderAll()">XUẤT BẢNG</button>
-    <button id="btnScreenshot" class="btn" style="background:#28a745; display:none;" onclick="captureReport()">ẢNH 📷</button>
-    <button id="btnMML" class="btn" style="background:#e67e22; display:none;" onclick="generateMMLReport()">TEXT 🚀</button>
-</div>
-<div id="reportOutput" onclick="copyAgain()"></div>
-<div id="screenshotArea">
-    <div id="skStore" class="sk-header-row" style="display:none;"></div>
-    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead id="skGroupsHead"></thead><tbody id="skGroupsBody"></tbody></table></div>
-    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table><colgroup id="colGroups"></colgroup><thead id="hHead"></thead><tbody id="hBody"></tbody></table></div>
-</div>
-<div class="overlay" id="overlay" onclick="closeSettings()"></div>
-<div class="settings-panel" id="settingsPanel">
-    <strong style="color:var(--primary); font-size:13px;">⚙️ BỘ STICKER ĐẦY ĐỦ CỦA ÔNG THÔNG</strong>
-    <div class="stk-tray" id="stkTray"></div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0;">
-        <div>Target DT (X):<input type="number" id="targetX" step="0.1" style="width:100%;"></div>
-        <div>Target NH (Y):<input type="number" id="targetY" step="0.1" style="width:100%;"></div>
+    <div class="input-row">
+        <textarea id="i1" placeholder="1. Sức khỏe"></textarea>
+        <textarea id="i2" placeholder="2. Nhân viên"></textarea>
+        <textarea id="i3" placeholder="3. Nhóm Hàng NV"></textarea>
+        <textarea id="i4" placeholder="4. Bán kèm"></textarea>
+        <textarea id="i5" placeholder="5. Trả chậm"></textarea>
     </div>
-    <div id="gList" style="border:1px solid #eee; padding:5px; margin-bottom:10px; max-height:120px; overflow-y:auto; font-size:10px;"></div>
-    <div id="sList" style="border:1px solid #eee; padding:5px; max-height:120px; overflow-y:auto; font-size:10px;"></div>
-    <button onclick="saveSettings()" style="width:100%; padding:15px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight:bold;">LƯU CÀI ĐẶT</button>
+    <div class="btn-group">
+        <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">⚙️</button>
+        <button class="btn" style="background:#004a99" onclick="masterProcess()">XUẤT BẢNG</button>
+        <button class="btn" style="background:#28a745" onclick="captureReport()">ẢNH 📷</button>
+        <button class="btn" style="background:#e67e22" onclick="generateFullReport()">TEXT 🚀</button>
+    </div>
 </div>
-<script>
-    let rawData = null, activeGsForReport = [], lastFocusedInput = null;
-    let config = JSON.parse(localStorage.getItem('tamHoaV24')) || { targetX: 1.0, targetY: 1.3, hiddenGroups: [], hiddenStaff: [], aliases: {} };
-    const DMX_KW = ["Tivi", "Tủ lạnh", "Máy giặt", "Máy lạnh", "Gia dụng", "Loa", "Máy lọc nước", "Quạt", "Bếp", "Nước nóng"];
-    // TRẢ LẠI FULL STICKER TRAY
-    const STICKERS = ["📱","📲","🤳","📑","💻","🖥️","🖱️","⌨️","🎧","👂","🔊","🎶","🎸","🔋","⚡","🔌","⌚","⏰","📺","📽️","🧊","❄️","🧺","🧼","🌡️","💵","💰","💸","🎯","🚀","🔥","🏎️","💪","👏","🏆","🏧","🏦","💳","📝","🤝","🧾","🛡️","✨","🆔","🎫","🌐","📶","📊","📉","🚂","✈️","📞","📄","🍎","🍏","🤖","🌌","🖼️","💎","🔭","🎮","👾","💼","🖋️","💾","🗄️","🗃️","🆕","⏩","🔮","🍀","🐉","♾️","🌪️","🍲","🍳","🥘","💧","🥛","🌬️","🍃","🔪","🥢","🥄","🏃","👦","👧","📈","📢","👥","🏷️","🧨","💥","👑","🎖️","🙌","👤","🕵️","👨‍👩‍👧‍👦","🥰","✅","🆘","🤯","🛠️","😊","👋","🙇","🗣️","💡","👨‍🔧","⚙️","🧹","🚪","🙋‍♂️","🙋‍♀️","🏹","🧗‍♂️","🏁","🚩","🥇","🏃‍♂️","💨","⚠️","🚨","🎆","🎇","🥂","✊","🔗","🧧","👇","👌","👍","👊","📦","🔴","🔵","📷","📡","炊","🏠","🛁","🛒","💹","🛵","🚲","🚗","🎁","🍕","🍺","☕","🥤","🥩","🌟","📣","📍","🧰","🖨️","🎤","🎹","🎻","🎺","📻","🎥","🌍"]
-;
+<div id="reportOutput"></div>
+<div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
+    <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
+    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+</div>
+<div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+    <strong style="color:var(--primary); font-size:15px; display:block; margin-bottom:10px; text-align: center;">⚙️ THIẾT LẬP HỆ THỐNG</strong>
+    <div id="stkTrayBox" style="display:none;"><div id="stkTrayContent"></div></div>
+    <div class="title-row"><span style="font-size:12px; font-weight:bold; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Bỏ/Chọn hết</button></div>
+    <div style="max-height: 180px; overflow-y: auto;"><table class="set-table"><tbody id="groupList"></tbody></table></div>
+    <div class="title-row"><span style="font-size:12px; font-weight:bold; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Bỏ/Chọn hết</button></div>
+    <div style="max-height: 180px; overflow-y: auto;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
+    <div class="bottom-actions"><button onclick="saveSettings(false)" style="padding:12px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight: bold;">LƯU ✅</button><button onclick="closeSettings()" style="padding:12px; background:#6c757d; color:#fff; border:none; border-radius:5px; font-weight: bold;">ĐÓNG ❌</button></div>
+</div>
 
-    const isDMX = (n) => DMX_KW.some(k => n.includes(k));
-    const getDN = (n) => config.aliases[n] || n.replace(/Thi đua doanh thu |Thi đua |Nhóm |hàng /gi, "").trim();
-    const getSN = (n) => config.aliases[n] || n.trim().split(" ").pop();
-    const getStkNum = (n) => String(n).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
-    function getFixedColor(pct) { return pct >= 100 ? "bg-good" : (pct >= 90 ? "bg-mid" : "bg-bad"); }
-    function getRankClasses(v, a, rev = false) {
-        if (!a || a.length < 2) return { bg: "bg-good" };
+<script>
+    let processedData = null, curGKey = null;
+    let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { x:1.0, y:1.0, groups:{}, staffs:{} };
+    const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉","🆂🅸🅼","🆅🅰🆂","📄","🍎","🍏","🤖","🌌","🖼️","💎","🔭","🎮","👾","💼","🖋️","💾","🗄️","🗃️","🆕","⏩","🔮","🍀","🐉","♾️","🌪️","🍲","🍳","🥘","💧","🥛","🌬️","🍃","🔪","🥢","🥄","🏃","👦","👧","📈","📢","👥","🏷️","🧨","💥","👑","🎖️","🙌","👤","🕵️","👨‍👩‍👧‍👦","🥰","✅","🆘","🤯","🛠️","😊","👋","🙇","🗣️","💡","👨‍🔧","⚙️","🧹","🚪","🙋‍♂️","🙋‍♀️","🏹","🧗‍♂️","🏁","🚩","🥇","🏃‍♂️","💨","⚠️","🚨","🎆","🎇","🥂","✊","🔗","🧧","👇","👌","👍","👊","📦","🔴","🔵","📡","炊","🏠","🛁","🛒","💹","🛵","🚲","🚗","🎁","🍕","🍺","☕","🥤","🥩","🌟","📣","📍","🧰","🖨️","🎤","🎹","🎻","🎺","📻","🎥","🌍",];
+
+    function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
+    const getDN = (id, useBigStk = true) => { const item = config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
+    const getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
+
+    function getRankColor(v, a, isNH = false, rev = false) {
+        if (v === 0 && !rev) return "bg-zero";
+        if (isNH) { if (v >= 100) return "bg-good"; if (v >= 80) return "bg-mid"; return "bg-bad"; }
+        if (!a || a.length < 2) return "";
         const u = [...new Set(a)].sort((x,y) => y-x);
         const r = u.indexOf(v) / (u.length - 1 || 1);
-        let f = rev ? (1 - r) : r;
-        return f <= 0.35 ? { bg: "bg-good" } : f <= 0.65 ? { bg: "bg-mid" } : { bg: "bg-bad" };
+        return (rev ? (1 - r) : r) <= 0.35 ? "bg-good" : (rev ? (1 - r) : r) <= 0.65 ? "bg-mid" : "bg-bad";
+    }
+
+    function toggleSelection(type) { const keys = Object.keys(config[type]); if (keys.length === 0) return; const anyChecked = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !anyChecked); openSettings(); }
+
+    function masterProcess() {
+        const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
+        if(!raw[0] || !raw[2]) return;
+        let storeInfo = { dt:0, t:0, p_total: 0, tg:"0%", groups:[] };
+        const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
+        l1.forEach((l, i) => {
+            if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+            if(l === "Target (QĐ)") storeInfo.t = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_total = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
+            if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
+            if(l.includes("Thi đua")) {
+                let groupName = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
+                let targetVal = 0, lkVal = 0, percentVal = 0;
+                for(let j=i+1; j<i+12; j++) {
+                    if(!l1[j]) break;
+                    if(l1[j] === "Target") targetVal = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j] === "DTLK" || l1[j] === "SLLK") lkVal = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j].includes("% HT Dự Kiến")) { percentVal = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
+                }
+                if(targetVal > 0) {
+                    storeInfo.groups.push({ n: groupName, t: targetVal, r: lkVal, p: percentVal });
+                    if(!config.groups[groupName]) config.groups[groupName] = { show:true, stk:"📦", alias: "" };
+                }
+            }
+        });
+        const l3 = raw[2].split('\n').map(l => l.trim());
+        let gNames = []; let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
+        if(hIdx !== -1) { for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); }
+        let sData = []; let isC = false;
+        l3.forEach(l => {
+            const p = l.split(/\t|\s{2,}/);
+            if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
+            if(isC && p[0].includes("-")) {
+                const excluded = ["Thông", "Nhung", "One", "Ca", "Long"];
+                if (!excluded.some(a => p[0].includes(a))) {
+                    let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
+                    gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
+                    sData.push(s); if(!config.staffs[id]) config.staffs[id] = { show:true, alias: "" };
+                }
+            }
+            if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
+        });
+        const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
+        const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.bk = parseFloat(p[5]) || 0; });
+        const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) s.tg = parseFloat(p[p.length-1]) || 0; });
+        processedData = { storeInfo, sData, gNames }; renderAll();
     }
 
     function renderAll() {
-        let s = document.getElementById('jsonInput').value.trim();
-        if(!s) return;
-        try {
-            rawData = JSON.parse(s.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, ""));
-            const info = rawData.storeInfo, X = parseFloat(config.targetX), Y = parseFloat(config.targetY);
-            const daysLeft = (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1) || 1;
-            activeGsForReport = info.groups.map((g, idx) => ({ ...g, forecastEp: g.p / Y, originalIdx: idx, isDMX: isDMX(g.n) }))
-                .filter(g => !config.hiddenGroups.includes(g.n) && (g.r > 0 || g.t > 0))
-                .sort((a, b) => (a.isDMX !== b.isDMX) ? (a.isDMX ? -1 : 1) : (b.p - a.p));
-            
-            document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET (x${X})</div><div class="sk-value">${Math.round(info.dtqd)}/${Math.round(info.target * X)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(info.percent/X)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${daysLeft} ngày</div><div class="sk-value">${Math.round(((info.target*X)-info.dtqd)/daysLeft)}tr</div><div class="sk-label">MỖI NGÀY</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${activeGsForReport.filter(g => g.p >= 100).length}/${activeGsForReport.length}</div></div>`;
-            
-            let gh = '<tr>', gb = '<tr>';
-            activeGsForReport.forEach(g => {
-                const luyKe = Math.round(g.r), targetGoc = Math.round(g.t), phanTram = Math.round(g.p), conLai = targetGoc - luyKe;
-                gh += `<th>${getDN(g.n)}</th>`;
-                gb += `<td class="${getFixedColor(phanTram)}">${phanTram}%<span class="num-sub">${luyKe}/${targetGoc}</span><span class="num-rem">${conLai > 0 ? 'C:'+conLai : '🏁'}</span></td>`;
-            });
-            document.getElementById('skGroupsHead').innerHTML = gh + '</tr>'; document.getElementById('skGroupsBody').innerHTML = gb + '</tr>';
-            document.getElementById('skGroups').style.display = 'block';
-
-            let h = '<tr><th class="sticky-col">TÊN</th><th>DT</th><th>BK</th><th>TG</th>';
-            activeGsForReport.forEach(g => h += `<th>${getDN(g.n)}</th>`);
-            h += '<th>BTM</th></tr>';
-            document.getElementById('hHead').innerHTML = h;
-            let colH = '<col class="sticky-col" style="width:50px;"><col style="width:30px;"><col style="width:25px;"><col style="width:25px;">';
-            activeGsForReport.forEach(() => colH += '<col style="width:35px;">');
-            document.getElementById('colGroups').innerHTML = colH + '<col style="width:25px;">';
-            
-            const staff = rawData.staffData.filter(s => !config.hiddenStaff.includes(s.name));
-            const gVals = activeGsForReport.map(g => staff.map(s => s.data[g.originalIdx] || 0));
-            let b = ''; const staffRes = staff.map(s => {
-                let btm = 0; activeGsForReport.forEach((g, i) => { if(getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg === 'bg-bad') btm++; });
-                return { ...s, btm };
-            });
-            staffRes.forEach(s => {
-                b += `<tr><td class="sticky-col">${getSN(s.name)}</td><td class="${getRankClasses(s.dt, staff.map(x=>x.dt)).bg}">${Math.round(s.dt)}</td><td class="${getRankClasses(s.bk, staff.map(x=>x.bk)).bg}">${Math.floor(s.bk)}%</td><td class="${getRankClasses(s.tg, staff.map(x=>x.tg)).bg}">${Math.round(s.tg)}%</td>`;
-                activeGsForReport.forEach((g, i) => b += `<td class="${getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg}">${Math.round(s.data[g.originalIdx] || 0)}</td>`);
-                b += `<td class="${getRankClasses(s.btm, staffRes.map(x=>x.btm), true).bg}"><b>${s.btm}</b></td></tr>`;
-            });
-            document.getElementById('hBody').innerHTML = b;
-            document.getElementById('skStore').style.display = 'flex'; document.getElementById('reportArea').style.display = 'block';
-            document.getElementById('btnMML').style.display = 'block'; document.getElementById('btnScreenshot').style.display = 'block';
-        } catch(e) { alert("Lỗi JSON!"); }
-    }
-
-    function generateMMLReport() {
-        if(!rawData) return;
-        const info = rawData.storeInfo; const staff = rawData.staffData.filter(s => !config.hiddenStaff.includes(s.name));
-        const X = parseFloat(config.targetX); const daysLeft = (new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1) || 1;
-        const coreGs = activeGsForReport.filter(g => !isDMX(g.n));
-        const groupsDat = coreGs.filter(g => g.p >= 100).map(g => getDN(g.n)).join(", ");
-        const groupsGan = coreGs.filter(g => g.p >= 80 && g.p < 100).map(g => `${getDN(g.n)} (${Math.round(g.p)}%)`).join(", ");
-        const groupsThap = coreGs.sort((a,b) => a.p - b.p).slice(0, 5);
-        const sortedDT = [...staff].sort((a,b) => b.dt - a.dt);
-        const gVals = activeGsForReport.map(g => staff.map(s => s.data[g.originalIdx] || 0));
-        const btmData = staff.map(s => {
-            let btm = 0; activeGsForReport.forEach((g, i) => { if(getRankClasses(s.data[g.originalIdx] || 0, gVals[i]).bg === 'bg-bad') btm++; });
-            return { name: getSN(s.name), btm: btm };
-        });
-        const uniqueValues = [...new Set(btmData.map(x => x.btm))].sort((a, b) => a - b);
-        const badValues = [...uniqueValues].filter(v => v > 0).reverse();
+        if(!processedData) return;
+        const { storeInfo, sData, gNames } = processedData;
+        const days = getRemainingDays();
+        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).sort((a,b) => b.p - a.p);
         
-        let r = `🚀 SỨC KHỎE SIÊU THỊ ĐẾN NGÀY ${new Date().getDate().toString().padStart(2,'0')}/${(new Date().getMonth()+1).toString().padStart(2,'0')} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: Đạt ${Math.round(info.dtqd)} / ${Math.round(info.target * X)}\n👉 Dự kiến: ${getStkNum(Math.round(info.percent/X))}% (Còn ${getStkNum(daysLeft)} ngày cuối)\n👉 Áp lực: ${getStkNum(Math.round(((info.target * X) - info.dtqd)/daysLeft))}tr/ngày.\n💸 Trả góp: ${Math.round(info.traGop)}%.\n📦 Nhóm hàng: Đạt ${activeGsForReport.filter(g => g.p >= 100).length} / ${activeGsForReport.length} nhóm.\n✅ Nhóm hoàn thành: ${groupsDat || 'Chưa có'}.\n🎯 Nhóm gần đạt: ${groupsGan || 'Chưa có'}.\n🛑 5 Nhóm thấp nhất (TGDĐ):\n`;
-        groupsThap.forEach((g, i) => r += `${getStkNum(i+1)} ${getDN(g.n)} (${Math.round(g.p)}%)\n`);
-        r += `\n👤 2. SỨC KHỎE NHÂN VIÊN\n💰 Doanh thu cá nhân:\n🌟 ${getSN(sortedDT[0].name)} và ${getSN(sortedDT[1].name)} dẫn đầu.\n🏃‍♂️ ${sortedDT.slice(-5).reverse().map(s => getSN(s.name)).join(", ")}: Doanh thu thấp.\n\n✨ Chỉ số Bán kèm (BK):\n👏 Tốt nhất: ${getSN([...staff].sort((a,b)=>b.bk-a.bk)[0].name)}.\n\n🎯 Nhóm hàng chiến lược (Bottom):\n🏅 Khen ngợi Top đầu:\n🌟 Dẫn đầu: ${btmData.filter(x => x.btm === uniqueValues[0]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")}.\n`;
-        if (uniqueValues[1] !== undefined) r += `👉 Theo sát: ${btmData.filter(x => x.btm === uniqueValues[1]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")}.\n`;
-        r += `Các bạn đang kiểm soát tốt chỉ số, duy trì phong độ giúp anh!\n\n`;
-        if (badValues[0] !== undefined) {
-            r += `💥 Cảnh báo Top cuối:\n🔴 Báo động: ${btmData.filter(x => x.btm === badValues[0]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")} nhóm hàng lùi sâu.\n`;
-            if (badValues[1] !== undefined) r += `⚠️ Áp chót: ${btmData.filter(x => x.btm === badValues[1]).map(x => x.name + ' ' + getStkNum(x.btm)).join(", ")} nhóm.\n`;
-            r += `Yêu cầu team nhóm dưới nắm thông tin và cải thiện chỉ số gấp giúp anh!\n\n`;
-        }
-        r += `💪 Team mình cập nhật sức khỏe, push số rực rỡ. GO! GO! 🚀🔥`;
-        document.getElementById('reportOutput').innerText = r; document.getElementById('reportOutput').style.display = 'block';
-        navigator.clipboard.writeText(r); alert("Đã Copy Báo Cáo!");
+        // Đã cập nhật số to rõ cho 5 ô tổng[cite: 1]
+        document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_total)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${days}N Mỗi ngày</div><div class="sk-value" style="color:red">${Math.round((storeInfo.t-storeInfo.dt)/days)}tr</div></div><div class="sk-card"><div class="sk-label">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.p >= 100).length}/${actG.length}</div></div>`;
+        
+        let gh = '', gb = '<tr>';
+        actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.p, [], true)}"><span class="main-percent">${Math.round(g.p)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.t)}</span><span class="remain-info">${g.t-g.r>0?'C:'+Math.round(g.t-g.r):'🏁'}</span></td>`; });
+        document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
+        const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
+        let mh = `<th class="sticky-col">TÊN</th><th class="fixed-col">DT</th><th class="fixed-col">BK</th><th class="fixed-col">TG</th><th class="fixed-col btm-header">BTM</th>`; 
+        visG.forEach(gn => mh += `<th>${getDN(gn)}</th>`);
+        document.getElementById('mh').innerHTML = mh; 
+        const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0)); 
+        const allBTM = [];
+        visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
+        let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s, idx) => {
+            let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
+            let row = `<tr><td class="sticky-col">${config.staffs[s.id]?.alias || getShort(s.id)}</td><td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td><td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td><td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td><td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
+            visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${getRankColor(val, gV[i])}">${Math.round(val)}</td>`; }); mb += row + `</tr>`;
+        });
+        document.getElementById('mb').innerHTML = mb; document.getElementById('skStore').style.display = 'grid'; document.getElementById('skGroups').style.display = 'block'; document.getElementById('reportArea').style.display = 'block';
     }
-    async function captureReport() {
-        const area = document.getElementById('screenshotArea');
-        const btn = document.getElementById('btnScreenshot'); btn.innerText = "...";
-        try { const canvas = await html2canvas(area, { scale: 2, backgroundColor: "#f0f2f5" }); const l = document.createElement('a'); l.download = "BaoCao.png"; l.href = canvas.toDataURL(); l.click(); } catch (e) { alert("Lỗi!"); }
-        btn.innerText = "ẢNH 📷";
+
+    async function captureReport() { const area = document.getElementById('screenshotArea'); try { const canvas = await html2canvas(area, { scale: 5, useCORS: true, width: area.scrollWidth, height: area.scrollHeight }); const link = document.createElement('a'); link.download = `TamHoa_V28_${new Date().getDate()}.png`; link.href = canvas.toDataURL("image/png"); link.click(); } catch (e) { alert("Lỗi xuất ảnh!"); } }
+
+    function generateFullReport() {
+        if (!processedData) return;
+        const { storeInfo, sData, gNames } = processedData;
+        const days = getRemainingDays();
+        const toStkNum = (n) => String(n).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
+        const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+        const medals = ["🥇", "🥈", "🥉"];
+        let actG = storeInfo.groups.filter(g => config.groups[g.n]?.show);
+        const fmtG = (list) => list.map(g => { const item = config.groups[g.n]; const stk = item.stk || "📦"; const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); return `${stk}${cleanStk(name)} ${Math.round(g.p)}%`; }).join(", ");
+        let hoanThanh = fmtG(actG.filter(g => g.p >= 100));
+        let ganDat = fmtG(actG.filter(g => g.p >= 80 && g.p < 100));
+        let canhBaoG = fmtG(actG.filter(g => g.p < 80));
+        const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn)); const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
+        let st = visS.map(s => { let btm = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if (getRankColor(v, gV[i]) === "bg-bad" || v === 0) btm++; } }); return { name: config.staffs[s.id]?.alias || getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; });
+        const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
+        
+        let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: ${toStkNum(Math.round(storeInfo.dt))}/${toStkNum(Math.round(storeInfo.t))} đạt ${Math.round(storeInfo.p_total)}%\n⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${Math.round((storeInfo.t-storeInfo.dt)/days)}tr/ngày để về đích nhé! 🏁\n💸 Góp ST: ${storeInfo.tg}\n📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.p >= 100).length)}/${toStkNum(actG.length)}\n`;
+        if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
+        if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
+        if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
+        
+        r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${Math.round(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " ơi, bứt phá doanh thu lên nào!\n\n";
+        r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung tư vấn thêm phụ kiện nhé!\n\n";
+        r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${Math.round(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${Math.round(s.tg)}%`).join(", ") + " ơi, tư vấn thêm gói trả góp cho khách nha.\n\n";
+        
+        r += `🎯 Nhóm hàng chiến lược:\n🏅 Khen ngợi làm tốt: `;
+        let sortBtm = [...st].sort((a,b) => a.btm - b.btm); r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở nhẹ: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
+        
+        const out = document.getElementById('reportOutput'); out.innerText = r; out.style.display = 'block'; 
+        const temp = document.createElement('textarea'); temp.value = r; document.body.appendChild(temp); temp.select();
+        try { document.execCommand('copy'); alert("Đã Copy Báo Cáo Tam Hòa V31.28! ✅"); } catch (err) { alert("Lỗi Copy, hãy copy thủ công trong khung vàng!"); }
+        document.body.removeChild(temp);
     }
+
     function openSettings() {
-        if(!rawData) return;
-        document.getElementById('stkTray').innerHTML = STICKERS.map(s => `<div class="stk-btn" onclick="insStk('${s}')">${s}</div>`).join('');
-        document.getElementById('targetX').value = config.targetX; document.getElementById('targetY').value = config.targetY;
-        document.getElementById('gList').innerHTML = rawData.storeInfo.groups.map(g => `<div style="display:flex;margin-bottom:5px;align-items:center;"><input type="checkbox" class="g-chk" data-name="${g.n}" ${config.hiddenGroups.includes(g.n)?'':'checked'}><span style="flex:1;font-size:9px;margin-left:3px;">${g.n}</span><input type="text" class="g-alias alias-input" data-orig="${g.n}" value="${config.aliases[g.n]||''}" onfocus="lastFocusedInput=this"></div>`).join("");
-        document.getElementById('sList').innerHTML = rawData.staffData.map(s => `<div style="display:flex;margin-bottom:5px;align-items:center;"><input type="checkbox" class="s-chk" data-name="${s.name}" ${config.hiddenStaff.includes(s.name)?'':'checked'}><span style="flex:1;font-size:9px;margin-left:3px;">${s.name}</span><input type="text" class="s-alias alias-input" data-orig="${s.name}" value="${config.aliases[s.name]||''}" onfocus="lastFocusedInput=this"></div>`).join("");
-        document.getElementById('overlay').style.display = 'block'; document.getElementById('settingsPanel').style.display = 'block';
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td class="col-tick"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td class="col-name" style="font-size:10px;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias}" onchange="config.staffs['${sid}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('setOverlay').style.display='block'; document.getElementById('settingsPanel').style.display='block';
     }
-    function insStk(s) { if(lastFocusedInput) { lastFocusedInput.value += s; lastFocusedInput.focus(); } }
-    function saveSettings() {
-        config.targetX = document.getElementById('targetX').value; config.targetY = document.getElementById('targetY').value;
-        config.hiddenGroups = Array.from(document.querySelectorAll('.g-chk')).filter(c => !c.checked).map(c => c.getAttribute('data-name'));
-        config.hiddenStaff = Array.from(document.querySelectorAll('.s-chk')).filter(c => !c.checked).map(c => c.getAttribute('data-name'));
-        document.querySelectorAll('.g-alias, .s-alias').forEach(i => { const o = i.getAttribute('data-orig'); if(i.value.trim()) config.aliases[o] = i.value.trim(); else delete config.aliases[o]; });
-        localStorage.setItem('tamHoaV24', JSON.stringify(config)); closeSettings(); renderAll();
-    }
-    function closeSettings() { document.getElementById('overlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; }
-    function copyAgain() { navigator.clipboard.writeText(document.getElementById('reportOutput').innerText); alert("Copy!"); }
+    function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
+    function applyStk(s) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); }
+    function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
+    function saveSettings(c = true) { localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); else alert("Đã lưu!"); }
 </script>
 </body>
 </html>
