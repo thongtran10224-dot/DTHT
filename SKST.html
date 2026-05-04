@@ -14,7 +14,6 @@
         .btn-group { display: flex; gap: 4px; margin-top: 5px; }
         .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
         
-        /* 5 Ô SỨC KHỎE TỔNG - ĐÃ ĐÔN SIZE[cite: 1] */
         .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
         .sk-card { background: #fff; padding: 5px 2px; border-radius: 4px; text-align: center; border-top: 4px solid var(--primary); min-height: 60px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .sk-label { font-size: 8px; font-weight: 950; color: #666; margin-bottom: 2px; }
@@ -28,7 +27,8 @@
         .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
         .btm-header { background: var(--highlight) !important; color: white !important; }
-        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .sticky-col:hover { background: #eef !important; color: var(--primary) !important; text-decoration: underline; }
         
         .bg-good { background-color: var(--success) !important; color: #006100 !important; } 
         .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; } 
@@ -43,6 +43,24 @@
 
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
         .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        
+        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 95vh; overflow-y: auto; box-sizing: border-box; }
+        #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
+        .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
+        .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .info-box { border: 1px solid #ddd; padding: 8px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
+        .info-label { font-size: 9px; color: #555; margin-bottom: 3px; font-weight: 900; }
+        .info-val { font-size: 15px; color: #000; font-weight: 950; }
+        .info-sub { font-size: 10px; color: #d63031; margin-top: 2px; font-weight: 900; }
+        .info-val-split { font-size: 12px; color: #000; font-weight: 950; text-align: left; padding-left: 5px; line-height: 1.4; }
+        .target-text { color: #666; font-size: 10px; font-weight: normal; }
+        
+        /* Chữ màu đen tiêu đề bảng soi nhân viên */
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th { background: #f0f0f0; font-size: 9px; padding: 5px; border: 1px solid #ccc; font-weight: 900; color: #000 !important; }
+        .detail-table td { font-size: 10px; padding: 6px 4px; border: 1px solid #ccc; font-weight: 900; text-align: center; }
+
         .set-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .set-table td { padding: 4px 2px; border-bottom: 1px solid #eee; }
         .col-tick { width: 20px; text-align: center; }
@@ -79,6 +97,7 @@
     <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
     <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
 </div>
+
 <div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
 <div class="settings-panel" id="settingsPanel">
     <strong style="color:var(--primary); font-size:15px; display:block; margin-bottom:10px; text-align: center;">⚙️ THIẾT LẬP HỆ THỐNG</strong>
@@ -88,6 +107,52 @@
     <div class="title-row"><span style="font-size:12px; font-weight:bold; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Bỏ/Chọn hết</button></div>
     <div style="max-height: 180px; overflow-y: auto;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
     <div class="bottom-actions"><button onclick="saveSettings(false)" style="padding:12px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight: bold;">LƯU ✅</button><button onclick="closeSettings()" style="padding:12px; background:#6c757d; color:#fff; border:none; border-radius:5px; font-weight: bold;">ĐÓNG ❌</button></div>
+</div>
+
+<div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
+<div class="detail-panel" id="dpDetail">
+    <div id="captureArea">
+        <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
+        <div id="stHeader" class="detail-subtitle">SỨC KHỎE SIÊU THỊ ĐẾN NGÀY...</div>
+        <div class="grid-info">
+            <div class="info-box">
+                <div class="info-label">LK / TARGET QUY ĐỔI</div>
+                <div id="box1" class="info-val">0 / 0</div>
+                <div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">MỤC TIÊU CÒN LẠI</div>
+                <div id="box2" class="info-val">0tr</div>
+                <div id="box2sub" class="info-sub">Cần chạy: 0tr/ngày</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">TRẢ GÓP & BÁN KÈM</div>
+                <div id="rowTG" class="info-val-split">💰 TG: 0% <span class="target-text">/ mục tiêu 60%</span></div>
+                <div id="rowBK" class="info-val-split">✨ BK: 0% <span class="target-text">/ target 20%</span></div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">NHÓM HÀNG CHIẾN LƯỢC</div>
+                <div id="box4" class="info-val">Đạt: 0/0</div>
+                <div id="box4sub" class="info-sub">Tốc độ về đích >= 100%</div>
+            </div>
+        </div>
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>NHÓM HÀNG</th>
+                    <th>TARGET</th>
+                    <th>LŨY KẾ</th>
+                    <th>DỰ KIẾN</th>
+                    <th>CÒN LẠI</th>
+                </tr>
+            </thead>
+            <tbody id="detBody"></tbody>
+        </table>
+    </div>
+    <div class="btn-group" style="margin-top:10px;">
+        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH GỬI ZALO 📷</button>
+        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
+    </div>
 </div>
 
 <script>
@@ -163,10 +228,7 @@
         const { storeInfo, sData, gNames } = processedData;
         const days = getRemainingDays();
         const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).sort((a,b) => b.p - a.p);
-        
-        // Đã cập nhật số to rõ cho 5 ô tổng[cite: 1]
         document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_total)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${days}N Mỗi ngày</div><div class="sk-value" style="color:red">${Math.round((storeInfo.t-storeInfo.dt)/days)}tr</div></div><div class="sk-card"><div class="sk-label">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.p >= 100).length}/${actG.length}</div></div>`;
-        
         let gh = '', gb = '<tr>';
         actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.p, [], true)}"><span class="main-percent">${Math.round(g.p)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.t)}</span><span class="remain-info">${g.t-g.r>0?'C:'+Math.round(g.t-g.r):'🏁'}</span></td>`; });
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
@@ -179,14 +241,65 @@
         visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
         let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s, idx) => {
             let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
-            let row = `<tr><td class="sticky-col">${config.staffs[s.id]?.alias || getShort(s.id)}</td><td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td><td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td><td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td><td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
+            let row = `<tr><td class="sticky-col" onclick="showStaffDetail('${s.id}')">${config.staffs[s.id]?.alias || getShort(s.id)}</td><td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td><td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td><td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td><td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
             visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${getRankColor(val, gV[i])}">${Math.round(val)}</td>`; }); mb += row + `</tr>`;
         });
         document.getElementById('mb').innerHTML = mb; document.getElementById('skStore').style.display = 'grid'; document.getElementById('skGroups').style.display = 'block'; document.getElementById('reportArea').style.display = 'block';
     }
 
-    async function captureReport() { const area = document.getElementById('screenshotArea'); try { const canvas = await html2canvas(area, { scale: 5, useCORS: true, width: area.scrollWidth, height: area.scrollHeight }); const link = document.createElement('a'); link.download = `TamHoa_V28_${new Date().getDate()}.png`; link.href = canvas.toDataURL("image/png"); link.click(); } catch (e) { alert("Lỗi xuất ảnh!"); } }
+    function showStaffDetail(sid) {
+        if(!processedData) return;
+        const { storeInfo, sData, gNames } = processedData;
+        const s = sData.find(x => x.id === sid);
+        const visS = sData.filter(x => config.staffs[x.id]?.show);
+        const slnv = visS.length || 1;
+        const daysTotal = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+        const daysPast = new Date().getDate();
+        const daysLeft = (daysTotal - daysPast + 1) || 1;
+        const t_nv = storeInfo.t / slnv;
+        const p_dk = ((s.dt / daysPast) * daysTotal / t_nv) * 100;
+        document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
+        document.getElementById('stHeader').innerText = `SỨC KHỎE SIÊU THỊ ĐẾN NGÀY ${daysPast}/${new Date().getMonth()+1}`;
+        document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv)}`;
+        document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk)}%`;
+        document.getElementById('box2').innerText = `${Math.round(t_nv - s.dt)}tr`;
+        document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round((t_nv - s.dt)/daysLeft)}tr`;
+        document.getElementById('rowTG').innerHTML = `💰 TG: ${Math.round(s.tg)}% <span class="target-text">/ mục tiêu 60%</span>`;
+        document.getElementById('rowBK').innerHTML = `✨ BK: ${Math.round(s.bk)}% <span class="target-text">/ target 20%</span>`;
+        let dat = 0; let items = [];
+        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show);
+        actG.forEach(gStore => {
+            const idx = gNames.indexOf(gStore.n);
+            if(idx !== -1) {
+                const t_g_nv = gStore.t / slnv;
+                const r_g_nv = s.data[idx] || 0;
+                const p_g_dk = ((r_g_nv / daysPast) * daysTotal / t_g_nv) * 100;
+                if(p_g_dk >= 100) dat++;
+                items.push({ name: gStore.n, t: t_g_nv, r: r_g_nv, p: p_g_dk });
+            }
+        });
+        items.sort((a,b) => b.p - a.p);
+        let body = '';
+        items.forEach(it => {
+            body += `<tr class="${it.p < 80 ? 'bg-bad' : (it.p >= 100 ? 'bg-good' : '')}">
+                <td style="text-align:left">${getDN(it.name, false)}</td>
+                <td>${Math.round(it.t)}</td>
+                <td>${Math.round(it.r)}</td>
+                <td>${Math.round(it.p)}%</td>
+                <td>${Math.max(0, Math.round((it.t - it.r)/daysLeft))}</td>
+            </tr>`;
+        });
+        document.getElementById('box4').innerText = `Đạt: ${dat}/${actG.length}`;
+        document.getElementById('detBody').innerHTML = body;
+        document.getElementById('ovDetail').style.display = 'block';
+        document.getElementById('dpDetail').style.display = 'block';
+    }
 
+    function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
+    async function captureStaffDetail() { const area = document.getElementById('captureArea'); const canvas = await html2canvas(area, { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `ChiTiet_${document.getElementById('stName').innerText}.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+    async function captureReport() { const area = document.getElementById('screenshotArea'); const canvas = await html2canvas(area, { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+
+    /* HỒI PHỤC LOGIC NHẬN XÉT CỦA ÔNG THÔNG[cite: 2] */
     function generateFullReport() {
         if (!processedData) return;
         const { storeInfo, sData, gNames } = processedData;
@@ -207,11 +320,9 @@
         if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
         if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
         if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
-        
         r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${Math.round(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " ơi, bứt phá doanh thu lên nào!\n\n";
         r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung tư vấn thêm phụ kiện nhé!\n\n";
         r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${Math.round(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${Math.round(s.tg)}%`).join(", ") + " ơi, tư vấn thêm gói trả góp cho khách nha.\n\n";
-        
         r += `🎯 Nhóm hàng chiến lược:\n🏅 Khen ngợi làm tốt: `;
         let sortBtm = [...st].sort((a,b) => a.btm - b.btm); r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở nhẹ: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
         
@@ -221,15 +332,16 @@
         document.body.removeChild(temp);
     }
 
+    /* HỒI PHỤC LOGIC CÀI ĐẶT STICKER[cite: 2] */
     function openSettings() {
-        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
         document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td class="col-tick"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td class="col-name" style="font-size:10px;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias}" onchange="config.staffs['${sid}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
         document.getElementById('setOverlay').style.display='block'; document.getElementById('settingsPanel').style.display='block';
     }
     function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
     function applyStk(s) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
-    function saveSettings(c = true) { localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); else alert("Đã lưu!"); }
+    function saveSettings(c = true) { localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); }
 </script>
 </body>
 </html>
