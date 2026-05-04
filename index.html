@@ -267,7 +267,7 @@ function renderDaily() {
 
     let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${tg}%\n\n`;
     const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
-    if(lowG.length > 0) { txt += `🔥 Nhóm Hàng Chưa Đạt:\n`; lowG.forEach(g => txt += `👉 ${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`); }
+    if(lowG.length > 0) { txt += `🔥 Nhóm Hàng Chưa Đạt:\n`; lowG.forEach(g => txt += ` ${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`); }
     document.getElementById('lienText').value = txt + footer;
     document.getElementById('outputArea').style.display = "block";
 }
