@@ -254,11 +254,11 @@ function renderDaily() {
     if (currentMode === 'now') {
         prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
         mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${dt}/${masterTarget}TR (${pDT}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Còn thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
-        footer = "\n🚀 Team mình PUSH SỐ GẤP 💪🔥";
+        footer = "\n🚀 Team mình nhận thông tin PUSH SỐ GẤP 💪🔥";
     } else if (currentMode === 'morning') {
         prefix = `☀️ KẾT THÚC CA SÁNG: `;
         mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${dt}/${masterTarget}TR (${pDT}%). 🚀` : `⚠️ Kết ca sáng: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
-        footer = "\n🚀 Team ca chiều PUSH SỐ GẤP! 🔥";
+        footer = "\n🚀 Team ca chiều nhận thông tin PUSH SỐ GẤP! 🔥";
     } else {
         prefix = `🏁 TỔNG KẾT NGÀY: `;
         mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${dt}/${masterTarget}TR (${pDT}%). 🏆` : `📉 Hôm nay về: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
@@ -267,7 +267,7 @@ function renderDaily() {
 
     let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${tg}%\n\n`;
     const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
-    if(lowG.length > 0) { txt += `🔥 PUSH SỐ GẤP:\n`; lowG.forEach(g => txt += `👉 ${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`); }
+    if(lowG.length > 0) { txt += `🔥 Nhóm Hàng Chưa Đạt:\n`; lowG.forEach(g => txt += `👉 ${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`); }
     document.getElementById('lienText').value = txt + footer;
     document.getElementById('outputArea').style.display = "block";
 }
