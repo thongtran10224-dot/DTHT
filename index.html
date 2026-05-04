@@ -139,7 +139,7 @@ function captureReport() {
     btn.innerText = "⏳ ĐANG CHỤP...";
     window.scrollTo(0,0);
     setTimeout(() => {
-        html2canvas(area, { scale: 3, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
+        html2canvas(area, { scale: 10, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
             const link = document.createElement('a'); link.download = `TamHoa_${document.getElementById('outFooterTime').innerText}.png`;
             link.href = canvas.toDataURL("image/png"); link.click();
             btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
