@@ -295,14 +295,13 @@ async function generateAIReport() {
     const API_KEY = "AIzaSyBo3nUKRX2J6KBUKL6j3ymx8P9HuWTVHAU"; 
 
     if (!reportBox.value.trim() || allParsedGroups.length === 0) {
-        alert("Chưa có số liệu kìa ông Thông!");
+        alert("Chưa có số liệu kìa ông Thông! Dán dữ liệu BI rồi bấm Xuất Chiến trước nhé.");
         return;
     }
 
     btn.innerText = "⏳ AI ĐANG SUY NGHĨ...";
     aiDisplay.innerText = "Đang kết nối bộ não Gemini 1.5...";
 
-    // Chuẩn bị dữ liệu thô cho AI tự "soi"
     const rawData = allParsedGroups.map(g => `${g.name}: đạt ${Math.round(g.p)}%`).join(", ");
     const currentStatus = reportBox.value;
 
@@ -317,8 +316,8 @@ async function generateAIReport() {
     5. Mỗi câu 1 sticker nổi bật ở đầu dòng.`;
 
     try {
-        // Cấu hình URL chuẩn xác nhất của Google v1beta
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+        // --- ĐÂY LÀ URL ĐÃ SỬA ĐỂ HẾT LỖI 404 ---
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -336,19 +335,17 @@ async function generateAIReport() {
             const aiText = result.candidates[0].content.parts[0].text.trim();
             aiDisplay.innerText = aiText;
             
-            // Chèn nhận xét vào khung chữ để copy qua Lien
             const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
             reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT:\n${aiText}`;
             btn.innerText = "✅ AI ĐÃ XONG!";
         } else {
-            // Nếu API trả về lỗi nhưng không sập mạng
-            console.error("Phản hồi từ Google:", result);
+            console.error("Phản hồi lỗi từ Google:", result);
             throw new Error("AI_RESPONSE_EMPTY");
         }
 
     } catch (error) {
         console.error("Lỗi chi tiết:", error);
-        // Bộ não dự phòng thông minh tại chỗ nếu đứt kết nối Google
+        // Bộ não dự phòng thông minh tại chỗ
         let backup = "";
         const low = allParsedGroups.filter(g => g.t > 0 && g.p < 100).map(g => g.name).slice(0, 2).join(", ");
         
