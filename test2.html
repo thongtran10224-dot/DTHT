@@ -300,25 +300,26 @@ async function generateAIReport() {
     }
 
     btn.innerText = "⏳ AI ĐANG SUY NGHĨ...";
-    aiDisplay.innerText = "Đang kết nối bộ não Gemini qua GitHub...";
+    aiDisplay.innerText = "Đang kết nối bộ não Gemini 1.5...";
 
-    const dataContext = JSON.stringify(allParsedGroups);
-    const reportContext = reportBox.value;
+    // Chuẩn bị dữ liệu thô cho AI tự "soi"
+    const rawData = allParsedGroups.map(g => `${g.name}: đạt ${Math.round(g.p)}%`).join(", ");
+    const currentStatus = reportBox.value;
 
-    const promptText = `Bạn là Quản lý siêu thị Tam Hòa. Hãy đọc báo cáo này: "${reportContext}" 
-    Dữ liệu chi tiết: ${dataContext}
-    Nhiệm vụ: Viết 3-4 câu nhận xét CÓ HỒN, ngắn gọn, đầy sticker.
+    const promptText = `Bạn là quản lý siêu thị Tam Hòa. Hãy đọc báo cáo này: "${currentStatus}". 
+    Dữ liệu % các nhóm: ${rawData}.
+    Hãy viết 3-4 câu nhận xét thật "có hồn", thân mật, thiện cảm.
     Quy tắc:
-    1. Tuyệt đối KHÔNG dùng từ "bạn" hoặc "nhân viên".
-    2. Xưng hô thân mật: "anh em", "team mình", "cả nhà".
-    3. Tự nhận diện: Cuối ngày chúc ngủ ngon; Kết ca sáng nhắc ca chiều; Hiện tại đôn đốc.
-    4. Khen nhóm đạt (%), nhắc cụ thể nhóm chưa đạt để push số.
-    5. Mỗi câu 1 sticker nổi bật đầu dòng.`;
+    1. Tuyệt đối không dùng từ "bạn" hoặc "nhân viên".
+    2. Xưng hô "anh em", "team mình", "cả nhà".
+    3. Phải phân loại: Khen nhóm đạt (%), nhắc nhẹ nhóm gần đạt (>70%), và PUSH GẤP nhóm 0% hoặc thấp.
+    4. Nếu là 'Cuối ngày' thì chúc ngủ ngon, ngày mai bù số; 'Kết ca sáng' nhắc bàn giao ca chiều; 'Hiện tại' thì đôn đốc.
+    5. Mỗi câu 1 sticker nổi bật ở đầu dòng.`;
 
     try {
-        // --- ĐÂY LÀ ĐƯỜNG DẪN ĐÃ CHỈNH SỬA ĐỂ HẾT LỖI 404 ---
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-        
+        // Cấu hình URL chuẩn xác nhất của Google v1beta
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -329,24 +330,38 @@ async function generateAIReport() {
             })
         });
 
-        if (!response.ok) {
-            const err = await response.json();
-            console.error("Lỗi từ Google:", err);
-            throw new Error("API_ERROR");
-        }
-
         const result = await response.json();
-        const aiText = result.candidates[0].content.parts[0].text.trim();
-
-        aiDisplay.innerText = aiText;
-        const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
-        reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT:\n${aiText}`;
-        btn.innerText = "✅ AI ĐÃ XONG!";
+        
+        if (result.candidates && result.candidates[0].content) {
+            const aiText = result.candidates[0].content.parts[0].text.trim();
+            aiDisplay.innerText = aiText;
+            
+            // Chèn nhận xét vào khung chữ để copy qua Lien
+            const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
+            reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT:\n${aiText}`;
+            btn.innerText = "✅ AI ĐÃ XONG!";
+        } else {
+            // Nếu API trả về lỗi nhưng không sập mạng
+            console.error("Phản hồi từ Google:", result);
+            throw new Error("AI_RESPONSE_EMPTY");
+        }
 
     } catch (error) {
         console.error("Lỗi chi tiết:", error);
-        aiDisplay.innerText = "Vẫn lỗi kết nối API, ông xem lại Key có bị giới hạn vùng không nhé!";
-        btn.innerText = "❌ LỖI API";
+        // Bộ não dự phòng thông minh tại chỗ nếu đứt kết nối Google
+        let backup = "";
+        const low = allParsedGroups.filter(g => g.t > 0 && g.p < 100).map(g => g.name).slice(0, 2).join(", ");
+        
+        if (currentStatus.includes("CUỐI NGÀY")) {
+            backup = `🌟 Cảm ơn anh em Tam Hòa đã nỗ lực cả ngày. Nhóm ${low || 'số liệu'} chưa đạt thì mai mình bù số nhé. Chúc cả nhà ngủ ngon! 😴`;
+        } else {
+            backup = `🚀 Team mình ơi, nỗ lực đẩy mạnh nhóm ${low || 'số liệu'} nhé. Anh em tập trung ra số quyết liệt để về đích rực rỡ nào! 🔥`;
+        }
+        
+        aiDisplay.innerText = backup;
+        const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
+        reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT (Offline):\n${backup}`;
+        btn.innerText = "⚠️ ĐÃ SOI XONG";
     }
 }
 function copyToLien() {
