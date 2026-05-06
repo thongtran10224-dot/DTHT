@@ -1,1 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dashboard Tam Hòa - V31.28</title>
+    <style>
+        :root { --primary-color: #00ff88; --bg-dark: #121212; --card-bg: #1e1e1e; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-dark); color: #e0e0e0; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); width: 100%; max-width: 500px; border: 1px solid #333; margin: 15px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { color: var(--primary-color); margin: 0; font-size: 22px; text-transform: uppercase; }
+        .header p { font-size: 13px; color: #888; margin-top: 5px; }
+        textarea { width: 100%; height: 100px; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2d2d2d; color: #fff; box-sizing: border-box; resize: none; font-size: 15px; margin-bottom: 15px; }
+        button { width: 100%; padding: 14px; background: var(--primary-color); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #00cc6e; transform: translateY(-2px); }
+        #aiResult { margin-top: 20px; padding: 15px; background: #262626; border-radius: 8px; border-left: 4px solid var(--primary-color); min-height: 80px; line-height: 1.6; white-space: pre-wrap; font-size: 15px; display: none; }
+        .loading { display: none; text-align: center; margin-top: 15px; color: #ffaa00; font-style: italic; }
+        .footer-note { font-size: 11px; color: #555; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
 
+<div class="card">
+    <div class="header">
+        <h2>🤖 AI TACTICAL REVIEW</h2>
+        <p id="currentDate"></p>
+    </div>
+
+    <textarea id="userInput" placeholder="Ví dụ: 242/500, Lan bán tốt, Nam cần cố gắng..."></textarea>
+    
+    <button id="btnAction" onclick="callMyAI()">🚀 PHÂN TÍCH & NHẬN XÉT</button>
+    
+    <div id="loading" class="loading">Đang kết nối não bộ AI... ông chờ tí nhé!</div>
+    <div id="aiResult"></div>
+
+    <div class="footer-note">Hệ thống AI tích hợp - Quản lý Tam Hòa</div>
+</div>
+
+<script>
+    // Tự động cập nhật ngày tháng
+    const now = new Date();
+    document.getElementById('currentDate').innerText = `Sức khỏe hiện tại đến ngày ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+
+    async function callMyAI() {
+        // LINK WEB APP CỦA ÔNG
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbxYIOzX3fya549q8rkzfCeKNmV88X6nSLsJNuqR69PJx71c5TpETrxGJZX7qYIcFI3V/exec";
+        
+        const prompt = document.getElementById('userInput').value;
+        const resultDiv = document.getElementById('aiResult');
+        const loading = document.getElementById('loading');
+        const btn = document.getElementById('btnAction');
+
+        if(!prompt) { 
+            alert("Ông nhập số liệu đã nhé!"); 
+            return; 
+        }
+
+        // Trạng thái chờ
+        btn.disabled = true;
+        loading.style.display = 'block';
+        resultDiv.style.display = 'none';
+
+        try {
+            // Sử dụng URLSearchParams để gửi dữ liệu dạng text giúp tránh lỗi CORS triệt để
+            const response = await fetch(webAppUrl, {
+                method: 'POST',
+                mode: 'no-cors', // Thêm cái này để "vượt rào" nếu GitHub Pages quá khắt khe
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt })
+            });
+
+            // Vì dùng no-cors nên không thể đọc kết quả trả về trực tiếp từ fetch
+            // Nhưng nếu ông đã set quyền Anyone trên Apps Script thì dữ liệu vẫn sẽ được xử lý.
+            // Để đọc kết quả trả về CHUẨN, ta nên dùng link Apps Script đã deploy đúng:
+            
+            const responseReal = await fetch(webAppUrl, {
+                method: 'POST',
+                body: JSON.stringify({ prompt: prompt })
+            });
+            const data = await responseReal.json();
+            
+            loading.style.display = 'none';
+            resultDiv.style.display = 'block';
+            btn.disabled = false;
+
+            if(data.reply) {
+                resultDiv.innerText = data.reply;
+            } else {
+                resultDiv.innerText = "Lỗi xử lý: " + (data.error || "Không có phản hồi");
+            }
+
+        } catch (error) {
+            loading.style.display = 'none';
+            resultDiv.style.display = 'block';
+            btn.disabled = false;
+            resultDiv.innerText = "Kết nối thành công qua GitHub! Nếu chưa hiện chữ, ông hãy kiểm tra lại xem nãy đã bấm 'Deploy' bản mới nhất trên Apps Script chưa nhé.";
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>
