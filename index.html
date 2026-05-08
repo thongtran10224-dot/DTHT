@@ -191,11 +191,21 @@ function saveSettings() {
     closeSettings(); renderDaily();
 }
 function renderDaily() {
-    const raw = document.getElementById('inpRaw').value, dt = parseFloat(document.getElementById('inpDT').value) || 0, tg = parseFloat(document.getElementById('inpTG').value) || 0, time = document.getElementById('inpTime').value;
+    const raw = document.getElementById('inpRaw').value, 
+          dt = parseFloat(document.getElementById('inpDT').value) || 0, 
+          tg = parseFloat(document.getElementById('inpTG').value) || 0, 
+          time = document.getElementById('inpTime').value;
+    
     if(!raw) return;
+    
     const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== "");
-    allParsedGroups = []; let groupIndices = [];
-    for (let i = 0; i < lines.length; i++) if (lines[i].startsWith("Thi đua ") && !lines[i].includes("BC Thi đua") && lines[i].length < 60) groupIndices.push(i);
+    allParsedGroups = []; 
+    let groupIndices = [];
+    
+    for (let i = 0; i < lines.length; i++) 
+        if (lines[i].startsWith("Thi đua ") && !lines[i].includes("BC Thi đua") && lines[i].length < 60) 
+            groupIndices.push(i);
+            
     for (let k = 0; k < groupIndices.length; k++) {
         let startIdx = groupIndices[k], endIdx = (k < groupIndices.length - 1) ? groupIndices[k+1] : lines.length;
         let name = trimName(lines[startIdx]), r = 0, t = 0, p = 0;
@@ -206,40 +216,56 @@ function renderDaily() {
         }
         allParsedGroups.push({ name, r, t, p });
     }
+
     document.getElementById('outDTStr').innerText = dt + "/" + masterTarget;
     const pDT = ((dt / masterTarget) * 100).toFixed(1);
     document.getElementById('outDTPct').innerText = Math.round(pDT) + "%";
     document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
     document.getElementById('outTGVal').innerText = tg + "%";
     document.getElementById('outFooterTime').innerText = time;
+
     let displayList = allParsedGroups.filter(g => groupConfigs[g.name]?.visible !== false);
     displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
-    let gridHtml = ""; let datCount = 0;
+    
+    let gridHtml = ""; 
+    let datCount = 0;
     displayList.forEach(g => {
         if(g.t > 0 && g.p >= 100) datCount++;
         let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
         let finalName = groupConfigs[g.name]?.nickname || g.name;
         gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${Math.round(g.r)}${g.t>0 ? '/'+Math.round(g.t) : ''}</div><div class="group-pct ${pCl}">${Math.round(g.p)}%</div></div></div>`;
     });
+    
     document.getElementById('outGrid').innerHTML = gridHtml;
-    document.getElementById('outDatCount').innerText = `${datCount}/${displayList.filter(x=>x.t>0).length}`;
+    const totalGroups = displayList.filter(x=>x.t>0).length;
+    document.getElementById('outDatCount').innerText = `${datCount}/${totalGroups}`;
+
+    // Hàm chuyển đổi số sang sticker (Dành cho 3 chỉ số quan trọng)
+    const toSticker = (num) => {
+        const stickers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
+        return num.toString().split('').map(d => d === '.' ? '.' : (stickers[parseInt(d)] || d)).join('');
+    };
+
     let prefix = "", mainStatus = "", footer = "";
     if (currentMode === 'now') {
         prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
-        mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${dt}/${masterTarget}TR (${pDT}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Còn thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
+        mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Còn thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
         footer = "\n🚀 Team mình nhận thông tin PUSH SỐ GẤP 💪🔥";
     } else if (currentMode === 'morning') {
         prefix = `☀️ KẾT THÚC CA SÁNG: `;
-        mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${dt}/${masterTarget}TR (${pDT}%). 🚀` : `⚠️ Kết ca sáng: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
+        mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). 🚀` : `⚠️ Kết ca sáng: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
         footer = "\n🚀 Team ca chiều nhận thông tin PUSH SỐ GẤP! 🔥";
     } else {
         prefix = `🏁 TỔNG KẾT NGÀY: `;
-        mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${dt}/${masterTarget}TR (${pDT}%). 🏆` : `📉 Hôm nay về: ${dt}/${masterTarget}TR (${pDT}%)\n👉 Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
+        mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). 🏆` : `📉 Hôm nay về: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
         footer = "\nCám ơn team, chúc cả nhà ngủ ngon! 😴";
     }
-    let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${tg}%\n\n`;
+
+    let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${toSticker(tg)}%\n🎯 SỐ NHÓM ĐẠT: ${toSticker(datCount)}/${toSticker(totalGroups)}\n\n`;
+
     const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
     const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
+    
     if(highG.length > 0) { 
         txt += `✅ NHÓM ĐÃ ĐẠT:\n`; 
         highG.forEach(g => {
@@ -255,6 +281,7 @@ function renderDaily() {
             txt += `${groupConfigs[g.name]?.sticker || "📦"} ${n}: ${Math.round(g.p)}%\n`;
         }); 
     }
+    
     document.getElementById('lienText').value = txt + footer;
     document.getElementById('outputArea').style.display = "block";
 }
