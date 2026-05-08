@@ -276,8 +276,8 @@
         document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk)}%`;
         document.getElementById('box2').innerText = `${Math.round(t_nv - s.dt)}tr`;
         document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round((t_nv - s.dt)/daysLeft)}tr`;
-        document.getElementById('rowTG').innerHTML = `💰 TG: ${Math.round(s.tg)}% <span class="target-text">/ mục tiêu 60%</span>`;
-        document.getElementById('rowBK').innerHTML = `✨ BK: ${Math.round(s.bk)}% <span class="target-text">/ target 20%</span>`;
+        document.getElementById('rowTG').innerHTML = `💰 TG: ${Math.round(s.tg)}% <span class="target-text">/ 60%</span>`;
+        document.getElementById('rowBK').innerHTML = `✨ BK: ${Math.round(s.bk)}% <span class="target-text">/ 20%</span>`;
         let dat = 0; let items = [];
         const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show);
         actG.forEach(gStore => {
