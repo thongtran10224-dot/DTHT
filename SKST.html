@@ -3,98 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-    <title>Tam Hòa Master V31.28 - Quản lý Thông</title>
+    <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+.info-sub { 
+    font-size: 11px !important; 
+    color: #d63031 !important; /* Đỏ đậm cảnh báo */
+    margin-top: 2px !important; 
+    font-weight: 950 !important; 
+    display: block !important;
+}
         :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .input-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
-        textarea { width: 100%; height: 35px; font-size: 8px; border: 1px solid #ccc; border-radius: 4px; padding: 4px; box-sizing: border-box; }
+        textarea { width: 100%; height: 60px !important; font-size: 13px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 8px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
         .btn-group { display: flex; gap: 4px; margin-top: 5px; }
         .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
-        
         .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
         .sk-card { background: #fff; padding: 5px 2px; border-radius: 4px; text-align: center; border-top: 4px solid var(--primary); min-height: 60px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .sk-label { font-size: 8px; font-weight: 950; color: #666; margin-bottom: 2px; }
         .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
-
         .sk-groups-wrapper, .excel-table-wrapper { background: white; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; border: 1px solid #aaa; width: 100%; }
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
         thead th { background: var(--primary); color: white; font-size: 9px; }
-        
         .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
-        .btm-header { background: var(--highlight) !important; color: white !important; }
         .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .sticky-col:hover { background: #eef !important; color: var(--primary) !important; text-decoration: underline; }
-        
         .bg-good { background-color: var(--success) !important; color: #006100 !important; } 
         .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; } 
         .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
         .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
-
-        #reportOutput { display:none; background:#fffbe6; padding:10px; margin-bottom:10px; border: 2px solid #e67e22; font-size: 11px; white-space: pre-wrap; border-radius: 4px; line-height: 1.5; }
-        
-        .sk-groups-table td span.main-percent { display:block; font-size:11px; font-weight:900; }
+        .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
         .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
         .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
-
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
         .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
-        
-        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 95vh; overflow-y: auto; box-sizing: border-box; }
+        #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
+        .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
+        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
         #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
         .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
         .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .info-box { border: 1px solid #ddd; padding: 8px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
-        .info-label { font-size: 9px; color: #555; margin-bottom: 3px; font-weight: 900; }
-        .info-val { font-size: 15px; color: #000; font-weight: 950; }
-        .info-sub { font-size: 10px; color: #d63031; margin-top: 2px; font-weight: 900; }
-        .info-val-split { 
-            font-size: 15px; /* Tăng cỡ chữ tổng thể của dòng */
-            color: #000; 
-            font-weight: 950; 
-            text-align: left; 
-            padding-left: 8px; 
-            line-height: 1.8; /* Giãn dòng ra một chút cho thoáng */
-        }
-        .target-text { 
-            color: #000 !important; /* Chuyển từ màu xám sang đen tuyền */
-            font-size: 14px !important; /* Tăng kích thước cho bằng với số % bên cạnh */
-            font-weight: 950 !important; /* Làm siêu đậm */
-            opacity: 1 !important; /* Bỏ độ mờ, hiển thị rõ nét 100% */
-        }
-        
-        /* Chữ màu đen tiêu đề bảng soi nhân viên */
+        .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
+        .info-val { 
+    font-size: 18px; 
+    color: var(--primary); /* Đổi từ #000 sang xanh dương chuẩn */
+    font-weight: 950; 
+}
+        .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
         .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .detail-table th { background: #f0f0f0; font-size: 9px; padding: 5px; border: 1px solid #ccc; font-weight: 900; color: #000 !important; }
-        .detail-table td { font-size: 10px; padding: 6px 4px; border: 1px solid #ccc; font-weight: 900; text-align: center; }
-
-        .set-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        .set-table td { padding: 4px 2px; border-bottom: 1px solid #eee; }
-        .col-tick { width: 20px; text-align: center; }
-        .col-stk { width: 30px; text-align: center; }
-        .col-name { min-width: 80px; }
-        .alias-input { width: 95%; font-size: 11px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; }
-        #stkTrayBox { border: 2px solid var(--highlight); padding: 8px; margin-bottom: 10px; border-radius: 8px; background: #fffaf5; }
-        #stkTrayContent { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
-        .stk-item { font-size: 20px; cursor: pointer; text-align: center; padding: 2px; }
-        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .toggle-all-btn { float: right; padding: 2px 6px; font-size: 10px; background: #f0f0f0; border: 1px solid #bbb; border-radius: 4px; cursor: pointer; color: #004a99; font-weight: bold; }
-        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 4px 0; }
+        .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
+        .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
+        .boost-box { background: #fffbe6; padding: 10px; border-radius: 8px; border: 2px solid orange; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-around; }
+        .boost-item { display: flex; align-items: center; gap: 5px; font-weight: 950; font-size: 13px; color: #d35400; }
+        .boost-input { width: 55px; text-align: center; font-weight: 950; border: 2px solid #000; border-radius: 4px; padding: 6px; font-size: 15px; }
+        .set-table td { padding: 10px 5px !important; border-bottom: 1px solid #ddd !important; }
+        .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
+        .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        
+        /* FIX Ô TÌM KIẾM TRONG CÀI ĐẶT */
+        .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
     </style>
 </head>
 <body>
 <div class="header-controls">
     <div class="input-row">
-        <textarea id="i1" placeholder="1. Sức khỏe ST"></textarea>
-        <textarea id="i2" placeholder="2. Doanh Thu NV"></textarea>
-        <textarea id="i3" placeholder="3. Nhóm Hàng NV"></textarea>
-        <textarea id="i4" placeholder="4. Bán kèm NV"></textarea>
-        <textarea id="i5" placeholder="5. Trả chậm NV"></textarea>
+        <textarea id="i1" placeholder="1.SKST"></textarea>
+        <textarea id="i2" placeholder="2.DTNV"></textarea>
+        <textarea id="i3" placeholder="3.NHNV"></textarea>
+        <textarea id="i4" placeholder="4.BKNV"></textarea>
+        <textarea id="i5" placeholder="5.TGNV"></textarea>
     </div>
     <div class="btn-group">
         <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">Cài Đặt ⚙️</button>
@@ -112,67 +95,55 @@
 
 <div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
 <div class="settings-panel" id="settingsPanel">
-    <strong style="color:var(--primary); font-size:15px; display:block; margin-bottom:10px; text-align: center;">⚙️ THIẾT LẬP HỆ THỐNG</strong>
-    <div id="stkTrayBox" style="display:none;"><div id="stkTrayContent"></div></div>
-    <div class="title-row"><span style="font-size:12px; font-weight:bold; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Bỏ/Chọn hết</button></div>
-    <div style="max-height: 180px; overflow-y: auto;"><table class="set-table"><tbody id="groupList"></tbody></table></div>
-    <div class="title-row"><span style="font-size:12px; font-weight:bold; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Bỏ/Chọn hết</button></div>
-    <div style="max-height: 180px; overflow-y: auto;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
-    <div class="bottom-actions"><button onclick="saveSettings(false)" style="padding:12px; background:#28a745; color:#fff; border:none; border-radius:5px; font-weight: bold;">LƯU ✅</button><button onclick="closeSettings()" style="padding:12px; background:#6c757d; color:#fff; border:none; border-radius:5px; font-weight: bold;">ĐÓNG ❌</button></div>
+    <strong style="color:var(--primary); font-size:16px; display:block; margin-bottom:15px; text-align: center;">⚙️ THIẾT LẬP HỆ THỐNG</strong>
+    <div class="boost-box">
+        <div class="boost-item"><span>🚀 DT x</span><input type="number" id="boostDT" step="0.1" class="boost-input" value="1.0"></div>
+        <div class="boost-item"><span>📦 NH x</span><input type="number" id="boostNH" step="0.1" class="boost-input" value="1.0"></div>
+    </div>
+    <div class="display-toggle-box" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
+        <div class="toggle-item"><input type="checkbox" id="showDT" checked><span>DT</span></div>
+        <div class="toggle-item"><input type="checkbox" id="showBK" checked><span>BK</span></div>
+        <div class="toggle-item"><input type="checkbox" id="showTG" checked><span>TG</span></div>
+        <div class="toggle-item"><input type="checkbox" id="showBTM" checked><span>BTM</span></div>
+    </div>
+    <!-- FIX: Ô TÌM KIẾM KHÔNG BỊ TRÀN -->
+    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="TÌM NHÓM HÀNG..." class="search-box">
+    <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
+    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Bỏ/Chọn hết</button></div>
+    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="groupList"></tbody></table></div>
+    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="TÌM TÊN NHÂN VIÊN..." class="search-box">
+    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Bỏ/Chọn hết</button></div>
+    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
+    <div class="bottom-actions"><button onclick="saveSettings(false)" style="padding:14px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button><button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button></div>
 </div>
 
 <div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
 <div class="detail-panel" id="dpDetail">
     <div id="captureArea">
         <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
-        <div id="stHeader" class="detail-subtitle">SỨC KHỎE SIÊU THỊ ĐẾN NGÀY...</div>
+        <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
         <div class="grid-info">
-            <div class="info-box">
-                <div class="info-label">LK / TARGET QUY ĐỔI</div>
-                <div id="box1" class="info-val">0 / 0</div>
-                <div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div>
-            </div>
-            <div class="info-box">
-                <div class="info-label">MỤC TIÊU CÒN LẠI</div>
-                <div id="box2" class="info-val">0tr</div>
-                <div id="box2sub" class="info-sub">Cần chạy: 0tr/ngày</div>
-            </div>
-            <div class="info-box">
-                <div class="info-label">TRẢ GÓP & BÁN KÈM</div>
-                <div id="rowTG" class="info-val-split">💰 TG: 0% <span class="target-text">/ mục tiêu 60%</span></div>
-                <div id="rowBK" class="info-val-split">✨ BK: 0% <span class="target-text">/ target 20%</span></div>
-            </div>
-            <div class="info-box">
-                <div class="info-label">NHÓM HÀNG CHIẾN LƯỢC</div>
-                <div id="box4" class="info-val">Đạt: 0/0</div>
-                <div id="box4sub" class="info-sub">Tốc độ về đích >= 100%</div>
-            </div>
+            <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
+            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
+            <div class="info-box"><div class="info-label"></div><div id="rowTG" style="font-size:14px; font-weight:950;">💰 TG: 0%</div><div id="rowBK" style="font-size:14px; font-weight:950;">✨ BK: 0%</div></div>
+            <div class="info-box"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
         </div>
         <table class="detail-table">
-            <thead>
-                <tr>
-                    <th>NHÓM HÀNG</th>
-                    <th>TARGET</th>
-                    <th>LŨY KẾ</th>
-                    <th>DỰ KIẾN</th>
-                    <th>CÒN LẠI</th>
-                </tr>
-            </thead>
+            <thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead>
             <tbody id="detBody"></tbody>
         </table>
     </div>
-    <div class="btn-group" style="margin-top:10px;">
-        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH GỬI ZALO 📷</button>
-        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
-    </div>
+    <div class="btn-group" style="margin-top:10px;"><button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button><button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button></div>
 </div>
 
 <script>
     let processedData = null, curGKey = null;
-    let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { x:1.0, y:1.0, groups:{}, staffs:{} };
-    const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉","🆂🅸🅼","🆅🅰🆂","📄","🍎","🍏","🤖","🌌","🖼️","💎","🔭","🎮","👾","💼","🖋️","💾","🗄️","🗃️","🆕","⏩","🔮","🍀","🐉","♾️","🌪️","🍲","🍳","🥘","💧","🥛","🌬️","🍃","🔪","🥢","🥄","🏃","👦","👧","📈","📢","👥","🏷️","🧨","💥","👑","🎖️","🙌","👤","🕵️","👨‍👩‍👧‍👦","🥰","✅","🆘","🤯","🛠️","😊","👋","🙇","🗣️","💡","👨‍🔧","⚙️","🧹","🚪","🙋‍♂️","🙋‍♀️","🏹","🧗‍♂️","🏁","🚩","🥇","🏃‍♂️","💨","⚠️","🚨","🎆","🎇","🥂","✊","🔗","🧧","👇","👌","👍","👊","📦","🔴","🔵","📡","炊","🏠","🛁","🛒","💹","🛵","🚲","🚗","🎁","🍕","🍺","☕","🥤","🥩","🌟","📣","📍","🧰","🖨️","🎤","🎹","🎻","🎺","📻","🎥","🌍",];
+    let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
+    const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
 
     function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
+    function getPassedDays() { return new Date().getDate(); }
+    function getTotalDays() { return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); }
     const getDN = (id, useBigStk = true) => { const item = config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
     const getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
 
@@ -181,34 +152,33 @@
         if (isNH) { if (v >= 100) return "bg-good"; if (v >= 80) return "bg-mid"; return "bg-bad"; }
         if (!a || a.length < 2) return "";
         const u = [...new Set(a)].sort((x,y) => y-x);
-        const r = u.indexOf(v) / (u.length - 1 || 1);
-        return (rev ? (1 - r) : r) <= 0.35 ? "bg-good" : (rev ? (1 - r) : r) <= 0.65 ? "bg-mid" : "bg-bad";
+        const idx = u.indexOf(v);
+        const r = (rev ? (1 - (idx/(u.length-1||1))) : (idx/(u.length-1||1))) || 0;
+        return r <= 0.35 ? "bg-good" : r <= 0.65 ? "bg-mid" : "bg-bad";
     }
-
-    function toggleSelection(type) { const keys = Object.keys(config[type]); if (keys.length === 0) return; const anyChecked = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !anyChecked); openSettings(); }
 
     function masterProcess() {
         const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
         if(!raw[0] || !raw[2]) return;
-        let storeInfo = { dt:0, t:0, p_total: 0, tg:"0%", groups:[] };
+        let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
         const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
         l1.forEach((l, i) => {
             if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "Target (QĐ)") storeInfo.t = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_total = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
+            if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
             if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
             if(l.includes("Thi đua")) {
-                let groupName = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
-                let targetVal = 0, lkVal = 0, percentVal = 0;
+                let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
+                let tV = 0, rV = 0, pV = 0;
                 for(let j=i+1; j<i+12; j++) {
                     if(!l1[j]) break;
-                    if(l1[j] === "Target") targetVal = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j] === "DTLK" || l1[j] === "SLLK") lkVal = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j].includes("% HT Dự Kiến")) { percentVal = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
+                    if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
                 }
-                if(targetVal > 0) {
-                    storeInfo.groups.push({ n: groupName, t: targetVal, r: lkVal, p: percentVal });
-                    if(!config.groups[groupName]) config.groups[groupName] = { show:true, stk:"📦", alias: "" };
+                if(tV > 0) {
+                    storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
+                    if(!config.groups[gN]) config.groups[gN] = { show:true, stk:"📦", alias: "" };
                 }
             }
         });
@@ -220,8 +190,8 @@
             const p = l.split(/\t|\s{2,}/);
             if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
             if(isC && p[0].includes("-")) {
-                const excluded = ["Thông", "Nhung", "One", "Ca", "Long"];
-                if (!excluded.some(a => p[0].includes(a))) {
+                const excl = ["Thông", "Nhung", "One", "Ca", "Long"];
+                if (!excl.some(a => p[0].includes(a))) {
                     let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
                     gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
                     sData.push(s); if(!config.staffs[id]) config.staffs[id] = { show:true, alias: "" };
@@ -238,122 +208,222 @@
     function renderAll() {
         if(!processedData) return;
         const { storeInfo, sData, gNames } = processedData;
-        const days = getRemainingDays();
-        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).sort((a,b) => b.p - a.p);
-        document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_total)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${days} NGÀY Mỗi ngày</div><div class="sk-value" style="color:red">${Math.round((storeInfo.t-storeInfo.dt)/days)}tr</div></div><div class="sk-card"><div class="sk-label">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.p >= 100).length}/${actG.length}</div></div>`;
+        const bDT = parseFloat(config.boostDT) || 1.0;
+        const bNH = parseFloat(config.boostNH) || 1.0;
+        storeInfo.t_boost = storeInfo.t_goc * bDT;
+        storeInfo.p_boost = (bDT === 1.0) ? storeInfo.p_goc : ((storeInfo.dt / getPassedDays()) * getTotalDays() / storeInfo.t_boost) * 100;
+        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).map(g => {
+            let tb = g.t * bNH;
+            let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+            return { ...g, tb, pb };
+        }).sort((a,b) => b.pb - a.pb);
+        document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${getRemainingDays()} NGÀY</div><div class="sk-value" style="color:red">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div><div class="sk-card"><div class="sk-label">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
         let gh = '', gb = '<tr>';
-        actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.p, [], true)}"><span class="main-percent">${Math.round(g.p)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.t)}</span><span class="remain-info">${g.t-g.r>0?'C:'+Math.round(g.t-g.r):'🏁'}</span></td>`; });
+        actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.pb, [], true)}"><span class="main-percent">${Math.round(g.pb)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+Math.round(g.tb-g.r):'🏁'}</span></td>`; });
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
         const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
-        let mh = `<th class="sticky-col">TÊN</th><th class="fixed-col">DT</th><th class="fixed-col">BK</th><th class="fixed-col">TG</th><th class="fixed-col btm-header">BTM</th>`; 
+        let mh = `<th class="sticky-col">TÊN</th>`;
+        if(config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
+        if(config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
+        if(config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
+        if(config.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
         visG.forEach(gn => mh += `<th>${getDN(gn)}</th>`);
         document.getElementById('mh').innerHTML = mh; 
         const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0)); 
         const allBTM = [];
         visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
-        let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s, idx) => {
+        let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s) => {
             let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
-            let row = `<tr><td class="sticky-col" onclick="showStaffDetail('${s.id}')">${config.staffs[s.id]?.alias || getShort(s.id)}</td><td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td><td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td><td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td><td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
+            let row = `<tr><td class="sticky-col" onclick="showStaffDetail('${s.id}')">${config.staffs[s.id]?.alias || getShort(s.id)}</td>`;
+            if(config.showCols.dt) row += `<td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td>`;
+            if(config.showCols.bk) row += `<td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td>`;
+            if(config.showCols.tg) row += `<td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td>`;
+            if(config.showCols.btm) row += `<td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
             visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${getRankColor(val, gV[i])}">${Math.round(val)}</td>`; }); mb += row + `</tr>`;
         });
         document.getElementById('mb').innerHTML = mb; document.getElementById('skStore').style.display = 'grid'; document.getElementById('skGroups').style.display = 'block'; document.getElementById('reportArea').style.display = 'block';
     }
 
-    function showStaffDetail(sid) {
-        if(!processedData) return;
-        const { storeInfo, sData, gNames } = processedData;
-        const s = sData.find(x => x.id === sid);
-        const visS = sData.filter(x => config.staffs[x.id]?.show);
-        const slnv = visS.length || 1;
-        const daysTotal = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        const daysPast = new Date().getDate();
-        const daysLeft = (daysTotal - daysPast + 1) || 1;
-        const t_nv = storeInfo.t / slnv;
-        const p_dk = ((s.dt / daysPast) * daysTotal / t_nv) * 100;
-        document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
-        document.getElementById('stHeader').innerText = `SỨC KHỎE SIÊU THỊ ĐẾN NGÀY ${daysPast}/${new Date().getMonth()+1}`;
-        document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv)}`;
-        document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk)}%`;
-        document.getElementById('box2').innerText = `${Math.round(t_nv - s.dt)}tr`;
-        document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round((t_nv - s.dt)/daysLeft)}tr`;
-        document.getElementById('rowTG').innerHTML = `💰 TG: ${Math.round(s.tg)}% <span class="target-text">/ 60%</span>`;
-        document.getElementById('rowBK').innerHTML = `✨ BK: ${Math.round(s.bk)}% <span class="target-text">/ 20%</span>`;
-        let dat = 0; let items = [];
-        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show);
-        actG.forEach(gStore => {
-            const idx = gNames.indexOf(gStore.n);
-            if(idx !== -1) {
-                const t_g_nv = gStore.t / slnv;
-                const r_g_nv = s.data[idx] || 0;
-                const p_g_dk = ((r_g_nv / daysPast) * daysTotal / t_g_nv) * 100;
-                if(p_g_dk >= 100) dat++;
-                items.push({ name: gStore.n, t: t_g_nv, r: r_g_nv, p: p_g_dk });
-            }
-        });
-        items.sort((a,b) => b.p - a.p);
-        let body = '';
-        items.forEach(it => {
-            body += `<tr class="${it.p < 80 ? 'bg-bad' : (it.p >= 100 ? 'bg-good' : '')}">
-                <td style="text-align:left">${getDN(it.name, false)}</td>
-                <td>${Math.round(it.t)}</td>
-                <td>${Math.round(it.r)}</td>
-                <td>${Math.round(it.p)}%</td>
-                <td>${Math.max(0, Math.round((it.t - it.r)/daysLeft))}</td>
-            </tr>`;
-        });
-        document.getElementById('box4').innerText = `Đạt: ${dat}/${actG.length}`;
-        document.getElementById('detBody').innerHTML = body;
-        document.getElementById('ovDetail').style.display = 'block';
-        document.getElementById('dpDetail').style.display = 'block';
-    }
+   function showStaffDetail(sid) {
+    if(!processedData) return;
+    const { storeInfo, sData, gNames } = processedData;
+    const s = sData.find(x => x.id === sid);
+    const slnv = sData.filter(x => config.staffs[x.id]?.show).length || 1;
+    const bDT = parseFloat(config.boostDT) || 1.0;
+    const bNH = parseFloat(config.boostNH) || 1.0;
+    const daysLeft = getRemainingDays();
+    const daysPassed = getPassedDays();
+    const daysTotal = getTotalDays();
 
-    function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
-    async function captureStaffDetail() { const area = document.getElementById('captureArea'); const canvas = await html2canvas(area, { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `ChiTiet_${document.getElementById('stName').innerText}.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
-    async function captureReport() { const area = document.getElementById('screenshotArea'); const canvas = await html2canvas(area, { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+    // 1. Tính toán Doanh thu cá nhân
+    const t_nv_boost = (storeInfo.t_goc * bDT) / slnv;
+    // Công thức dự kiến chuẩn: (Lũy kế / Số ngày đã qua) * Tổng số ngày trong tháng / Target
+    const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
 
-    /* HỒI PHỤC LOGIC NHẬN XÉT CỦA ÔNG THÔNG[cite: 2] */
+    document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
+    document.getElementById('stHeader').innerText = `SỨC KHỎE ĐẾN NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
+    document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
+    document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
+    document.getElementById('box2').innerText = `${Math.round(Math.max(0, t_nv_boost - s.dt))}tr`;
+    document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round(Math.max(0, (t_nv_boost - s.dt)/daysLeft))}tr`;
+    document.getElementById('rowTG').innerHTML = `💰 TG: <span style="color: var(--primary);">${Math.round(s.tg)}%</span> / 60%`;
+    document.getElementById('rowBK').innerHTML = `✨ BK: <span style="color: var(--primary);">${Math.round(s.bk)}%</span> / 20%`;
+
+    // 2. Tính toán danh sách nhóm hàng
+    let itms = [];
+    storeInfo.groups.filter(g => config.groups[g.n]?.show).forEach(g => {
+        let tb_g_nv = (g.t * bNH) / slnv;
+        let r_g_nv = s.data[gNames.indexOf(g.n)] || 0;
+        // Dự kiến nhóm hàng chuẩn
+        let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
+        itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
+    });
+
+    itms.sort((a,b) => b.p - a.p);
+    let body = '';
+    itms.forEach(it => {
+        const con = Math.max(0, it.t - it.r);
+        // PHÂN MÀU: >=100% Xanh, >=80% Cam nhạt, <80% Đỏ
+        const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
+        
+        body += `<tr class="${rowClass}">
+            <td style="text-align:left">${getDN(it.n, false)}</td>
+            <td>${Math.round(it.t)}</td>
+            <td>${Math.round(it.r)}</td>
+            <td>${Math.round(it.p)}%</td>
+            <td style="color:red; font-weight:950;">${Math.round(con)}</td>
+            <td style="background:#fffbe6; color:#000;">${Math.max(0, (con/daysLeft)).toFixed(2)}</td>
+        </tr>`;
+    });
+
+    document.getElementById('box4').innerText = `Đạt: ${itms.filter(x=>x.p>=100).length}/${itms.length}`;
+    document.getElementById('detBody').innerHTML = body;
+    document.getElementById('ovDetail').style.display = 'block'; 
+    document.getElementById('dpDetail').style.display = 'block';
+}
     function generateFullReport() {
-        if (!processedData) return;
-        const { storeInfo, sData, gNames } = processedData;
-        const days = getRemainingDays();
-        const toStkNum = (n) => String(n).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
-        const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
-        const medals = ["🥇", "🥈", "🥉"];
-        let actG = storeInfo.groups.filter(g => config.groups[g.n]?.show);
-        const fmtG = (list) => list.map(g => { const item = config.groups[g.n]; const stk = item.stk || "📦"; const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); return `${stk}${cleanStk(name)} ${Math.round(g.p)}%`; }).join(", ");
-        let hoanThanh = fmtG(actG.filter(g => g.p >= 100));
-        let ganDat = fmtG(actG.filter(g => g.p >= 80 && g.p < 100));
-        let canhBaoG = fmtG(actG.filter(g => g.p < 80));
-        const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn)); const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
-        let st = visS.map(s => { let btm = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if (getRankColor(v, gV[i]) === "bg-bad" || v === 0) btm++; } }); return { name: config.staffs[s.id]?.alias || getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; });
-        const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
-        
-        let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: ${toStkNum(Math.round(storeInfo.dt))}/${toStkNum(Math.round(storeInfo.t))} đạt ${Math.round(storeInfo.p_total)}%\n⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${Math.round((storeInfo.t-storeInfo.dt)/days)}tr/ngày để về đích nhé! 🏁\n💸 Góp ST: ${storeInfo.tg}\n📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.p >= 100).length)}/${toStkNum(actG.length)}\n`;
-        if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
-        if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
-        if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
-        r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${Math.round(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " ơi, bứt phá doanh thu lên nào!\n\n";
-        r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung tư vấn thêm phụ kiện nhé!\n\n";
-        r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${Math.round(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${Math.round(s.tg)}%`).join(", ") + " ơi, tư vấn thêm gói trả góp cho khách nha.\n\n";
-        r += `🎯 Nhóm hàng chiến lược:\n🏅 Khen ngợi làm tốt: `;
-        let sortBtm = [...st].sort((a,b) => a.btm - b.btm); r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở nhẹ: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
-        
-        const out = document.getElementById('reportOutput'); out.innerText = r; out.style.display = 'block'; 
-        const temp = document.createElement('textarea'); temp.value = r; document.body.appendChild(temp); temp.select();
-        try { document.execCommand('copy'); alert("Đã Copy Báo Cáo Tam Hòa V31.28! ✅"); } catch (err) { alert("Lỗi Copy, hãy copy thủ công trong khung vàng!"); }
-        document.body.removeChild(temp);
-    }
+    if (!processedData) return;
+    const { storeInfo, sData, gNames } = processedData;
+    const days = getRemainingDays();
+    const bNH = parseFloat(config.boostNH) || 1.0;
+    
+    const toStkNum = (n) => String(Math.round(n)).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
+    const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+    const medals = ["🥇", "🥈", "🥉"];
 
-    /* HỒI PHỤC LOGIC CÀI ĐẶT STICKER[cite: 2] */
+    // Tính toán lại danh sách nhóm hàng theo Boost để nhận xét đúng
+    let actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).map(g => {
+        let tb = g.t * bNH;
+        let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+        return { ...g, tb, pb };
+    });
+
+    const fmtG = (list) => list.map(g => { 
+        const item = config.groups[g.n]; 
+        const stk = item.stk || "📦"; 
+        const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); 
+        return `${stk}${cleanStk(name)} ${Math.round(g.pb)}%`; 
+    }).join(", ");
+
+    let hoanThanh = fmtG(actG.filter(g => g.pb >= 100));
+    let ganDat = fmtG(actG.filter(g => g.pb >= 80 && g.pb < 100));
+    let canhBaoG = fmtG(actG.filter(g => g.pb < 80));
+
+    const visS = sData.filter(s => config.staffs[s.id]?.show); 
+    const visG = gNames.filter(gn => actG.some(ag => ag.n === gn)); 
+    const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
+
+    let st = visS.map(s => { 
+        let btm = 0; 
+        visG.forEach((gn, i) => { 
+            if(actG.some(ag => ag.n === gn)) { 
+                let v = s.data[gNames.indexOf(gn)] || 0; 
+                if (getRankColor(v, gV[i]) === "bg-bad" || v === 0) btm++; 
+            } 
+        }); 
+        return { name: config.staffs[s.id]?.alias || getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; 
+    });
+
+    const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
+    
+    // TÍNH TOÁN CÁC CON SỐ CHÍNH (Dùng t_boost và p_boost)
+    const dtHienTai = storeInfo.dt;
+    const targetMoi = storeInfo.t_boost;
+    const phanTramMoi = storeInfo.p_boost;
+    const canBucPha = Math.max(0, (targetMoi - dtHienTai) / days);
+
+    let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n`;
+    r += `🏥 1. TÌNH HÌNH CHUNG\n`;
+    r += `🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${Math.round(phanTramMoi)}%\n`;
+    r += `⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${Math.round(canBucPha)}tr/ngày để về đích nhé! 🏁\n`;
+    r += `💸 Góp ST: ${storeInfo.tg}\n`;
+    r += `📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
+
+    if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
+    if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
+    if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
+
+    r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${Math.round(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " Push số gấp nhé team!\n\n";
+    r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung Bán Thêm Bán kèm !\n\n";
+    r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${Math.round(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${Math.round(s.tg)}%`).join(", ") + " Trả Góp Thấp các bạn chú ý hành động cải thiện số.\n\n";
+    r += `🎯 Nhóm hàng:\n🏅 Ghi Nhận: `;
+    
+    let sortBtm = [...st].sort((a,b) => a.btm - b.btm); 
+    r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
+    
+    const out = document.getElementById('reportOutput'); 
+    out.innerText = r; 
+    out.style.display = 'block'; 
+    const temp = document.createElement('textarea'); 
+    temp.value = r; 
+    document.body.appendChild(temp); 
+    temp.select();
+    try { 
+        document.execCommand('copy'); 
+        alert("Đã Copy Báo Cáo ✅"); 
+    } catch (err) { 
+        alert("Lỗi Copy, hãy copy thủ công trong khung vàng!"); 
+    }
+    document.body.removeChild(temp);
+}
+
     function openSettings() {
-        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
-        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td class="col-tick"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td class="col-name" style="font-size:10px;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias}" onchange="config.staffs['${sid}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('boostDT').value = config.boostDT || 1.0;
+        document.getElementById('boostNH').value = config.boostNH || 1.0;
+        const sc = config.showCols;
+        document.getElementById('showDT').checked = sc.dt; document.getElementById('showBK').checked = sc.bk; document.getElementById('showTG').checked = sc.tg; document.getElementById('showBTM').checked = sc.btm;
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias || ''}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td class="col-tick"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td class="col-name" style="font-size:10px;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias || ''}" onchange="config.staffs['${sid}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
         document.getElementById('setOverlay').style.display='block'; document.getElementById('settingsPanel').style.display='block';
     }
+
+    function saveSettings(c = true) {
+        config.boostDT = document.getElementById('boostDT').value; config.boostNH = document.getElementById('boostNH').value;
+        config.showCols = { dt: document.getElementById('showDT').checked, bk: document.getElementById('showBK').checked, tg: document.getElementById('showTG').checked, btm: document.getElementById('showBTM').checked };
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+        if(processedData) renderAll();
+        if(c) closeSettings();
+    }
+    
     function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
-    function applyStk(s) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); }
+    function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
-    function saveSettings(c = true) { localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); }
+    function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
+    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+    async function captureStaffDetail() {
+    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 3, useCORS: true });
+    const link = document.createElement('a');
+    
+    // Lấy tên nhân viên đang hiển thị trong popup để đặt tên file
+    const staffName = document.getElementById('stName').innerText.trim();
+    
+    link.download = `ChiTiet_${staffName}.png`; // Hình tải về sẽ kèm tên nhân viên
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+    function toggleSelection(type) { const keys = Object.keys(config[type]); if (keys.length === 0) return; const anyChecked = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !anyChecked); openSettings(); }
+    function filterGroups() { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    function filterStaff() { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
 </script>
 </body>
 </html>
