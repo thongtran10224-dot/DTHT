@@ -6,6 +6,45 @@
     <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+.input-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Chia 5 cột đều nhau */
+    gap: 5px;
+    background: #f0f2f5;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.input-item label {
+    font-size: 9px;
+    font-weight: 950;
+    color: #004a99;
+    text-align: center;
+}
+
+.input-item textarea {
+    width: 100%;
+    height: 70px !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    border: 2px solid #000 !important;
+    border-radius: 6px !important;
+    padding: 5px !important;
+    box-sizing: border-box;
+}
+
+/* Khi màn hình điện thoại nhỏ, tự chia thành 2 hàng cho dễ nhìn */
+@media (max-width: 600px) {
+    .input-container {
+        grid-template-columns: repeat(3, 1fr); 
+    }
+}
 .info-sub { 
     font-size: 11px !important; 
     color: #d63031 !important; /* Đỏ đậm cảnh báo */
@@ -16,7 +55,6 @@
         :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .input-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
         textarea { width: 100%; height: 60px !important; font-size: 13px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 8px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
         .btn-group { display: flex; gap: 4px; margin-top: 5px; }
         .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
@@ -72,12 +110,29 @@
 </head>
 <body>
 <div class="header-controls">
-    <div class="input-row">
-        <textarea id="i1" placeholder="1.SKST"></textarea>
-        <textarea id="i2" placeholder="2.DTNV"></textarea>
-        <textarea id="i3" placeholder="3.NHNV"></textarea>
-        <textarea id="i4" placeholder="4.BKNV"></textarea>
-        <textarea id="i5" placeholder="5.TGNV"></textarea>
+   <div class="header-controls">
+    <!-- THAY THẾ CỤM CŨ BẰNG CỤM NÀY -->
+    <div class="input-container">
+        <div class="input-item">
+            <label>1. Sức khỏe ST</label>
+            <textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea>
+        </div>
+        <div class="input-item">
+            <label>2. Doanh Thu NV</label>
+            <textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea>
+        </div>
+        <div class="input-item">
+            <label>3. Nhóm Hàng NV</label>
+            <textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea>
+        </div>
+        <div class="input-item">
+            <label>4. Bán Kèm NV</label>
+            <textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea>
+        </div>
+        <div class="input-item">
+            <label>5. Trả Góp NV</label>
+            <textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea>
+        </div>
     </div>
     <div class="btn-group">
         <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">Cài Đặt ⚙️</button>
@@ -223,7 +278,8 @@
     <div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div>
 </div>
 <div class="sk-card">
-    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">DỰ KIẾN</div>
+    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">DỰ ANVAL
+KIẾN</div>
     <div class="sk-value">${Math.round(storeInfo.p_boost)}%</div>
 </div>
 <div class="sk-card">
@@ -286,8 +342,8 @@
     document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
     document.getElementById('box2').innerText = `${Math.round(Math.max(0, t_nv_boost - s.dt))}tr`;
     document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round(Math.max(0, (t_nv_boost - s.dt)/daysLeft))}tr`;
-    document.getElementById('rowTG').innerHTML = `💰 TG: <span style="color: var(--primary);">${Math.round(s.tg)}%</span> / 60%`;
-    document.getElementById('rowBK').innerHTML = `✨ BK: <span style="color: var(--primary);">${Math.round(s.bk)}%</span> / 20%`;
+    document.getElementById('rowTG').innerHTML = `💰 Trả Góp: <span style="color: var(--primary);">${Math.round(s.tg)}%</span> / 60%`;
+    document.getElementById('rowBK').innerHTML = `✨ Bán Kèm: <span style="color: var(--primary);">${Math.round(s.bk)}%</span> / 20%`;
 
     // 2. Tính toán danh sách nhóm hàng
     let itms = [];
@@ -429,9 +485,9 @@
     function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
     function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
-    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
     async function captureStaffDetail() {
-    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 3, useCORS: true });
+    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true });
     const link = document.createElement('a');
     
     // Lấy tên nhân viên đang hiển thị trong popup để đặt tên file
