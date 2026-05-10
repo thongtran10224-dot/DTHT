@@ -6,9 +6,31 @@
     <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+/* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
+.reward-panel { 
+    display: none !important; 
+    background: #fff; 
+    margin-top: 15px; 
+    border-radius: 8px; 
+    border: 2px solid #ffd700; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    overflow: hidden; 
+}
+.reward-header {
+    background: linear-gradient(90deg, #1e3799, #004a99);
+    color: #fff; padding: 10px; text-align: center;
+    font-weight: 950; font-size: 13px; text-transform: uppercase;
+}
+.reward-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px;
+}
+.reward-name { font-weight: 950; color: #004a99; }
+.reward-value { font-weight: 950; color: #d63031; }
+
 .input-container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Chia 5 cột đều nhau */
+    grid-template-columns: repeat(5, 1fr); 
     gap: 5px;
     background: #f0f2f5;
     padding: 8px;
@@ -39,7 +61,6 @@
     box-sizing: border-box;
 }
 
-/* Khi màn hình điện thoại nhỏ, tự chia thành 2 hàng cho dễ nhìn */
 @media (max-width: 600px) {
     .input-container {
         grid-template-columns: repeat(3, 1fr); 
@@ -47,7 +68,7 @@
 }
 .info-sub { 
     font-size: 11px !important; 
-    color: #d63031 !important; /* Đỏ đậm cảnh báo */
+    color: #d63031 !important; 
     margin-top: 2px !important; 
     font-weight: 950 !important; 
     display: block !important;
@@ -86,11 +107,7 @@
         .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
-        .info-val { 
-    font-size: 18px; 
-    color: var(--primary); /* Đổi từ #000 sang xanh dương chuẩn */
-    font-weight: 950; 
-}
+        .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
         .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
         .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
@@ -102,43 +119,25 @@
         .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
         .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
         .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
-        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        
-        /* FIX Ô TÌM KIẾM TRONG CÀI ĐẶT */
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
         .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
     </style>
 </head>
 <body>
 <div class="header-controls">
-   <div class="header-controls">
-    <!-- THAY THẾ CỤM CŨ BẰNG CỤM NÀY -->
     <div class="input-container">
-        <div class="input-item">
-            <label>1. Sức khỏe ST</label>
-            <textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea>
-        </div>
-        <div class="input-item">
-            <label>2. Doanh Thu NV</label>
-            <textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea>
-        </div>
-        <div class="input-item">
-            <label>3. Nhóm Hàng NV</label>
-            <textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea>
-        </div>
-        <div class="input-item">
-            <label>4. Bán Kèm NV</label>
-            <textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea>
-        </div>
-        <div class="input-item">
-            <label>5. Trả Góp NV</label>
-            <textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea>
-        </div>
+        <div class="input-item"><label>1. Sức khỏe ST</label><textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea></div>
+        <div class="input-item"><label>2. Doanh Thu NV</label><textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea></div>
+        <div class="input-item"><label>3. Nhóm Hàng NV</label><textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea></div>
+        <div class="input-item"><label>4. Bán Kèm NV</label><textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea></div>
+        <div class="input-item"><label>5. Trả Góp NV</label><textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea></div>
     </div>
     <div class="btn-group">
         <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">Cài Đặt ⚙️</button>
         <button class="btn" style="background:#004a99" onclick="masterProcess()">Xuất Dữ Liệu⚡</button>
         <button class="btn" style="background:#28a745" onclick="captureReport()">Chụp Hình📷</button>
         <button class="btn" style="background:#e67e22" onclick="generateFullReport()">Copy Nhận Xét🚀</button>
+        <button class="btn" style="background:#8e44ad; font-weight:950;" onclick="toggleReward()">THƯỞNG 🏆</button>
     </div>
 </div>
 <div id="reportOutput"></div>
@@ -146,6 +145,7 @@
     <div id="skStore" class="sk-header-row" style="display:none;"></div>
     <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
     <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+    <div id="rewardOutput" class="reward-panel"></div>
 </div>
 
 <div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
@@ -161,15 +161,18 @@
         <div class="toggle-item"><input type="checkbox" id="showTG" checked><span>TG</span></div>
         <div class="toggle-item"><input type="checkbox" id="showBTM" checked><span>BTM</span></div>
     </div>
-    <!-- FIX: Ô TÌM KIẾM KHÔNG BỊ TRÀN -->
     <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="TÌM NHÓM HÀNG..." class="search-box">
     <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Bỏ/Chọn hết</button></div>
+    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button></div>
     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="groupList"></tbody></table></div>
     <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="TÌM TÊN NHÂN VIÊN..." class="search-box">
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Bỏ/Chọn hết</button></div>
+    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button></div>
     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
-    <div class="bottom-actions"><button onclick="saveSettings(false)" style="padding:14px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button><button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button></div>
+    <div class="bottom-actions">
+        <button onclick="saveSettings(false)" style="padding:14px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button>
+        <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950;">DỌN RÁC 🗑️</button>
+    </div>
 </div>
 
 <div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
@@ -180,11 +183,11 @@
         <div class="grid-info">
             <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
             <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
-            <div class="info-box"><div class="info-label"></div><div id="rowTG" style="font-size:14px; font-weight:950;">💰 TG: 0%</div><div id="rowBK" style="font-size:14px; font-weight:950;">✨ BK: 0%</div></div>
+            <div class="info-box" style="grid-column: span 2;"><div id="rowTG" style="font-size:14px; font-weight:950;">💰 TG: 0%</div><div id="rowBK" style="font-size:14px; font-weight:950;">✨ BK: 0%</div></div>
             <div class="info-box"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
         </div>
         <table class="detail-table">
-            <thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead>
+            <thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th></tr></thead>
             <tbody id="detBody"></tbody>
         </table>
     </div>
@@ -194,7 +197,7 @@
 <script>
     let processedData = null, curGKey = null;
     let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
-    const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
+    const STICKERS = ["📱","📲","💻","🖥️","🎧","🔋","⌚","📷","💰","🛡️","🚩","📊","📉"];
 
     function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
     function getPassedDays() { return new Date().getDate(); }
@@ -222,7 +225,7 @@
             if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
             if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
             if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
-            if(l.includes("Thi đua")) {
+            if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
                 let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
                 let tV = 0, rV = 0, pV = 0;
                 for(let j=i+1; j<i+12; j++) {
@@ -231,10 +234,7 @@
                     if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
                     if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
                 }
-                if(tV > 0) {
-                    storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
-                    if(!config.groups[gN]) config.groups[gN] = { show:true, stk:"📦", alias: "" };
-                }
+                if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
             }
         });
         const l3 = raw[2].split('\n').map(l => l.trim());
@@ -249,7 +249,7 @@
                 if (!excl.some(a => p[0].includes(a))) {
                     let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
                     gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
-                    sData.push(s); if(!config.staffs[id]) config.staffs[id] = { show:true, alias: "" };
+                    sData.push(s);
                 }
             }
             if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
@@ -257,6 +257,14 @@
         const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
         const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.bk = parseFloat(p[5]) || 0; });
         const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) s.tg = parseFloat(p[p.length-1]) || 0; });
+
+        // DỌN RÁC TỰ ĐỘNG
+        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
+        config.groups = activeG;
+        let activeS = {}; sData.forEach(s => { activeS[s.id] = config.staffs[s.id] || { show: true, alias: "" }; });
+        config.staffs = activeS;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+
         processedData = { storeInfo, sData, gNames }; renderAll();
     }
 
@@ -273,30 +281,16 @@
             return { ...g, tb, pb };
         }).sort((a,b) => b.pb - a.pb);
         document.getElementById('skStore').innerHTML = `
-<div class="sk-card">
-    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">LŨY KẾ / TARGET</div>
-    <div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div>
-</div>
-<div class="sk-card">
-    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">DỰ ANVAL
-KIẾN</div>
-    <div class="sk-value">${Math.round(storeInfo.p_boost)}%</div>
-</div>
-<div class="sk-card">
-    <div class="sk-label" style="color:red; font-weight: bold; font-size: 1.1em;">CÒN ${getRemainingDays()} NGÀY</div>
-    <div class="sk-value" style="color:red; font-weight: bold;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div>
-</div>
-<div class="sk-card">
-    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">GÓP ST</div>
-    <div class="sk-value">${storeInfo.tg}</div>
-</div>
-<div class="sk-card">
-    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">NHÓM ĐẠT</div>
-    <div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div>
-</div>`;
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">LŨY KẾ/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div>
+<div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${getRemainingDays()} NGÀY</div><div class="sk-value" style="color:red;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
+        
         let gh = '', gb = '<tr>';
         actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.pb, [], true)}"><span class="main-percent">${Math.round(g.pb)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+Math.round(g.tb-g.r):'🏁'}</span></td>`; });
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
+        
         const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
         let mh = `<th class="sticky-col">TÊN</th>`;
         if(config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
@@ -305,9 +299,11 @@ KIẾN</div>
         if(config.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
         visG.forEach(gn => mh += `<th>${getDN(gn)}</th>`);
         document.getElementById('mh').innerHTML = mh; 
+        
         const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0)); 
         const allBTM = [];
         visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
+        
         let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s) => {
             let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
             let row = `<tr><td class="sticky-col" onclick="showStaffDetail('${s.id}')">${config.staffs[s.id]?.alias || getShort(s.id)}</td>`;
@@ -317,66 +313,156 @@ KIẾN</div>
             if(config.showCols.btm) row += `<td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
             visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${getRankColor(val, gV[i])}">${Math.round(val)}</td>`; }); mb += row + `</tr>`;
         });
-        document.getElementById('mb').innerHTML = mb; document.getElementById('skStore').style.display = 'grid'; document.getElementById('skGroups').style.display = 'block'; document.getElementById('reportArea').style.display = 'block';
+        document.getElementById('mb').innerHTML = mb; 
+        document.getElementById('skStore').style.display = 'grid'; 
+        document.getElementById('skGroups').style.display = 'block'; 
+        document.getElementById('reportArea').style.display = 'block';
+
+        // VINH DANH CHIẾN THẦN
+        let rewardHtml = `<div class="reward-header">🏆 CHIẾN THẦN NHÓM HÀNG (ĐẠT 100%)</div>`;
+        let hasReward = false;
+        actG.filter(g => g.pb >= 100).forEach(g => {
+            let gn = g.n, maxV = -1, winner = "";
+            visS.forEach(s => {
+                let v = s.data[gNames.indexOf(gn)] || 0;
+                if(v > maxV) { maxV = v; winner = (config.staffs[s.id]?.alias || getShort(s.id)).toUpperCase(); }
+                else if(v === maxV && v > 0) { winner += " & " + (config.staffs[s.id]?.alias || getShort(s.id)).toUpperCase(); }
+            });
+            if(maxV > 0) {
+                hasReward = true;
+                rewardHtml += `<div class="reward-row"><span>🎯 ${getDN(gn, false)} <small>(Đạt ${Math.round(g.pb)}%)</small></span><span>🥇 <span class="reward-name">${winner}</span>: <span class="reward-value">${Math.round(maxV)}</span></span></div>`;
+            }
+        });
+        const rwDiv = document.getElementById('rewardOutput');
+        if (hasReward) { rwDiv.innerHTML = rewardHtml; } 
+        else { rwDiv.innerHTML = `<div style="padding:15px; text-align:center; font-weight:900; color:#666;">Chưa nhóm nào đạt 100% kkk.</div>`; }
     }
 
-   function showStaffDetail(sid) {
+    function toggleReward() {
+        const rw = document.getElementById('rewardOutput');
+        if (window.getComputedStyle(rw).display === 'none') {
+            rw.style.setProperty('display', 'block', 'important');
+            rw.scrollIntoView({ behavior: 'smooth' });
+        } else { rw.style.setProperty('display', 'none', 'important'); }
+    }
+
+    function showStaffDetail(sid) {
     if(!processedData) return;
     const { storeInfo, sData, gNames } = processedData;
     const s = sData.find(x => x.id === sid);
     const slnv = sData.filter(x => config.staffs[x.id]?.show).length || 1;
     const bDT = parseFloat(config.boostDT) || 1.0;
     const bNH = parseFloat(config.boostNH) || 1.0;
-    const daysLeft = getRemainingDays();
-    const daysPassed = getPassedDays();
-    const daysTotal = getTotalDays();
-
-    // 1. Tính toán Doanh thu cá nhân
+    const daysLeft = getRemainingDays(), daysPassed = getPassedDays(), daysTotal = getTotalDays();
+    
     const t_nv_boost = (storeInfo.t_goc * bDT) / slnv;
-    // Công thức dự kiến chuẩn: (Lũy kế / Số ngày đã qua) * Tổng số ngày trong tháng / Target
     const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
+    const conLaiDT = Math.max(0, t_nv_boost - s.dt);
+    const moiNgayDT = conLaiDT / daysLeft;
 
     document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
-    document.getElementById('stHeader').innerText = `SỨC KHỎE ĐẾN NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
-    document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
-    document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
-    document.getElementById('box2').innerText = `${Math.round(Math.max(0, t_nv_boost - s.dt))}tr`;
-    document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${Math.round(Math.max(0, (t_nv_boost - s.dt)/daysLeft))}tr`;
-    document.getElementById('rowTG').innerHTML = `💰 Trả Góp: <span style="color: var(--primary);">${Math.round(s.tg)}%</span> / 60%`;
-    document.getElementById('rowBK').innerHTML = `✨ Bán Kèm: <span style="color: var(--primary);">${Math.round(s.bk)}%</span> / 20%`;
+    document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
+    
+    // --- LÀM ĐẸP 2 Ô DOANH THU PHÍA TRÊN ---
+    const boxConfigs = [
+        { id: 'box1', subId: 'box1sub', label: 'DOANH THU' },
+        { id: 'box2', subId: 'box2sub', label: 'CÒN LẠI' }
+    ];
 
-    // 2. Tính toán danh sách nhóm hàng
+    const boxes = document.querySelectorAll('.grid-info .info-box');
+    
+    // Chỉnh 2 ô đầu (Doanh thu & Còn lại)
+    [0, 1].forEach(i => {
+        if(boxes[i]) {
+            boxes[i].style.minHeight = "80px";
+            boxes[i].style.display = "flex";
+            boxes[i].style.flexDirection = "column";
+            boxes[i].style.justifyContent = "center";
+            boxes[i].style.background = "#fff";
+            boxes[i].style.border = "2px solid #004a99";
+            boxes[i].style.borderRadius = "8px";
+            boxes[i].style.padding = "5px";
+        }
+    });
+
+    document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
+    document.getElementById('box1').style.fontSize = "20px";
+    document.getElementById('box1sub').innerText = `Dự kiến: ${Math.round(p_dk_boost)}%`;
+    document.getElementById('box1sub').style.fontWeight = "950";
+
+    document.getElementById('box2').innerText = `${Math.round(conLaiDT)}tr`;
+    document.getElementById('box2').style.fontSize = "20px";
+    document.getElementById('box2sub').innerText = `Mỗi ngày: ${moiNgayDT.toFixed(1)}tr`;
+    document.getElementById('box2sub').style.fontWeight = "950";
+
     let itms = [];
     storeInfo.groups.filter(g => config.groups[g.n]?.show).forEach(g => {
         let tb_g_nv = (g.t * bNH) / slnv;
         let r_g_nv = s.data[gNames.indexOf(g.n)] || 0;
-        // Dự kiến nhóm hàng chuẩn
         let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
         itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
     });
 
+    const soNhomDat = itms.filter(x => x.p >= 100).length;
+    
+    // --- Ô PHỤ (TG - BK - NHÓM ĐẠT) ---
+    if(boxes[2]) {
+        boxes[2].style.gridColumn = "span 2";
+        boxes[2].style.minHeight = "85px"; 
+        boxes[2].style.display = "flex";
+        boxes[2].style.alignItems = "center";
+        boxes[2].style.background = "#f0f7ff";
+        boxes[2].style.border = "2px solid #004a99";
+        boxes[2].style.borderRadius = "8px";
+        boxes[2].style.marginTop = "8px";
+        boxes[2].innerHTML = `
+            <div style="display: flex; justify-content: space-around; align-items: center; width: 100%; font-weight: 950;">
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">TRẢ GÓP</small>
+                    <span style="color: #2e7d32; font-size: 20px;">💰 ${Math.round(s.tg)}%</span>
+                </span>
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">BÁN KÈM</small>
+                    <span style="color: #ed6c02; font-size: 20px;">✨ ${Math.round(s.bk)}%</span>
+                </span>
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">NHÓM ĐẠT</small>
+                    <span style="color: #d32f2f; font-size: 20px;">📦 ${soNhomDat}/${itms.length}</span>
+                </span>
+            </div>
+        `;
+    }
+    if(boxes[3]) boxes[3].style.display = 'none';
+
     itms.sort((a,b) => b.p - a.p);
+
+    let tableHtml = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead><tbody id="detBody">`;
     let body = '';
     itms.forEach(it => {
-        const con = Math.max(0, it.t - it.r);
-        // PHÂN MÀU: >=100% Xanh, >=80% Cam nhạt, <80% Đỏ
+        const conG = Math.max(0, it.t - it.r);
+        const moiNgayG = conG / daysLeft;
         const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
-        
         body += `<tr class="${rowClass}">
-            <td style="text-align:left">${getDN(it.n, false)}</td>
+            <td style="text-align:left; font-size:11px;">${getDN(it.n, false)}</td>
             <td>${Math.round(it.t)}</td>
             <td>${Math.round(it.r)}</td>
             <td>${Math.round(it.p)}%</td>
-            <td style="color:red; font-weight:950;">${Math.round(con)}</td>
-            <td style="background:#fffbe6; color:#000;">${Math.max(0, (con/daysLeft)).toFixed(2)}</td>
+            <td style="color:red; font-weight:950;">${Math.round(conG)}</td>
+            <td style="background:#fffbe6; color:#000; font-weight:950;">${moiNgayG.toFixed(1)}</td>
         </tr>`;
     });
 
-    document.getElementById('box4').innerText = `Đạt: ${itms.filter(x=>x.p>=100).length}/${itms.length}`;
-    document.getElementById('detBody').innerHTML = body;
+    const detailTable = document.querySelector('.detail-table');
+    detailTable.innerHTML = tableHtml + body + `</tbody>`;
+
     document.getElementById('ovDetail').style.display = 'block'; 
     document.getElementById('dpDetail').style.display = 'block';
 }
+
+
+
+
+
     function generateFullReport() {
     if (!processedData) return;
     const { storeInfo, sData, gNames } = processedData;
@@ -464,42 +550,32 @@ KIẾN</div>
 }
 
     function openSettings() {
-        document.getElementById('boostDT').value = config.boostDT || 1.0;
-        document.getElementById('boostNH').value = config.boostNH || 1.0;
+        document.getElementById('boostDT').value = config.boostDT; document.getElementById('boostNH').value = config.boostNH;
         const sc = config.showCols;
         document.getElementById('showDT').checked = sc.dt; document.getElementById('showBK').checked = sc.bk; document.getElementById('showTG').checked = sc.tg; document.getElementById('showBTM').checked = sc.btm;
-        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td class="col-tick"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td class="col-stk" style="cursor:pointer; font-size:18px;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td class="col-name" style="font-size:10px;">${gn.substring(0,25)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias || ''}" onchange="config.groups['${gn}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
-        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td class="col-tick"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td class="col-name" style="font-size:10px;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias || ''}" onchange="config.staffs['${sid}'].alias=this.value" placeholder="Biệt danh"></td></tr>`).join("");
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td style="font-size:18px; cursor:pointer;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td style="font-size:9px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
+        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td style="font-size:9px; text-align:left;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
         document.getElementById('setOverlay').style.display='block'; document.getElementById('settingsPanel').style.display='block';
     }
 
-    function saveSettings(c = true) {
-        config.boostDT = document.getElementById('boostDT').value; config.boostNH = document.getElementById('boostNH').value;
-        config.showCols = { dt: document.getElementById('showDT').checked, bk: document.getElementById('showBK').checked, tg: document.getElementById('showTG').checked, btm: document.getElementById('showBTM').checked };
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
-        if(processedData) renderAll();
-        if(c) closeSettings();
-    }
-    
-    function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
-    function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
+    function saveSettings(c = true) { config.boostDT = document.getElementById('boostDT').value; config.boostNH = document.getElementById('boostNH').value; config.showCols = { dt: document.getElementById('showDT').checked, bk: document.getElementById('showBK').checked, tg: document.getElementById('showTG').checked, btm: document.getElementById('showBTM').checked }; localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
     function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
-    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 4, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
-    async function captureStaffDetail() {
-    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 4, useCORS: true });
-    const link = document.createElement('a');
-    
-    // Lấy tên nhân viên đang hiển thị trong popup để đặt tên file
-    const staffName = document.getElementById('stName').innerText.trim();
-    
-    link.download = `ChiTiet_${staffName}.png`; // Hình tải về sẽ kèm tên nhân viên
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-}
-    function toggleSelection(type) { const keys = Object.keys(config[type]); if (keys.length === 0) return; const anyChecked = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !anyChecked); openSettings(); }
+    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL(); link.click(); }
+    async function captureStaffDetail() { const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `ChiTiet.png`; link.href = canvas.toDataURL(); link.click(); }
+    function toggleSelection(type) { const keys = Object.keys(config[type]); const any = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !any); openSettings(); }
     function filterGroups() { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
     function filterStaff() { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
+    function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
+    
+    function clearTrash() {
+        if(confirm("Ông Thông có chắc muốn dọn sạch danh sách cũ không?")) {
+            config.groups = {}; config.staffs = {};
+            localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+            location.reload(); 
+        }
+    }
 </script>
 </body>
 </html>
