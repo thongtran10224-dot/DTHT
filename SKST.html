@@ -217,7 +217,27 @@
             let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
             return { ...g, tb, pb };
         }).sort((a,b) => b.pb - a.pb);
-        document.getElementById('skStore').innerHTML = `<div class="sk-card"><div class="sk-label">LK/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div><div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div><div class="sk-card"><div class="sk-label" style="color:red">Còn ${getRemainingDays()} NGÀY</div><div class="sk-value" style="color:red">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div><div class="sk-card"><div class="sk-label">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div><div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
+        document.getElementById('skStore').innerHTML = `
+<div class="sk-card">
+    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">LŨY KẾ / TARGET</div>
+    <div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div>
+</div>
+<div class="sk-card">
+    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">DỰ KIẾN</div>
+    <div class="sk-value">${Math.round(storeInfo.p_boost)}%</div>
+</div>
+<div class="sk-card">
+    <div class="sk-label" style="color:red; font-weight: bold; font-size: 1.1em;">CÒN ${getRemainingDays()} NGÀY</div>
+    <div class="sk-value" style="color:red; font-weight: bold;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div>
+</div>
+<div class="sk-card">
+    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">GÓP ST</div>
+    <div class="sk-value">${storeInfo.tg}</div>
+</div>
+<div class="sk-card">
+    <div class="sk-label" style="font-weight: bold; font-size: 1.1em;">NHÓM ĐẠT</div>
+    <div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div>
+</div>`;
         let gh = '', gb = '<tr>';
         actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.pb, [], true)}"><span class="main-percent">${Math.round(g.pb)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+Math.round(g.tb-g.r):'🏁'}</span></td>`; });
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
