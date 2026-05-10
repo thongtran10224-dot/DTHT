@@ -485,9 +485,9 @@ KIẾN</div>
     function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
     function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
-    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
+    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 4, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL("image/png"); link.click(); }
     async function captureStaffDetail() {
-    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true });
+    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 4, useCORS: true });
     const link = document.createElement('a');
     
     // Lấy tên nhân viên đang hiển thị trong popup để đặt tên file
