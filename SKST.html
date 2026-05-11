@@ -5,22 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<script>
-    // 3. Một chút mẹo để kiểm tra xem thư viện đã sẵn sàng chưa
-    window.onload = function() {
-        if (typeof html2canvas === 'undefined') {
-            console.error("Lỗi: Chrome chưa tải được bộ chụp hình. Hãy nhấn Ctrl + Shift + R");
-        } else {
-            console.log("Hệ thống Tam Hòa Master đã sẵn sàng!");
-        }
-    };
-</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
 /* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
 .reward-panel { 
@@ -202,12 +186,14 @@
     <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="TÌM TÊN NHÂN VIÊN..." class="search-box">
     <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button></div>
     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
-    <div class="bottom-actions">
+    <div class="bottom-actions" style="grid-template-columns: repeat(2, 1fr);">
         <button onclick="saveSettings(false)" style="padding:14px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button>
         <button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button>
-        <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950;">DỌN RÁC 🗑️</button>
+        <button onclick="exportConfig()" style="padding:14px; background:#1e3799; color:#fff; border:none; border-radius:8px; font-weight:950;">SAO LƯU 📤</button>
+        <button onclick="importConfig()" style="padding:14px; background:#f39c12; color:#fff; border:none; border-radius:8px; font-weight:950;">NẠP FILE 📥</button>
+        <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950; grid-column: span 2;">DỌN RÁC 🗑️</button>
     </div>
-</div>
+    <input type="file" id="importFile" style="display:none" onchange="processFile(this)">
 
 <div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
 <div class="detail-panel" id="dpDetail">
@@ -639,6 +625,40 @@
             location.reload(); 
         }
     }
+// --- BỘ CÔNG CỤ SAO LƯU DÀNH CHO ÔNG THÔNG ---
+function exportConfig() {
+    const data = localStorage.getItem('tamHoaV31_28');
+    if (!data) return alert("Chưa có cài đặt nào để lưu hết ông ơi!");
+    const blob = new Blob([data], {type: 'application/json'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `CaiDat_TamHoa_${new Date().getDate()}_${new Date().getMonth()+1}.json`;
+    link.click();
+}
+
+function importConfig() {
+    document.getElementById('importFile').click();
+}
+
+function processFile(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const content = e.target.result;
+                JSON.parse(content); 
+                localStorage.setItem('tamHoaV31_28', content);
+                alert("Đã nạp cài đặt thành công! Hệ thống sẽ tự nạp lại.");
+                location.reload();
+            } catch (err) {
+                alert("Lỗi! File không đúng định dạng rồi ông.");
+            }
+        };
+        reader.readAsText(file);
+    }
+}
+// --- HẾT BỘ CÔNG CỤ ---
 </script>
 </body>
 </html>
