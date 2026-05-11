@@ -80,10 +80,28 @@
         .btn-group { display: flex; gap: 4px; margin-top: 5px; }
         .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
         .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
-        .sk-card { background: #fff; padding: 5px 2px; border-radius: 4px; text-align: center; border-top: 4px solid var(--primary); min-height: 60px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .sk-card { 
+    background: #fff; 
+    padding: 10px 5px; 
+    border-radius: 10px;        /* Bo tròn cả 4 góc của ô */
+    text-align: center; 
+    border: 2px solid var(--primary); /* Thay viền trên bằng viền cả 4 cạnh màu xanh */
+    min-height: 65px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Thêm tí bóng đổ cho nó nổi khối */
+}
         .sk-label { font-size: 8px; font-weight: 950; color: #666; margin-bottom: 2px; }
         .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
-        .sk-groups-wrapper, .excel-table-wrapper { background: white; border-radius: 4px; margin-bottom: 8px; overflow-x: auto; border: 1px solid #aaa; width: 100%; }
+        .sk-groups-wrapper, .excel-table-wrapper { 
+    background: white; 
+    border-radius: 12px;        /* 1. Bo tròn góc hộp */
+    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
+    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    margin-bottom: 15px; 
+}
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
         thead th { background: var(--primary); color: white; font-size: 9px; }
@@ -283,8 +301,8 @@
         document.getElementById('skStore').innerHTML = `
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">LŨY KẾ/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div>
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div>
-<div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${getRemainingDays()} NGÀY</div><div class="sk-value" style="color:red;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div>
-<div class="sk-card"><div class="sk-label" style="font-weight:950;">GÓP ST</div><div class="sk-value">${storeInfo.tg}</div></div>
+<div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${getRemainingDays()} NGÀY,MỖI NGÀY</div><div class="sk-value" style="color:red;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
         
         let gh = '', gb = '<tr>';
@@ -292,7 +310,7 @@
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
         
         const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
-        let mh = `<th class="sticky-col">TÊN</th>`;
+        let mh = `<th class="sticky-col">TÊN NV</th>`;
         if(config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
         if(config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
         if(config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
@@ -561,8 +579,37 @@
     function saveSettings(c = true) { config.boostDT = document.getElementById('boostDT').value; config.boostNH = document.getElementById('boostNH').value; config.showCols = { dt: document.getElementById('showDT').checked, bk: document.getElementById('showBK').checked, tg: document.getElementById('showTG').checked, btm: document.getElementById('showBTM').checked }; localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); }
     function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
     function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
-    async function captureReport() { const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `TamHoa.png`; link.href = canvas.toDataURL(); link.click(); }
-    async function captureStaffDetail() { const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 3, useCORS: true }); const link = document.createElement('a'); link.download = `ChiTiet.png`; link.href = canvas.toDataURL(); link.click(); }
+    async function captureReport() { 
+    // 1. Lấy ngày và tháng hiện tại từ máy tính
+    const ngay = new Date().getDate();
+    const thang = new Date().getMonth() + 1; // Trong code tháng bắt đầu từ 0 nên phải cộng thêm 1
+
+    // 2. Chụp hình
+    const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true }); 
+    const link = document.createElement('a'); 
+    
+    // 3. Đặt tên file: SKST + Ngày + Tháng
+    link.download = `SKST ${ngay}-${thang}.png`; 
+    
+    link.href = canvas.toDataURL(); 
+    link.click(); 
+}
+    async function captureStaffDetail() { 
+    // 1. Lấy cái tên nhân viên đang hiện trên bảng (chỗ chữ in hoa to nhất ấy)
+    const tenNV = document.getElementById('stName').innerText || "NhanVien";
+    
+    // 2. Chụp tấm hình với độ nét cao (scale: 5 là siêu nét luôn)
+    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true }); 
+    
+    // 3. Tạo lệnh tải về
+    const link = document.createElement('a'); 
+    
+    // 4. ĐẶT TÊN FILE THEO Ý ÔNG: Sức khỏe + Tên nhân viên
+    link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
+    
+    link.href = canvas.toDataURL(); 
+    link.click(); 
+}
     function toggleSelection(type) { const keys = Object.keys(config[type]); const any = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !any); openSettings(); }
     function filterGroups() { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
     function filterStaff() { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
