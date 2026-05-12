@@ -191,10 +191,13 @@
         <button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button>
         <button onclick="exportConfig()" style="padding:14px; background:#1e3799; color:#fff; border:none; border-radius:8px; font-weight:950;">SAO LƯU 📤</button>
         <button onclick="importConfig()" style="padding:14px; background:#f39c12; color:#fff; border:none; border-radius:8px; font-weight:950;">NẠP FILE 📥</button>
-        <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950; grid-column: span 2;">DỌN RÁC 🗑️</button>
-    </div>
-    <input type="file" id="importFile" style="display:none" onchange="processFile(this)">
+                <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950; grid-column: span 2;">DỌN RÁC 🗑️</button>
+    </div> <!-- Thẻ này đóng cái settings-panel lại -->
+</div> <!-- Thẻ này dự phòng nếu có div cha nào chưa đóng -->
 
+<input type="file" id="importFile" style="display:none" onchange="processFile(this)">
+
+<!-- ĐÂY LÀ PHẦN HIỂN THỊ CHI TIẾT NHÂN VIÊN - PHẢI NẰM RIÊNG BIỆT RA NGOÀI -->
 <div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
 <div class="detail-panel" id="dpDetail">
     <div id="captureArea">
@@ -203,18 +206,24 @@
         <div class="grid-info">
             <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
             <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
-            <div class="info-box" style="grid-column: span 2;"><div id="rowTG" style="font-size:14px; font-weight:950;">💰 TG: 0%</div><div id="rowBK" style="font-size:14px; font-weight:950;">✨ BK: 0%</div></div>
-            <div class="info-box"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
+            <div class="info-box" style="grid-column: span 2;">
+                <!-- Phần này JS của ông sẽ tự đổ dữ liệu vào -->
+            </div>
+            <div class="info-box" style="display:none;"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
         </div>
         <table class="detail-table">
-            <thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th></tr></thead>
-            <tbody id="detBody"></tbody>
+            <!-- JS sẽ tự đổ thead và tbody vào đây -->
         </table>
     </div>
-    <div class="btn-group" style="margin-top:10px;"><button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button><button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button></div>
+    <div class="btn-group" style="margin-top:10px;">
+        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button>
+        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
+    </div>
 </div>
 
 <script>
+// Giữ nguyên phần script bên dưới của ông
+
     let processedData = null, curGKey = null;
     let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
     const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
