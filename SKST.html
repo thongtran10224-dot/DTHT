@@ -6,6 +6,80 @@
     <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+/* --- 🏎️ GIAO DIỆN RACING (TĂNG TỐC) --- */
+body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
+.racing-mode .excel-table-wrapper { border: 4px solid #e74c3c !important; box-shadow: 0 0 15px #e74c3c !important; }
+.racing-mode .sk-card { border: 5px solid #f1c40f !important; border-radius: 10px 30px !important; background: #000 !important; }
+.racing-mode th { background: #c0392b !important; color: #fff !important; }
+racing-mode .settings-panel, 
+.racing-mode .settings-panel * { 
+    color: #333 !important; 
+}
+.racing-mode .settings-panel {
+    background-color: #ffffff !important;
+}
+
+/* --- 🤖 GIAO DIỆN CYBERPUNK (CÔNG NGHỆ) --- */
+body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
+.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
+.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
+/* --- NATURE MODE TINH TẾ V3 - ÔNG THÔNG --- */
+body.nature-mode {
+    background: #f4f7f4 !important;
+}
+
+/* 1. Viền bảng màu xanh lá mỏng, thanh thoát */
+.nature-mode .sk-groups-wrapper, .nature-mode .excel-table-wrapper {
+    background: #ffffff !important;
+    border: 2px solid #27ae60 !important;
+    border-radius: 12px !important;
+    margin-top: 30px !important;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important;
+    position: relative;
+}
+
+/* 2. Độ lại 5 ô tròn thành hình lá quấn (Dùng border kép) */
+.nature-mode .sk-card {
+    background: #ffffff !important;
+    border: 5px double #27ae60 !important; /* Viền kép nhìn như dây leo cuộn */
+    border-radius: 50% !important;
+    min-height: 110px !important; 
+    width: 110px !important;
+    margin: 0 auto; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+}
+
+/* Thêm lá quấn quanh ô tròn thay vì hoa */
+.nature-mode .sk-card::before {
+    content: "🍃"; 
+    position: absolute; 
+    top: -5px; 
+    right: -5px; 
+    font-size: 24px;
+}
+
+
+/* 3. Giữ nguyên màu sắc mát mắt của ông */
+.nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
+.nature-mode .sk-value { color: #d35400 !important; font-size: 18px !important; }
+
+.nature-mode th { background: #27ae60 !important; color: #fff !important; }
+.nature-mode td { border: 1px solid #e0eadd !important; }
+.nature-mode .sticky-col { 
+    background: #ffffff !important; 
+    border-right: 2px solid #27ae60 !important; 
+    color: #27ae60 !important; 
+}
+
+/* Điểm thêm hoa nhỏ ở góc bảng cho sinh động như ý ông */
+.nature-mode .excel-table-wrapper::before {
+    content: "🌸"; position: absolute; top: -12px; left: 15px; font-size: 18px;
+}
 /* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
 .reward-panel { 
     display: none !important; 
@@ -139,7 +213,23 @@
         .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
         .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
         .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
-    </style>
+        /* --- BẮT ĐẦU MÀU DARK MODE --- */
+body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+.dark-mode .header-controls, .dark-mode .settings-panel, .dark-mode .detail-panel, .dark-mode #captureArea { 
+    background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important; 
+}
+.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
+.dark-mode .sk-card, .dark-mode .sk-groups-wrapper, .dark-mode .excel-table-wrapper { 
+    background-color: #252525 !important; border-color: #004a99 !important; }
+.dark-mode .sk-label { color: #aaa !important; }
+.dark-mode .sk-value { color: #ffeb9c !important; }
+.dark-mode td, .dark-mode th { border-color: #444 !important; color: #fff !important; }
+.dark-mode .sticky-col { background-color: #252525 !important; color: #ffd700 !important; }
+.dark-mode .bg-good { background-color: #1b4332 !important; color: #8dfbaf !important; }
+.dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
+.dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
+/* --- KẾT THÚC MÀU DARK MODE --- */
+</style>
 </head>
 <body>
 <div class="header-controls">
@@ -168,32 +258,73 @@
 
 <div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
 <div class="settings-panel" id="settingsPanel">
-    <strong style="color:var(--primary); font-size:16px; display:block; margin-bottom:15px; text-align: center;">⚙️ THIẾT LẬP HỆ THỐNG</strong>
-    <div class="boost-box">
-        <div class="boost-item"><span>🚀 DT x</span><input type="number" id="boostDT" step="0.1" class="boost-input" value="1.0"></div>
-        <div class="boost-item"><span>📦 NH x</span><input type="number" id="boostNH" step="0.1" class="boost-input" value="1.0"></div>
+    <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
+
+<div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
+    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">DT:</span>
+            <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">NHÓM:</span>
+            <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <span style="font-size: 9px; color: #666;">(Mặc định là 1.0)</span>
     </div>
-    <div class="display-toggle-box" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;">
-        <div class="toggle-item"><input type="checkbox" id="showDT" checked><span>DT</span></div>
-        <div class="toggle-item"><input type="checkbox" id="showBK" checked><span>BK</span></div>
-        <div class="toggle-item"><input type="checkbox" id="showTG" checked><span>TG</span></div>
-        <div class="toggle-item"><input type="checkbox" id="showBTM" checked><span>BTM</span></div>
+</div>
+
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="showDT" checked> DT</label>
+        <label><input type="checkbox" id="showBK" checked> BK</label>
+        <label><input type="checkbox" id="showTG" checked> TG</label>
+        <label><input type="checkbox" id="showBTM" checked> BTM</label>
     </div>
-    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="TÌM NHÓM HÀNG..." class="search-box">
+</div>
+
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
+        <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
+        <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
+        <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
+    </div>
+</div>
+
+    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
+    
     <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button></div>
-    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="groupList"></tbody></table></div>
-    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="TÌM TÊN NHÂN VIÊN..." class="search-box">
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:var(--primary);">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button></div>
-    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;"><table class="set-table"><tbody id="staffList"></tbody></table></div>
-    <div class="bottom-actions" style="grid-template-columns: repeat(2, 1fr);">
-        <button onclick="saveSettings(false)" style="padding:14px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button>
-        <button onclick="closeSettings()" style="padding:14px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button>
-        <button onclick="exportConfig()" style="padding:14px; background:#1e3799; color:#fff; border:none; border-radius:8px; font-weight:950;">SAO LƯU 📤</button>
-        <button onclick="importConfig()" style="padding:14px; background:#f39c12; color:#fff; border:none; border-radius:8px; font-weight:950;">NẠP FILE 📥</button>
-                <button onclick="clearTrash()" style="padding:14px; background:#d63031; color:#fff; border:none; border-radius:8px; font-weight:950; grid-column: span 2;">DỌN RÁC 🗑️</button>
-    </div> <!-- Thẻ này đóng cái settings-panel lại -->
-</div> <!-- Thẻ này dự phòng nếu có div cha nào chưa đóng -->
+
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="groupList"></tbody></table>
+    </div>
+
+    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="staffList"></tbody></table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button onclick="saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
+        <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
+        <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
+        <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
+    </div>
+    <div style="display:none;"><input id="boostDT" value="1"><input id="boostNH" value="1"></div>
+</div>
 
 <input type="file" id="importFile" style="display:none" onchange="processFile(this)">
 
@@ -578,18 +709,37 @@
     document.body.removeChild(temp);
 }
 
-    function openSettings() {
-        document.getElementById('boostDT').value = config.boostDT; document.getElementById('boostNH').value = config.boostNH;
-        const sc = config.showCols;
-        document.getElementById('showDT').checked = sc.dt; document.getElementById('showBK').checked = sc.bk; document.getElementById('showTG').checked = sc.tg; document.getElementById('showBTM').checked = sc.btm;
-        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td style="font-size:18px; cursor:pointer;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td style="font-size:9px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
-        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td style="font-size:9px; text-align:left;">${getShort(sid)}</td><td><input type="text" class="alias-input" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
-        document.getElementById('setOverlay').style.display='block'; document.getElementById('settingsPanel').style.display='block';
-    }
+    // HÀM MỞ BẢNG CÀI ĐẶT
+function openSettings() {
+    const panel = document.getElementById('settingsPanel');
+    const overlay = document.getElementById('setOverlay');
+    if(panel && overlay) {
+        panel.style.display = 'block';
+        overlay.style.display = 'block';
 
-    function saveSettings(c = true) { config.boostDT = document.getElementById('boostDT').value; config.boostNH = document.getElementById('boostNH').value; config.showCols = { dt: document.getElementById('showDT').checked, bk: document.getElementById('showBK').checked, tg: document.getElementById('showTG').checked, btm: document.getElementById('showBTM').checked }; localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); if(processedData) renderAll(); if(c) closeSettings(); }
-    function closeSettings() { document.getElementById('setOverlay').style.display='none'; document.getElementById('settingsPanel').style.display='none'; document.getElementById('stkTrayBox').style.display = 'none'; }
-    function closeDetail() { document.getElementById('ovDetail').style.display='none'; document.getElementById('dpDetail').style.display='none'; }
+        // --- ĐOẠN NÀY ĐỂ HIỆN SỐ NHÂN (BOOST) ĐÂY ÔNG ---
+        document.getElementById('boostDT').value = config.boostDT || 1.0; 
+        document.getElementById('boostNH').value = config.boostNH || 1.0;
+        
+        // Load lại mấy cái nút Checkbox
+        const sc = config.showCols;
+        document.getElementById('showDT').checked = sc.dt;
+        document.getElementById('showBK').checked = sc.bk;
+        document.getElementById('showTG').checked = sc.tg;
+        document.getElementById('showBTM').checked = sc.btm;
+
+        // Load lại danh sách Nhóm và Nhân viên
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td style="font-size:20px; cursor:pointer;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td style="font-size:10px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" style="width:60px" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
+        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td style="font-size:10px; text-align:left;">${getShort(sid)}</td><td><input type="text" class="alias-input" style="width:80px" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
+    }
+}
+
+// HÀM ĐÓNG BẢNG CÀI ĐẶT
+function closeSettings() {
+    document.getElementById('settingsPanel').style.display = 'none';
+    document.getElementById('setOverlay').style.display = 'none';
+    if(document.getElementById('stkTrayBox')) document.getElementById('stkTrayBox').style.display = 'none';
+}
     async function captureReport() { 
     // 1. Lấy ngày và tháng hiện tại từ máy tính
     const ngay = new Date().getDate();
@@ -667,7 +817,110 @@ function processFile(input) {
         reader.readAsText(file);
     }
 }
-// --- HẾT BỘ CÔNG CỤ ---
+// --- HÀM BẬT TẮT ĐÈN CỦA ÔNG THÔNG ---
+function toggleDarkMode(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    // Lưu lại để lần sau mở máy lên nó nhớ là đang bật hay tắt
+    if(typeof config !== 'undefined') {
+        config.isDark = isDark;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    }
+}
+
+// Lệnh này để khi vừa mở trang web lên là nó tự kiểm tra xem ông có đang bật Dark không
+if (config && config.isDark) {
+    document.body.classList.add('dark-mode');
+    // Đợi trang load xong rồi mới tích vào cái nút cho ông thấy
+    window.addEventListener('load', () => {
+        const btn = document.getElementById('darkMode');
+        if(btn) btn.checked = true;
+    });
+}
+// --- KẾT THÚC HÀM DARK MODE ---
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (DÁN VÀO ĐÂY) ---
+
+function toggleNatureMode(isNature) {
+    if (isNature) {
+        document.body.classList.add('nature-mode');
+        switchOffOthers('natureMode'); // Tự động tắt mấy nút kia
+    } else {
+        document.body.classList.remove('nature-mode');
+    }
+}
+
+function toggleRacingMode(isRacing) {
+    if (isRacing) {
+        document.body.classList.add('racing-mode');
+        switchOffOthers('racingMode'); // Tự động tắt mấy nút kia
+    } else {
+        document.body.classList.remove('racing-mode');
+    }
+}
+
+function toggleCyberMode(isCyber) {
+    if (isCyber) {
+        document.body.classList.add('cyber-mode');
+        switchOffOthers('cyberMode'); // Tự động tắt mấy nút kia
+    } else {
+        document.body.classList.remove('cyber-mode');
+    }
+}
+
+// Đây là cái Rơ-le tự ngắt: Bật 1 cái là mấy cái kia tự nhả nút
+function switchOffOthers(activeId) {
+    // Danh sách các ID nút bấm
+    const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
+    // Danh sách các lớp áo tương ứng
+    const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
+    
+    modes.forEach((id, index) => {
+        if (id !== activeId) {
+            const btn = document.getElementById(id);
+            if(btn) btn.checked = false; // Nhả nút bấm về vị trí TẮT
+            document.body.classList.remove(classes[index]); // Cởi bỏ lớp áo cũ
+        }
+    });
+}
+// --- HÀM LƯU CÀI ĐẶT (HÀM NÀY QUAN TRỌNG NHẤT ĐỂ NHẢY SỐ) ---
+function saveSettings(c = true) { 
+    // 1. Lấy số nhân từ 2 ô Boost DT và NH
+    config.boostDT = document.getElementById('boostDT').value || 1.0; 
+    config.boostNH = document.getElementById('boostNH').value || 1.0;
+    
+    // 2. Kiểm tra xem mấy cái nút ẩn hiện cột có được tích không
+    config.showCols = { 
+        dt: document.getElementById('showDT').checked, 
+        bk: document.getElementById('showBK').checked, 
+        tg: document.getElementById('showTG').checked, 
+        btm: document.getElementById('showBTM').checked 
+    }; 
+
+    // 3. Cất hết vào bộ nhớ trình duyệt
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); 
+    
+    // 4. Lệnh "kích nổ": Bắt máy tính tính toán lại toàn bộ Target ngay lập tức
+    if(typeof renderAll === 'function' && processedData) {
+        renderAll(); 
+    }
+    
+    // 5. Đóng cái bảng cài đặt lại cho gọn
+    if(c) closeSettings(); 
+}
+// Hàm để đóng bảng chi tiết nhân viên
+function closeDetail() {
+    const detail = document.getElementById('dpDetail');
+    const overlay = document.getElementById('ovDetail');
+    
+    if(detail && overlay) {
+        detail.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+}
+// --- KẾT THÚC BỘ ĐIỀU KHIỂN ---
 </script>
 </body>
 </html>
