@@ -843,73 +843,78 @@ if (config && config.isDark) {
 // --- KẾT THÚC HÀM DARK MODE ---
 // --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (DÁN VÀO ĐÂY) ---
 
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (ĐÃ CẬP NHẬT TỰ LƯU) ---
+
 function toggleNatureMode(isNature) {
     if (isNature) {
         document.body.classList.add('nature-mode');
-        switchOffOthers('natureMode'); // Tự động tắt mấy nút kia
+        saveActiveMode('nature-mode', 'natureMode');
     } else {
         document.body.classList.remove('nature-mode');
+        saveActiveMode(null, null);
     }
 }
 
 function toggleRacingMode(isRacing) {
     if (isRacing) {
         document.body.classList.add('racing-mode');
-        switchOffOthers('racingMode'); // Tự động tắt mấy nút kia
+        saveActiveMode('racing-mode', 'racingMode');
     } else {
         document.body.classList.remove('racing-mode');
+        saveActiveMode(null, null);
     }
 }
 
 function toggleCyberMode(isCyber) {
     if (isCyber) {
         document.body.classList.add('cyber-mode');
-        switchOffOthers('cyberMode'); // Tự động tắt mấy nút kia
+        saveActiveMode('cyber-mode', 'cyberMode');
     } else {
         document.body.classList.remove('cyber-mode');
+        saveActiveMode(null, null);
     }
 }
 
-// Đây là cái Rơ-le tự ngắt: Bật 1 cái là mấy cái kia tự nhả nút
-function switchOffOthers(activeId) {
-    // Danh sách các ID nút bấm
+function toggleDarkMode(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        saveActiveMode('dark-mode', 'darkMode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        saveActiveMode(null, null);
+    }
+}
+
+// Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
+function saveActiveMode(className, modeId) {
     const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
-    // Danh sách các lớp áo tương ứng
     const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
     
+    // Tắt hết các nút và lớp áo khác trước khi bật cái mới
     modes.forEach((id, index) => {
-        if (id !== activeId) {
+        if (id !== modeId) {
             const btn = document.getElementById(id);
-            if(btn) btn.checked = false; // Nhả nút bấm về vị trí TẮT
-            document.body.classList.remove(classes[index]); // Cởi bỏ lớp áo cũ
+            if(btn) btn.checked = false;
+            document.body.classList.remove(classes[index]);
         }
     });
-}
-// --- HÀM LƯU CÀI ĐẶT (HÀM NÀY QUAN TRỌNG NHẤT ĐỂ NHẢY SỐ) ---
-function saveSettings(c = true) { 
-    // 1. Lấy số nhân từ 2 ô Boost DT và NH
-    config.boostDT = document.getElementById('boostDT').value || 1.0; 
-    config.boostNH = document.getElementById('boostNH').value || 1.0;
-    
-    // 2. Kiểm tra xem mấy cái nút ẩn hiện cột có được tích không
-    config.showCols = { 
-        dt: document.getElementById('showDT').checked, 
-        bk: document.getElementById('showBK').checked, 
-        tg: document.getElementById('showTG').checked, 
-        btm: document.getElementById('showBTM').checked 
-    }; 
 
-    // 3. Cất hết vào bộ nhớ trình duyệt
-    localStorage.setItem('tamHoaV31_28', JSON.stringify(config)); 
-    
-    // 4. Lệnh "kích nổ": Bắt máy tính tính toán lại toàn bộ Target ngay lập tức
-    if(typeof renderAll === 'function' && processedData) {
-        renderAll(); 
+    // Ghi nhớ vào cấu hình của ông Thông
+    if(typeof config !== 'undefined') {
+        config.activeMode = className; 
+        config.activeModeId = modeId;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
     }
-    
-    // 5. Đóng cái bảng cài đặt lại cho gọn
-    if(c) closeSettings(); 
 }
+
+// Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
+window.addEventListener('load', () => {
+    if (config && config.activeMode) {
+        document.body.classList.add(config.activeMode);
+        const btn = document.getElementById(config.activeModeId);
+        if(btn) btn.checked = true;
+    }
+});
 // Hàm để đóng bảng chi tiết nhân viên
 function closeDetail() {
     const detail = document.getElementById('dpDetail');
