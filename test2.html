@@ -271,25 +271,24 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 </head>
 <body>
 <div class="header-controls">
-    <!-- 1. Vùng nhập liệu nằm TRÊN (id: inputFields) -->
     <div id="inputFields">
-        <div class="input-container">
+        <!-- Grid thông minh: Máy tính 4 cột, Điện thoại 2 cột -->
+        <div class="input-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 5px;">
             <div class="input-item"><label>1. SỨC KHỎE ST</label><textarea id="i1" placeholder="Dán..."></textarea></div>
             <div class="input-item"><label>2. DOANH THU NV</label><textarea id="i2" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>3. NGHÀNH HÀNG NV</label><textarea id="i3" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>4. BÁN KÈM NV</label><textarea id="i4" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>5. TRẢ GÓP NV</label><textarea id="i5" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>3. NHÓM HÀNG NV</label><textarea id="i3" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>4. BK+TG NV</label><textarea id="i45" placeholder="Dán gộp..."></textarea></div>
         </div>
     </div>
 
-    <!-- 2. Thanh công cụ 6 nút nằm DƯỚI (action-bar) -->
+    <!-- Thanh 6 nút cân bằng -->
     <div class="action-bar" style="display: flex; gap: 4px; margin-top: 8px;">
         <button class="btn" style="background:#6c757d; flex: 1;" onclick="openSettings()">⚙️ CÀI ĐẶT</button>
         <button class="btn" style="background:#004a99; flex: 1;" onclick="masterProcess(); hideInputFields();">⚡ XUẤT SỐ</button>
         <button class="btn" style="background:#28a745; flex: 1;" onclick="captureReport()">📷 CHỤP HÌNH</button>
-        <button class="btn" style="background:#e67e22; flex: 1;" onclick="generateFullReport()">🚀COPY NHẬN XÉT</button>
+        <button class="btn" style="background:#e67e22; flex: 1;" onclick="generateFullReport()">🚀 NHẬN XÉT</button>
         <button class="btn" style="background:#8e44ad; flex: 1;" onclick="toggleReward()">🏆 THƯỞNG</button>
-        <button class="btn" style="background:#444; flex: 1;" onclick="toggleInputFields()">⌨️ HIỆN NHẬP LIỆU</button>
+        <button class="btn" style="background:#444; flex: 1;" onclick="toggleInputFields()">⌨️ NHẬP LIỆU</button>
     </div>
 </div>
               
@@ -421,58 +420,105 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
     }
 
     function masterProcess() {
-        const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
-        if(!raw[0] || !raw[2]) return;
-        let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
-        const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
-        l1.forEach((l, i) => {
-            if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
-            if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
-            if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
-                let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
-                let tV = 0, rV = 0, pV = 0;
-                for(let j=i+1; j<i+12; j++) {
-                    if(!l1[j]) break;
-                    if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
-                }
-                if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
-            }
-        });
-        const l3 = raw[2].split('\n').map(l => l.trim());
-        let gNames = []; let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
-        if(hIdx !== -1) { for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); }
-        let sData = []; let isC = false;
-        l3.forEach(l => {
-            const p = l.split(/\t|\s{2,}/);
-            if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
-            if(isC && p[0].includes("-")) {
-                const excl = ["Thông", "Nhung", "One", "Ca", "Long"];
-                if (!excl.some(a => p[0].includes(a))) {
-                    let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
-                    gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
-                    sData.push(s);
-                }
-            }
-            if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
-        });
-        const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
-        const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.bk = parseFloat(p[5]) || 0; });
-        const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) s.tg = parseFloat(p[p.length-1]) || 0; });
+    // 1. Lấy dữ liệu từ 4 ô (ô số 4 là ô gộp BK + TG)
+    const raw = [
+        document.getElementById('i1').value.trim(),
+        document.getElementById('i2').value.trim(),
+        document.getElementById('i3').value.trim(),
+        document.getElementById('i45').value.trim()
+    ];
+    
+    if(!raw[0] || !raw[2]) return;
 
-        // DỌN RÁC TỰ ĐỘNG
-        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
-        config.groups = activeG;
-        let activeS = {}; sData.forEach(s => { activeS[s.id] = config.staffs[s.id] || { show: true, alias: "" }; });
-        config.staffs = activeS;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
+    const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
+    
+    l1.forEach((l, i) => {
+        if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+        if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+        if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
+        if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
+        if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
+            let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
+            let tV = 0, rV = 0, pV = 0;
+            for(let j=i+1; j<i+12; j++) {
+                if(!l1[j]) break;
+                if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
+            }
+            if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
+        }
+    });
 
-        processedData = { storeInfo, sData, gNames }; renderAll();
+    const l3 = raw[2].split('\n').map(l => l.trim());
+    let gNames = []; 
+    let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
+    if(hIdx !== -1) { 
+        for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); 
     }
 
+    let sData = []; 
+    let isC = false;
+    l3.forEach(l => {
+        const p = l.split(/\t|\s{2,}/);
+        if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
+        if(isC && p[0].includes("-")) {
+            const excl = ["Thông", "Nhung", "One", "Ca", "Long"];
+            if (!excl.some(a => p[0].includes(a))) {
+                let id = p[0]; 
+                let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
+                gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
+                sData.push(s);
+            }
+        }
+        if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
+    });
+
+    // Xử lý Doanh thu nhân viên (Ô số 2)
+    const l2 = raw[1].split('\n'); 
+    l2.forEach(l => { 
+        const p = l.trim().split(/\t|\s{2,}/); 
+        let s = sData.find(x => x.id === p[0]); 
+        if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; 
+    });
+
+    // XỬ LÝ Ô GỘP BK + TG (Ô số 4 mới)
+    const lCombined = raw[3].split('\n');
+    lCombined.forEach(l => {
+        const p = l.trim().split(/\t|\s{2,}/);
+        // Tìm nhân viên khớp với tên trong dòng dữ liệu
+        let s = sData.find(x => x.id.includes(p[0]) || (p[0] && x.id.includes(p[0].split('-')[0].trim())));
+        
+        if(s) {
+            // Logic tách: Dòng nào có dấu % thì bốc số cho Bán Kèm (BK)
+            if(l.includes("%")) {
+                s.bk = parseFloat(p[5]) || 0;
+            } 
+            // Dòng nào không có % nhưng có đủ độ dài dữ liệu thì bốc số cuối cho Trả Góp (TG)
+            else if (p.length >= 2) {
+                s.tg = parseFloat(p[p.length-1]) || 0;
+            }
+        }
+    });
+
+    // DỌN RÁC TỰ ĐỘNG VÀ LƯU CẤU HÌNH
+    let activeG = {}; 
+    storeInfo.groups.forEach(g => { 
+        activeG[g.n] = config.groups[g.n] || { show: true, stk: "📦", alias: "" }; 
+    });
+    config.groups = activeG;
+    
+    let activeS = {}; 
+    sData.forEach(s => { 
+        activeS[s.id] = config.staffs[s.id] || { show: true, alias: "" }; 
+    });
+    config.staffs = activeS;
+    
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    processedData = { storeInfo, sData, gNames }; 
+    renderAll();
+}
     function renderAll() {
         if(!processedData) return;
         const { storeInfo, sData, gNames } = processedData;
