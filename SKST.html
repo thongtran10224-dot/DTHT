@@ -735,6 +735,25 @@ function openSettings() {
 }
 
 // HÀM ĐÓNG BẢNG CÀI ĐẶT
+    // Hàm để lưu các con số nhân (Boost) và thiết lập cột
+function saveSettings() {
+    // 1. Lấy con số từ ô nhập DT và Nhóm Hàng
+    config.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
+    config.boostNH = parseFloat(document.getElementById('boostNH').value) || 1.0;
+
+    // 2. Lưu trạng thái các cột (DT, BK, TG, BTM)
+    config.showCols.dt = document.getElementById('showDT').checked;
+    config.showCols.bk = document.getElementById('showBK').checked;
+    config.showCols.tg = document.getElementById('showTG').checked;
+    config.showCols.btm = document.getElementById('showBTM').checked;
+
+    // 3. Cất vào bộ nhớ máy
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    
+    alert("Đã lưu thiết lập thành công! ✅");
+    closeSettings();
+    masterProcess(); // Chạy lại để cập nhật số mới ngay lập tức
+}
 function closeSettings() {
     document.getElementById('settingsPanel').style.display = 'none';
     document.getElementById('setOverlay').style.display = 'none';
