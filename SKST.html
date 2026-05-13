@@ -841,7 +841,47 @@ if (config && config.isDark) {
     });
 }
 // --- KẾT THÚC HÀM DARK MODE ---
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (ĐÃ CẬP NHẬT TỰ LƯU) ---
 
+function toggleNatureMode(isNature) {
+    if (isNature) {
+        document.body.classList.add('nature-mode');
+        saveActiveMode('nature-mode', 'natureMode');
+    } else {
+        document.body.classList.remove('nature-mode');
+        saveActiveMode(null, null);
+    }
+}
+
+function toggleRacingMode(isRacing) {
+    if (isRacing) {
+        document.body.classList.add('racing-mode');
+        saveActiveMode('racing-mode', 'racingMode');
+    } else {
+        document.body.classList.remove('racing-mode');
+        saveActiveMode(null, null);
+    }
+}
+
+function toggleCyberMode(isCyber) {
+    if (isCyber) {
+        document.body.classList.add('cyber-mode');
+        saveActiveMode('cyber-mode', 'cyberMode');
+    } else {
+        document.body.classList.remove('cyber-mode');
+        saveActiveMode(null, null);
+    }
+}
+
+function toggleDarkMode(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        saveActiveMode('dark-mode', 'darkMode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        saveActiveMode(null, null);
+    }
+}
 // Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
 function saveActiveMode(className, modeId) {
     const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
