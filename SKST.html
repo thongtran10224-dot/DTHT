@@ -735,24 +735,25 @@ function openSettings() {
 }
 
 // HÀM ĐÓNG BẢNG CÀI ĐẶT
-    // Hàm để lưu các con số nhân (Boost) và thiết lập cột
 function saveSettings() {
-    // 1. Lấy con số từ ô nhập DT và Nhóm Hàng
+    if(typeof config === 'undefined') return;
+
+    // 1. Nối dây cho ô nhập Doanh thu và Nhóm hàng
     config.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
     config.boostNH = parseFloat(document.getElementById('boostNH').value) || 1.0;
 
-    // 2. Lưu trạng thái các cột (DT, BK, TG, BTM)
+    // 2. Nối dây cho các nút tích hiện cột
     config.showCols.dt = document.getElementById('showDT').checked;
     config.showCols.bk = document.getElementById('showBK').checked;
     config.showCols.tg = document.getElementById('showTG').checked;
     config.showCols.btm = document.getElementById('showBTM').checked;
 
-    // 3. Cất vào bộ nhớ máy
+    // 3. Ghi nhớ vào sổ tay hệ thống
     localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
     
     alert("Đã lưu thiết lập thành công! ✅");
     closeSettings();
-    masterProcess(); // Chạy lại để cập nhật số mới ngay lập tức
+    masterProcess(); // Lệnh này để số nhảy ngay lập tức sau khi lưu
 }
 function closeSettings() {
     document.getElementById('settingsPanel').style.display = 'none';
@@ -836,30 +837,9 @@ function processFile(input) {
         reader.readAsText(file);
     }
 }
-// --- HÀM BẬT TẮT ĐÈN CỦA ÔNG THÔNG ---
-function toggleDarkMode(isDark) {
-    if (isDark) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
-    // Lưu lại để lần sau mở máy lên nó nhớ là đang bật hay tắt
-    if(typeof config !== 'undefined') {
-        config.isDark = isDark;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
-    }
-}
 
-// Lệnh này để khi vừa mở trang web lên là nó tự kiểm tra xem ông có đang bật Dark không
-if (config && config.isDark) {
-    document.body.classList.add('dark-mode');
-    // Đợi trang load xong rồi mới tích vào cái nút cho ông thấy
-    window.addEventListener('load', () => {
-        const btn = document.getElementById('darkMode');
-        if(btn) btn.checked = true;
-    });
-}
-// --- KẾT THÚC HÀM DARK MODE ---
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (DÁN VÀO ĐÂY) ---
+
 // --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (ĐÃ CẬP NHẬT TỰ LƯU) ---
 
 function toggleNatureMode(isNature) {
@@ -901,44 +881,29 @@ function toggleDarkMode(isDark) {
         saveActiveMode(null, null);
     }
 }
+
 // Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
 function saveActiveMode(className, modeId) {
-    const modes = ['natureMode', 'racingMode', 'cyberMode']; // Danh sách các "Giao diện chính"
-    const classes = ['nature-mode', 'racing-mode', 'cyber-mode'];
+    const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
+    const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
+    
+    // Tắt hết các nút và lớp áo khác trước khi bật cái mới
+    modes.forEach((id, index) => {
+        if (id !== modeId) {
+            const btn = document.getElementById(id);
+            if(btn) btn.checked = false;
+            document.body.classList.remove(classes[index]);
+        }
+    });
 
-    if (modeId === 'darkMode') {
-        // RIÊNG DARK MODE: Bật/Tắt độc lập, không ảnh hưởng tới mấy cái kia
-        if (document.getElementById('darkMode').checked) {
-            document.body.classList.add('dark-mode');
-            config.isDark = true;
-        } else {
-            document.body.classList.remove('dark-mode');
-            config.isDark = false;
-        }
-    } else {
-        // CÁC CHẾ ĐỘ KHÁC: Bật cái này thì tắt cái kia (như cũ)
-        modes.forEach((id, index) => {
-            if (id !== modeId) {
-                const btn = document.getElementById(id);
-                if (btn) btn.checked = false;
-                document.body.classList.remove(classes[index]);
-            }
-        });
-        
-        if (document.getElementById(modeId).checked) {
-            document.body.classList.add(className);
-            config.activeMode = className;
-            config.activeModeId = modeId;
-        } else {
-            document.body.classList.remove(className);
-            config.activeMode = null;
-            config.activeModeId = null;
-        }
+    // Ghi nhớ vào cấu hình của ông Thông
+    if(typeof config !== 'undefined') {
+        config.activeMode = className; 
+        config.activeModeId = modeId;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
     }
-
-    // Lưu lại bộ nhớ cho ông Thông
-    localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
 }
+
 // Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
 window.addEventListener('load', () => {
     if (config && config.activeMode) {
