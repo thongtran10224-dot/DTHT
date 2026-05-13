@@ -903,26 +903,42 @@ function toggleDarkMode(isDark) {
 }
 // Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
 function saveActiveMode(className, modeId) {
-    const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
-    const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
-    
-    // Tắt hết các nút và lớp áo khác trước khi bật cái mới
-    modes.forEach((id, index) => {
-        if (id !== modeId) {
-            const btn = document.getElementById(id);
-            if(btn) btn.checked = false;
-            document.body.classList.remove(classes[index]);
+    const modes = ['natureMode', 'racingMode', 'cyberMode']; // Danh sách các "Giao diện chính"
+    const classes = ['nature-mode', 'racing-mode', 'cyber-mode'];
+
+    if (modeId === 'darkMode') {
+        // RIÊNG DARK MODE: Bật/Tắt độc lập, không ảnh hưởng tới mấy cái kia
+        if (document.getElementById('darkMode').checked) {
+            document.body.classList.add('dark-mode');
+            config.isDark = true;
+        } else {
+            document.body.classList.remove('dark-mode');
+            config.isDark = false;
         }
-    });
-
-    // Ghi nhớ vào cấu hình của ông Thông
-    if(typeof config !== 'undefined') {
-        config.activeMode = className; 
-        config.activeModeId = modeId;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    } else {
+        // CÁC CHẾ ĐỘ KHÁC: Bật cái này thì tắt cái kia (như cũ)
+        modes.forEach((id, index) => {
+            if (id !== modeId) {
+                const btn = document.getElementById(id);
+                if (btn) btn.checked = false;
+                document.body.classList.remove(classes[index]);
+            }
+        });
+        
+        if (document.getElementById(modeId).checked) {
+            document.body.classList.add(className);
+            config.activeMode = className;
+            config.activeModeId = modeId;
+        } else {
+            document.body.classList.remove(className);
+            config.activeMode = null;
+            config.activeModeId = null;
+        }
     }
-}
 
+    // Lưu lại bộ nhớ cho ông Thông
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+}
 // Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
 window.addEventListener('load', () => {
     if (config && config.activeMode) {
