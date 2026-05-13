@@ -2,370 +2,1010 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tam Hòa Commander - V15.6 Final Fix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+    <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #004a99; --accent: #ffc107; --bg: #f0f2f5; --success: #28a745; --danger: #dc3545; --black: #000; }
-       * { 
-    box-sizing: border-box; 
-    font-family: 'Montserrat', sans-serif !important; 
+/* Hiệu ứng mượt cho khu vực nhập liệu */
+#inputSection {
+    transition: all 0.4s ease-in-out;
+    overflow: hidden;
+    max-height: 1000px; /* Trạng thái mở */
 }
-body { 
-    background: var(--bg); 
-    margin: 0; 
-    padding: 0; 
-    touch-action: manipulation; 
-    overflow-x: hidden; 
+
+#inputSection.hidden {
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
 }
-        
-        .container { padding: 5px; width: 100vw; max-width: 600px; margin: 0 auto; }
-        .input-card { background: white; padding: 10px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .main-title { font-size: 18px; font-weight: 950; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-        
-        input, textarea { border: 2px solid #ddd; border-radius: 8px; padding: 8px; font-size: 15px; font-weight: 950; width: 100%; margin-bottom: 4px; }
-        .mode-group { display: flex; gap: 4px; margin-bottom: 6px; }
-        .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 950; font-size: 10px; text-transform: uppercase; }
-        .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 950; font-size: 15px; cursor: pointer; text-transform: uppercase; }
 
-        #finalReportArea { background: var(--bg); padding: 5px; width: 100%; }
-        .skst-row { display: flex; background: #fff; padding: 8px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 8px; border-left: 6px solid var(--primary); width: 100%; }
-        .skst-item { flex: 1; text-align: center; border-right: 1px solid #eee; overflow: hidden; }
-        .skst-item:last-child { border-right: none; }
-        .m-label { font-size: 8px; font-weight: 950; color: var(--black); text-transform: uppercase; }
-        .skst-value { font-size: 16px; font-weight: 950; color: var(--primary); margin: 0; }
+/* Nút mở lại khu vực nhập */
+.toggle-input-btn {
+    display: none; /* Mặc định ẩn, chỉ hiện khi đã ẩn khu vực nhập */
+    width: 100%;
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px dashed #004a99;
+    color: #004a99;
+    font-weight: 950;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+/* --- 🏎️ GIAO DIỆN RACING (TĂNG TỐC) --- */
+body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
+.racing-mode .excel-table-wrapper { border: 4px solid #e74c3c !important; box-shadow: 0 0 15px #e74c3c !important; }
+.racing-mode .sk-card { border: 5px solid #f1c40f !important; border-radius: 10px 30px !important; background: #000 !important; }
+.racing-mode th { background: #c0392b !important; color: #fff !important; }
+racing-mode .settings-panel, 
+.racing-mode .settings-panel * { 
+    color: #333 !important; 
+}
+.racing-mode .settings-panel {
+    background-color: #ffffff !important;
+}
 
-        .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
-        .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 5px; width: 100%; }
-        .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 4px 3px; border-radius: 6px; border-bottom: 2px solid #ddd; }
-        .group-name { font-size: 8.5px; font-weight: 950; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 1px; margin-bottom: 3px; text-transform: uppercase; min-height: 2.2em; line-height: 1.1; overflow: hidden; display: flex; align-items: center; gap: 2px; word-break: break-all; }
-        .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .group-num { font-size: 10px; font-weight: 950; color: var(--primary); }
-        .group-pct { font-size: 8.5px; font-weight: 950; padding: 1px 3px; border-radius: 8px; min-width: 28px; text-align: center; }
+/* --- 🤖 GIAO DIỆN CYBERPUNK (CÔNG NGHỆ) --- */
+body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
+.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
+.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
+/* --- NATURE MODE TINH TẾ V3 - ÔNG THÔNG --- */
+body.nature-mode {
+    background: #f4f7f4 !important;
+}
 
-        #lienText { background: #fffbe6; border: 2px dashed var(--primary); font-weight: 600; height: 220px; margin-top: 8px; font-size: 12px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; }
+/* 1. Viền bảng màu xanh lá mỏng, thanh thoát */
+.nature-mode .sk-groups-wrapper, .nature-mode .excel-table-wrapper {
+    background: #ffffff !important;
+    border: 2px solid #27ae60 !important;
+    border-radius: 12px !important;
+    margin-top: 30px !important;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important;
+    position: relative;
+}
 
-        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; width:95%; max-height:85vh; padding:15px; border-radius:12px; z-index:2001; flex-direction: column; }
-        #groupChecklist { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
-        
-        .chk-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 5px; border-bottom: 1px solid #f0f0f0; }
-        .chk-left { display: flex; align-items: center; gap: 8px; flex: 1; }
-        .st-picker-btn { cursor: pointer; font-size: 18px; padding: 2px 6px; background: #f0f0f0; border-radius: 6px; flex-shrink: 0; }
-        .chk-name-text { font-weight: 950; font-size: 10px; text-transform: uppercase; line-height: 1.2; }
-        .g-vis { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+/* 2. Độ lại 5 ô tròn thành hình lá quấn (Dùng border kép) */
+.nature-mode .sk-card {
+    background: #ffffff !important;
+    border: 5px double #27ae60 !important; /* Viền kép nhìn như dây leo cuộn */
+    border-radius: 50% !important;
+    min-height: 110px !important; 
+    width: 110px !important;
+    margin: 0 auto; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+}
 
-        .sticker-popup { display: none; position: fixed; background: white; border: 3px solid var(--primary); padding: 8px; border-radius: 15px; z-index: 3000; width: 260px; max-height: 300px; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.5); flex-direction: column; }
-        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; overflow-y: auto; padding: 5px; flex: 1; }
-        .st-opt { cursor: pointer; font-size: 18px; text-align: center; padding: 5px; }
-        .st-close { background: #f0f0f0; text-align: center; padding: 10px; font-weight: 950; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+/* Thêm lá quấn quanh ô tròn thay vì hoa */
+.nature-mode .sk-card::before {
+    content: "🍃"; 
+    position: absolute; 
+    top: -5px; 
+    right: -5px; 
+    font-size: 24px;
+}
 
-        .pct-high { background: var(--success); color: #fff; }
-        .pct-mid { background: var(--accent); color: #000; }
-        .pct-low { background: var(--danger); color: #fff; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .setting-row { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
-    </style>
+
+/* 3. Giữ nguyên màu sắc mát mắt của ông */
+.nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
+.nature-mode .sk-value { color: #d35400 !important; font-size: 18px !important; }
+
+.nature-mode th { background: #27ae60 !important; color: #fff !important; }
+.nature-mode td { border: 1px solid #e0eadd !important; }
+.nature-mode .sticky-col { 
+    background: #ffffff !important; 
+    border-right: 2px solid #27ae60 !important; 
+    color: #27ae60 !important; 
+}
+
+/* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
+.reward-panel { 
+    display: none !important; 
+    background: #fff; 
+    margin-top: 15px; 
+    border-radius: 8px; 
+    border: 2px solid #ffd700; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    overflow: hidden; 
+}
+.reward-header {
+    background: linear-gradient(90deg, #1e3799, #004a99);
+    color: #fff; padding: 10px; text-align: center;
+    font-weight: 950; font-size: 13px; text-transform: uppercase;
+}
+.reward-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px;
+}
+.reward-name { font-weight: 950; color: #004a99; }
+.reward-value { font-weight: 950; color: #d63031; }
+
+.input-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 5px;
+    background: #f0f2f5;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.input-item label {
+    font-size: 9px;
+    font-weight: 950;
+    color: #004a99;
+    text-align: center;
+}
+
+.input-item textarea {
+    width: 100%;
+    height: 70px !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    border: 2px solid #000 !important;
+    border-radius: 6px !important;
+    padding: 5px !important;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .input-container {
+        grid-template-columns: repeat(3, 1fr); 
+    }
+}
+.info-sub { 
+    font-size: 11px !important; 
+    color: #d63031 !important; 
+    margin-top: 2px !important; 
+    font-weight: 950 !important; 
+    display: block !important;
+}
+        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 60px !important; font-size: 13px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 8px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
+        .btn-group { display: flex; gap: 4px; margin-top: 5px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
+        .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
+        .sk-card { 
+    background: #fff; 
+    padding: 10px 5px; 
+    border-radius: 10px;        /* Bo tròn cả 4 góc của ô */
+    text-align: center; 
+    border: 2px solid var(--primary); /* Thay viền trên bằng viền cả 4 cạnh màu xanh */
+    min-height: 65px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Thêm tí bóng đổ cho nó nổi khối */
+}
+        .sk-label { font-size: 11px; font-weight: 950; color: #666; margin-bottom: 4px; }
+        .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
+        .sk-groups-wrapper, .excel-table-wrapper { 
+    background: white; 
+    border-radius: 12px;        /* 1. Bo tròn góc hộp */
+    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
+    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    margin-bottom: 15px; 
+}
+        table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
+        th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        thead th { background: var(--primary); color: white; font-size: 9px; }
+        .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
+        .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .bg-good { background-color: var(--success) !important; color: #006100 !important; } 
+        .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; } 
+        .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
+        .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
+        .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
+        .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
+        .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
+        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
+        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
+        .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
+        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
+        #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
+        .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
+        .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
+        .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
+        .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
+        .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
+        .boost-box { background: #fffbe6; padding: 10px; border-radius: 8px; border: 2px solid orange; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-around; }
+        .boost-item { display: flex; align-items: center; gap: 5px; font-weight: 950; font-size: 13px; color: #d35400; }
+        .boost-input { width: 55px; text-align: center; font-weight: 950; border: 2px solid #000; border-radius: 4px; padding: 6px; font-size: 15px; }
+        .set-table td { padding: 10px 5px !important; border-bottom: 1px solid #ddd !important; }
+        .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
+        .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
+        /* --- BẮT ĐẦU MÀU DARK MODE --- */
+body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+.dark-mode .header-controls, .dark-mode .settings-panel, .dark-mode .detail-panel, .dark-mode #captureArea { 
+    background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important; 
+}
+.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
+.dark-mode .sk-card, .dark-mode .sk-groups-wrapper, .dark-mode .excel-table-wrapper { 
+    background-color: #252525 !important; border-color: #004a99 !important; }
+.dark-mode .sk-label { color: #aaa !important; }
+.dark-mode .sk-value { color: #ffeb9c !important; }
+.dark-mode td, .dark-mode th { border-color: #444 !important; color: #fff !important; }
+.dark-mode .sticky-col { background-color: #252525 !important; color: #ffd700 !important; }
+.dark-mode .bg-good { background-color: #1b4332 !important; color: #8dfbaf !important; }
+.dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
+.dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
+/* --- KẾT THÚC MÀU DARK MODE --- */
+#inputFields {
+    transition: all 0.3s ease-in-out;
+    max-height: 600px;
+    opacity: 1;
+    overflow: hidden;
+    margin-top: 5px;
+}
+#inputFields.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+}
+</style>
 </head>
 <body>
-
-<div class="container">
-    <div class="input-card">
-        <div class="main-title"><span>🔥 SOI DOANH THU</span><span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span></div>
-        <div class="mode-group">
-            <button class="mode-btn active" id="btnNow" onclick="setMode('now')">🔥 HIỆN TẠI</button>
-            <button class="mode-btn" id="btnMorning" onclick="setMode('morning')">☀️ CA SÁNG</button>
-            <button class="mode-btn" id="btnEnd" onclick="setMode('end')">🏁 CUỐI NGÀY</button>
+<div class="header-controls">
+    <!-- 1. Vùng nhập liệu nằm TRÊN (id: inputFields) -->
+    <div id="inputFields">
+        <div class="input-container">
+            <div class="input-item"><label>1. SỨC KHỎE ST</label><textarea id="i1" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>2. DOANH THU NV</label><textarea id="i2" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>3. NGHÀNH HÀNG NV</label><textarea id="i3" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>4. BÁN KÈM NV</label><textarea id="i4" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>5. TRẢ GÓP NV</label><textarea id="i5" placeholder="Dán..."></textarea></div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px;">
-            <input type="number" id="inpDT" placeholder="DT (Tr)" inputmode="numeric">
-            <input type="number" id="inpTG" placeholder="TG %" inputmode="numeric">
-            <input type="text" id="inpTime" placeholder="Giờ">
-        </div>
-        <textarea id="inpRaw" rows="3" placeholder="Dán dữ liệu BI vào đây..."></textarea>
-        <button class="btn-main" onclick="renderDaily()">🚀 XUẤT CHIẾN SOI NGÀY</button>
     </div>
 
-    <div id="outputArea" style="display: none;">
-        <div id="finalReportArea">
-            <div class="skst-row">
-                <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStr" class="skst-value">0/0</div></div>
-                <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPct" class="skst-value">0%</div></div>
-                <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGVal" class="skst-value">0%</div></div>
-            </div>
-            <div class="capture-frame">
-                <div style="background:var(--primary); color:white; padding:6px; display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-weight:950; font-size:10px; text-transform:uppercase;">🔹 CHI TIẾT NHÓM HÀNG</h3>
-                    <span id="outDatCount" style="background:var(--success); padding:2px 6px; border-radius:15px; font-weight:950; font-size:9px;">0/0</span>
-                </div>
-                <div class="group-grid" id="outGrid"></div>
-                <div style="text-align:center; padding:3px; color:#999; font-size:8px; font-weight:950; background:#fafafa; border-top:1px solid #eee;">TAM HÒA - <span id="outFooterTime"></span></div>
-            </div>
-        </div>
-        <div class="btn-grid">
-            <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="copyToLien()">📋 COPY CHỮ</button>
-            <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="captureReport()">📸 CHỤP ẢNH</button>
-        </div>
-        <textarea id="lienText" readonly></textarea>
-<!-- Ô nhận xét của AI -->
-<div id="aiSection" style="margin-top: 10px; background: #e3f2fd; border: 2px solid #2196f3; padding: 10px; border-radius: 8px;">
-    <div style="font-weight: 950; color: #0d47a1; margin-bottom: 5px; font-size: 13px;">🤖 AI NHẬN XÉT CHIẾN THUẬT:</div>
-    <div id="aiContent" style="font-size: 13px; line-height: 1.5; font-style: italic; color: #333;">Đang chờ dữ liệu...</div>
-    <button class="btn-main" id="btnAI" style="background: #2196f3; margin-top: 8px; font-size: 12px; padding: 8px;" onclick="generateAIReport()">✨ AI PHÂN TÍCH NGAY</button>
+    <!-- 2. Thanh công cụ 6 nút nằm DƯỚI (action-bar) -->
+    <div class="action-bar" style="display: flex; gap: 4px; margin-top: 8px;">
+        <button class="btn" style="background:#6c757d; flex: 1;" onclick="openSettings()">⚙️ CÀI ĐẶT</button>
+        <button class="btn" style="background:#004a99; flex: 1;" onclick="masterProcess(); hideInputFields();">⚡ XUẤT SỐ</button>
+        <button class="btn" style="background:#28a745; flex: 1;" onclick="captureReport()">📷 CHỤP HÌNH</button>
+        <button class="btn" style="background:#e67e22; flex: 1;" onclick="generateFullReport()">🚀COPY NHẬN XÉT</button>
+        <button class="btn" style="background:#8e44ad; flex: 1;" onclick="toggleReward()">🏆 THƯỞNG</button>
+        <button class="btn" style="background:#444; flex: 1;" onclick="toggleInputFields()">⌨️ HIỆN NHẬP LIỆU</button>
+    </div>
 </div>
+              
+<div id="reportOutput"></div>
+<div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
+    <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
+    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+    <div id="rewardOutput" class="reward-panel"></div>
 </div>
 
-<div class="overlay" id="overlay" onclick="closeSettings()"></div>
+<div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
 <div class="settings-panel" id="settingsPanel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT</h3>
-        <span style="cursor:pointer; font-size:22px;" onclick="closeSettings()">✖</span>
+    <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
+
+<div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
+    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span>
+            <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span>
+            <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <span style="font-size: 9px; color: #666;">(Mặc định là 1.0)</span>
     </div>
-    <div class="setting-row">
-        <label style="display:block; font-weight:950; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
-        <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
-    </div>
-    <div id="groupChecklist"></div>
-    <button onclick="saveSettings()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 10px;">LƯU LẠI</button>
 </div>
 
-<div id="stickerPopup" class="sticker-popup">
-    <div class="sticker-grid" id="stickerGrid"></div>
-    <div class="st-close" onclick="document.getElementById('stickerPopup').style.display='none'">ĐÓNG</div>
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="showDT" checked> DT</label>
+        <label><input type="checkbox" id="showBK" checked> BK</label>
+        <label><input type="checkbox" id="showTG" checked> TG</label>
+        <label><input type="checkbox" id="showBTM" checked> BTM</label>
+    </div>
+</div>
+
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
+        <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
+        <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
+        <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
+    </div>
+</div>
+
+    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
+    
+    <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
+
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="groupList"></tbody></table>
+    </div>
+
+    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="staffList"></tbody></table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button onclick="saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
+        <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
+        <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
+        <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
+    </div>
+    <div style="display:none;"><input id="boostDT" value="1"><input id="boostNH" value="1"></div>
+</div>
+
+<input type="file" id="importFile" style="display:none" onchange="processFile(this)">
+
+<!-- ĐÂY LÀ PHẦN HIỂN THỊ CHI TIẾT NHÂN VIÊN - PHẢI NẰM RIÊNG BIỆT RA NGOÀI -->
+<div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
+<div class="detail-panel" id="dpDetail">
+    <div id="captureArea">
+        <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
+        <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
+        <div class="grid-info">
+            <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
+            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
+            <div class="info-box" style="grid-column: span 2;">
+                <!-- Phần này JS của ông sẽ tự đổ dữ liệu vào -->
+            </div>
+            <div class="info-box" style="display:none;"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
+        </div>
+        <table class="detail-table">
+            <!-- JS sẽ tự đổ thead và tbody vào đây -->
+        </table>
+    </div>
+    <div class="btn-group" style="margin-top:10px;">
+        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button>
+        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
+    </div>
 </div>
 
 <script>
-let currentMode = 'now', allParsedGroups = []; 
-let groupConfigs = JSON.parse(localStorage.getItem('tamHoaSlimConfigs')) || {};
-let masterTarget = localStorage.getItem('tamHoaMasterTarget') || 500;
+// Giữ nguyên phần script bên dưới của ông
 
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-}
-function autoTime() { document.getElementById('inpTime').value = new Date().getHours() + "H" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes(); }
-autoTime();
+    let processedData = null, curGKey = null;
+    let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
+    const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
 
-function captureReport() {
-    const area = document.getElementById('finalReportArea'), btn = document.getElementById('btnCap');
-    btn.innerText = "⏳ ĐANG CHỤP...";
-    window.scrollTo(0,0);
-    setTimeout(() => {
-        html2canvas(area, { scale: 10, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
-            const link = document.createElement('a'); link.download = `TamHoa_${document.getElementById('outFooterTime').innerText}.png`;
-            link.href = canvas.toDataURL("image/png"); link.click();
-            btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
+    function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
+    function getPassedDays() { return new Date().getDate(); }
+    function getTotalDays() { return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); }
+    const getDN = (id, useBigStk = true) => { const item = config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
+    const getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
+
+    function getRankColor(v, a, isNH = false, rev = false) {
+        if (v === 0 && !rev) return "bg-zero";
+        if (isNH) { if (v >= 100) return "bg-good"; if (v >= 80) return "bg-mid"; return "bg-bad"; }
+        if (!a || a.length < 2) return "";
+        const u = [...new Set(a)].sort((x,y) => y-x);
+        const idx = u.indexOf(v);
+        const r = (rev ? (1 - (idx/(u.length-1||1))) : (idx/(u.length-1||1))) || 0;
+        return r <= 0.35 ? "bg-good" : r <= 0.65 ? "bg-mid" : "bg-bad";
+    }
+
+    function masterProcess() {
+        const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
+        if(!raw[0] || !raw[2]) return;
+        let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
+        const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
+        l1.forEach((l, i) => {
+            if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+            if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
+            if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
+            if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
+                let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
+                let tV = 0, rV = 0, pV = 0;
+                for(let j=i+1; j<i+12; j++) {
+                    if(!l1[j]) break;
+                    if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                    if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
+                }
+                if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
+            }
         });
-    }, 150);
+        const l3 = raw[2].split('\n').map(l => l.trim());
+        let gNames = []; let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
+        if(hIdx !== -1) { for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); }
+        let sData = []; let isC = false;
+        l3.forEach(l => {
+            const p = l.split(/\t|\s{2,}/);
+            if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
+            if(isC && p[0].includes("-")) {
+                const excl = ["Thông", "Nhung", "One", "Ca", "Long"];
+                if (!excl.some(a => p[0].includes(a))) {
+                    let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
+                    gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
+                    sData.push(s);
+                }
+            }
+            if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
+        });
+        const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
+        const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.bk = parseFloat(p[5]) || 0; });
+        const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) s.tg = parseFloat(p[p.length-1]) || 0; });
+
+        // DỌN RÁC TỰ ĐỘNG
+        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
+        config.groups = activeG;
+        let activeS = {}; sData.forEach(s => { activeS[s.id] = config.staffs[s.id] || { show: true, alias: "" }; });
+        config.staffs = activeS;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+
+        processedData = { storeInfo, sData, gNames }; renderAll();
+    }
+
+    function renderAll() {
+        if(!processedData) return;
+        const { storeInfo, sData, gNames } = processedData;
+        const bDT = parseFloat(config.boostDT) || 1.0;
+        const bNH = parseFloat(config.boostNH) || 1.0;
+        storeInfo.t_boost = storeInfo.t_goc * bDT;
+        storeInfo.p_boost = (bDT === 1.0) ? storeInfo.p_goc : ((storeInfo.dt / getPassedDays()) * getTotalDays() / storeInfo.t_boost) * 100;
+        const actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).map(g => {
+            let tb = g.t * bNH;
+            let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+            return { ...g, tb, pb };
+        }).sort((a,b) => b.pb - a.pb);
+        document.getElementById('skStore').innerHTML = `
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">LŨY KẾ/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div>
+<div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${getRemainingDays()} NGÀY,MỖI NGÀY</div><div class="sk-value" style="color:red;">${Math.round(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
+        
+        let gh = '', gb = '<tr>';
+        actG.forEach(g => { gh += `<th>${getDN(g.n)}</th>`; gb += `<td class="${getRankColor(g.pb, [], true)}"><span class="main-percent">${Math.round(g.pb)}%</span><span class="sub-info">${Math.round(g.r)}/${Math.round(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+Math.round(g.tb-g.r):'🏁'}</span></td>`; });
+        document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
+        
+        const visS = sData.filter(s => config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
+        let mh = `<th class="sticky-col">TÊN NV</th>`;
+        if(config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
+        if(config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
+        if(config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
+        if(config.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
+        visG.forEach(gn => mh += `<th>${getDN(gn)}</th>`);
+        document.getElementById('mh').innerHTML = mh; 
+        
+        const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0)); 
+        const allBTM = [];
+        visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
+        
+        let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s) => {
+            let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
+            let row = `<tr><td class="sticky-col" onclick="showStaffDetail('${s.id}')">${config.staffs[s.id]?.alias || getShort(s.id)}</td>`;
+            if(config.showCols.dt) row += `<td class="fixed-col ${getRankColor(s.dt, visS.map(x=>x.dt))}">${Math.round(s.dt)}</td>`;
+            if(config.showCols.bk) row += `<td class="fixed-col ${getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td>`;
+            if(config.showCols.tg) row += `<td class="fixed-col ${getRankColor(s.tg, visS.map(x=>x.tg))}">${Math.round(s.tg)}%</td>`;
+            if(config.showCols.btm) row += `<td class="fixed-col ${getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
+            visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${getRankColor(val, gV[i])}">${Math.round(val)}</td>`; }); mb += row + `</tr>`;
+        });
+        document.getElementById('mb').innerHTML = mb; 
+        document.getElementById('skStore').style.display = 'grid'; 
+        document.getElementById('skGroups').style.display = 'block'; 
+        document.getElementById('reportArea').style.display = 'block';
+
+        // VINH DANH CHIẾN THẦN
+        let rewardHtml = `<div class="reward-header">🏆 CHIẾN THẦN NHÓM HÀNG (ĐẠT 100%)</div>`;
+        let hasReward = false;
+        actG.filter(g => g.pb >= 100).forEach(g => {
+            let gn = g.n, maxV = -1, winner = "";
+            visS.forEach(s => {
+                let v = s.data[gNames.indexOf(gn)] || 0;
+                if(v > maxV) { maxV = v; winner = (config.staffs[s.id]?.alias || getShort(s.id)).toUpperCase(); }
+                else if(v === maxV && v > 0) { winner += " & " + (config.staffs[s.id]?.alias || getShort(s.id)).toUpperCase(); }
+            });
+            if(maxV > 0) {
+                hasReward = true;
+                rewardHtml += `<div class="reward-row"><span>🎯 ${getDN(gn, false)} <small>(Đạt ${Math.round(g.pb)}%)</small></span><span>🥇 <span class="reward-name">${winner}</span>: <span class="reward-value">${Math.round(maxV)}</span></span></div>`;
+            }
+        });
+        const rwDiv = document.getElementById('rewardOutput');
+        if (hasReward) { rwDiv.innerHTML = rewardHtml; } 
+        else { rwDiv.innerHTML = `<div style="padding:15px; text-align:center; font-weight:900; color:#666;">Chưa nhóm nào đạt 100% kkk.</div>`; }
+    }
+
+    function toggleReward() {
+        const rw = document.getElementById('rewardOutput');
+        if (window.getComputedStyle(rw).display === 'none') {
+            rw.style.setProperty('display', 'block', 'important');
+            rw.scrollIntoView({ behavior: 'smooth' });
+        } else { rw.style.setProperty('display', 'none', 'important'); }
+    }
+
+    function showStaffDetail(sid) {
+    if(!processedData) return;
+    const { storeInfo, sData, gNames } = processedData;
+    const s = sData.find(x => x.id === sid);
+    const slnv = sData.filter(x => config.staffs[x.id]?.show).length || 1;
+    const bDT = parseFloat(config.boostDT) || 1.0;
+    const bNH = parseFloat(config.boostNH) || 1.0;
+    const daysLeft = getRemainingDays(), daysPassed = getPassedDays(), daysTotal = getTotalDays();
+    
+    const t_nv_boost = (storeInfo.t_goc * bDT) / slnv;
+    const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
+    const conLaiDT = Math.max(0, t_nv_boost - s.dt);
+    const moiNgayDT = conLaiDT / daysLeft;
+
+    document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
+    document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
+    
+    // --- LÀM ĐẸP 2 Ô DOANH THU PHÍA TRÊN ---
+    const boxConfigs = [
+        { id: 'box1', subId: 'box1sub', label: 'DOANH THU' },
+        { id: 'box2', subId: 'box2sub', label: 'CÒN LẠI' }
+    ];
+
+    const boxes = document.querySelectorAll('.grid-info .info-box');
+    
+    // Chỉnh 2 ô đầu (Doanh thu & Còn lại)
+    [0, 1].forEach(i => {
+        if(boxes[i]) {
+            boxes[i].style.minHeight = "80px";
+            boxes[i].style.display = "flex";
+            boxes[i].style.flexDirection = "column";
+            boxes[i].style.justifyContent = "center";
+            boxes[i].style.background = "#fff";
+            boxes[i].style.border = "2px solid #004a99";
+            boxes[i].style.borderRadius = "8px";
+            boxes[i].style.padding = "5px";
+        }
+    });
+
+    document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
+    document.getElementById('box1').style.fontSize = "20px";
+    document.getElementById('box1sub').innerText = `Dự kiến: ${Math.round(p_dk_boost)}%`;
+    document.getElementById('box1sub').style.fontWeight = "950";
+
+    document.getElementById('box2').innerText = `${Math.round(conLaiDT)}tr`;
+    document.getElementById('box2').style.fontSize = "20px";
+    document.getElementById('box2sub').innerText = `Mỗi ngày: ${moiNgayDT.toFixed(1)}tr`;
+    document.getElementById('box2sub').style.fontWeight = "950";
+
+    let itms = [];
+    storeInfo.groups.filter(g => config.groups[g.n]?.show).forEach(g => {
+        let tb_g_nv = (g.t * bNH) / slnv;
+        let r_g_nv = s.data[gNames.indexOf(g.n)] || 0;
+        let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
+        itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
+    });
+
+    const soNhomDat = itms.filter(x => x.p >= 100).length;
+    
+    // --- Ô PHỤ (TG - BK - NHÓM ĐẠT) ---
+    if(boxes[2]) {
+        boxes[2].style.gridColumn = "span 2";
+        boxes[2].style.minHeight = "85px"; 
+        boxes[2].style.display = "flex";
+        boxes[2].style.alignItems = "center";
+        boxes[2].style.background = "#f0f7ff";
+        boxes[2].style.border = "2px solid #004a99";
+        boxes[2].style.borderRadius = "8px";
+        boxes[2].style.marginTop = "8px";
+        boxes[2].innerHTML = `
+            <div style="display: flex; justify-content: space-around; align-items: center; width: 100%; font-weight: 950;">
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">TRẢ GÓP</small>
+                    <span style="color: #2e7d32; font-size: 20px;">💰 ${Math.round(s.tg)}%</span>
+                </span>
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">BÁN KÈM</small>
+                    <span style="color: #ed6c02; font-size: 20px;">✨ ${Math.round(s.bk)}%</span>
+                </span>
+                <span style="display: flex; flex-direction: column; align-items: center;">
+                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">NHÓM ĐẠT</small>
+                    <span style="color: #d32f2f; font-size: 20px;">📦 ${soNhomDat}/${itms.length}</span>
+                </span>
+            </div>
+        `;
+    }
+    if(boxes[3]) boxes[3].style.display = 'none';
+
+    itms.sort((a,b) => b.p - a.p);
+
+    let tableHtml = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead><tbody id="detBody">`;
+    let body = '';
+    itms.forEach(it => {
+        const conG = Math.max(0, it.t - it.r);
+        const moiNgayG = conG / daysLeft;
+        const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
+        body += `<tr class="${rowClass}">
+            <td style="text-align:left; font-size:11px;">${getDN(it.n, false)}</td>
+            <td>${Math.round(it.t)}</td>
+            <td>${Math.round(it.r)}</td>
+            <td>${Math.round(it.p)}%</td>
+            <td style="color:red; font-weight:950;">${Math.round(conG)}</td>
+            <td style="background:#fffbe6; color:#000; font-weight:950;">${moiNgayG.toFixed(1)}</td>
+        </tr>`;
+    });
+
+    const detailTable = document.querySelector('.detail-table');
+    detailTable.innerHTML = tableHtml + body + `</tbody>`;
+
+    document.getElementById('ovDetail').style.display = 'block'; 
+    document.getElementById('dpDetail').style.display = 'block';
 }
 
-function trimName(name) {
-    return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
-               .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship").replace("Pin sạc dự phòng", "Sạc dự phòng")
-               .replace("Tai nghe Bluetooth", "Tai nghe").replace("Phụ kiện - Đồng hồ", "Phụ kiện")
-               .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
+
+
+
+
+    function generateFullReport() {
+    if (!processedData) return;
+    const { storeInfo, sData, gNames } = processedData;
+    const days = getRemainingDays();
+    const bNH = parseFloat(config.boostNH) || 1.0;
+    
+    const toStkNum = (n) => String(Math.round(n)).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
+    const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
+    const medals = ["🥇", "🥈", "🥉"];
+
+    // Tính toán lại danh sách nhóm hàng theo Boost để nhận xét đúng
+    let actG = storeInfo.groups.filter(g => config.groups[g.n]?.show).map(g => {
+        let tb = g.t * bNH;
+        let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+        return { ...g, tb, pb };
+    });
+
+    const fmtG = (list) => list.map(g => { 
+        const item = config.groups[g.n]; 
+        const stk = item.stk || "📦"; 
+        const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); 
+        return `${stk}${cleanStk(name)} ${Math.round(g.pb)}%`; 
+    }).join(", ");
+
+    let hoanThanh = fmtG(actG.filter(g => g.pb >= 100));
+    let ganDat = fmtG(actG.filter(g => g.pb >= 80 && g.pb < 100));
+    let canhBaoG = fmtG(actG.filter(g => g.pb < 80));
+
+    const visS = sData.filter(s => config.staffs[s.id]?.show); 
+    const visG = gNames.filter(gn => actG.some(ag => ag.n === gn)); 
+    const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
+
+    let st = visS.map(s => { 
+        let btm = 0; 
+        visG.forEach((gn, i) => { 
+            if(actG.some(ag => ag.n === gn)) { 
+                let v = s.data[gNames.indexOf(gn)] || 0; 
+                if (getRankColor(v, gV[i]) === "bg-bad" || v === 0) btm++; 
+            } 
+        }); 
+        return { name: config.staffs[s.id]?.alias || getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; 
+    });
+
+    const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
+    
+    // TÍNH TOÁN CÁC CON SỐ CHÍNH (Dùng t_boost và p_boost)
+    const dtHienTai = storeInfo.dt;
+    const targetMoi = storeInfo.t_boost;
+    const phanTramMoi = storeInfo.p_boost;
+    const canBucPha = Math.max(0, (targetMoi - dtHienTai) / days);
+
+    let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n`;
+    r += `🏥 1. TÌNH HÌNH CHUNG\n`;
+    r += `🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${Math.round(phanTramMoi)}%\n`;
+    r += `⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${Math.round(canBucPha)}tr/ngày để về đích nhé! 🏁\n`;
+    r += `💸 Góp ST: ${storeInfo.tg}\n`;
+    r += `📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
+
+    if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
+    if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
+    if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
+
+    r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${Math.round(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " Push số gấp nhé team!\n\n";
+    r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung Bán Thêm Bán kèm !\n\n";
+    r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${Math.round(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${Math.round(s.tg)}%`).join(", ") + " Trả Góp Thấp các bạn chú ý hành động cải thiện số.\n\n";
+    r += `🎯 Nhóm hàng:\n🏅 Ghi Nhận: `;
+    
+    let sortBtm = [...st].sort((a,b) => a.btm - b.btm); 
+    r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
+    
+    const out = document.getElementById('reportOutput'); 
+    out.innerText = r; 
+    out.style.display = 'block'; 
+    const temp = document.createElement('textarea'); 
+    temp.value = r; 
+    document.body.appendChild(temp); 
+    temp.select();
+    try { 
+        document.execCommand('copy'); 
+        alert("Đã Copy Báo Cáo ✅"); 
+    } catch (err) { 
+        alert("Lỗi Copy, hãy copy thủ công trong khung vàng!"); 
+    }
+    document.body.removeChild(temp);
 }
 
+    // HÀM MỞ BẢNG CÀI ĐẶT
 function openSettings() {
-    document.getElementById('setTargetDay').value = masterTarget;
-    const list = document.getElementById('groupChecklist'); list.innerHTML = "";
-    let filteredGroups = allParsedGroups.filter(g => g.name.length < 50 && !g.name.includes("QUẠT ĐIỀU HÒAQUẠT GIÓ"));
-    let sortedGroups = filteredGroups.sort((a,b) => (b.t > 0) - (a.t > 0) || a.name.localeCompare(b.name));
+    const panel = document.getElementById('settingsPanel');
+    const overlay = document.getElementById('setOverlay');
+    if(panel && overlay) {
+        panel.style.display = 'block';
+        overlay.style.display = 'block';
 
-    sortedGroups.forEach(g => {
-        const conf = groupConfigs[g.name] || { visible: true, sticker: "📦" };
-        list.innerHTML += `
-            <div class="chk-item">
-                <div class="chk-left">
-                    <span class="st-picker-btn" onclick="showStickerPopup(event, this, '${g.name}')">${conf.sticker}</span>
-                    <span class="chk-name-text">${g.name} ${g.t === 0 ? '(PS)' : ''}</span>
-                </div>
-                <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
-            </div>`;
-    });
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('settingsPanel').style.display = 'flex';
+        // --- ĐOẠN NÀY ĐỂ HIỆN SỐ NHÂN (BOOST) ĐÂY ÔNG ---
+        document.getElementById('boostDT').value = config.boostDT || 1.0; 
+        document.getElementById('boostNH').value = config.boostNH || 1.0;
+        
+        // Load lại mấy cái nút Checkbox
+        const sc = config.showCols;
+        document.getElementById('showDT').checked = sc.dt;
+        document.getElementById('showBK').checked = sc.bk;
+        document.getElementById('showTG').checked = sc.tg;
+        document.getElementById('showBTM').checked = sc.btm;
+
+        // Load lại danh sách Nhóm và Nhân viên
+        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td style="font-size:20px; cursor:pointer;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td style="font-size:10px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" style="width:60px" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
+        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td style="font-size:10px; text-align:left;">${getShort(sid)}</td><td><input type="text" class="alias-input" style="width:80px" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
+    }
 }
 
-const STICKERS = ["📦","⚡","🏆","🚀","🔥","💎","💰","✅","🔴","🔵","🚩","📲","📱","💻","⌚","🎧","🔋","📷","📡","🎮","❄️","📺","🧺","🏠","💡","💳","🏦","🛒","💸","🌟","💪","🎯","📣","🤝","📈","📍"];
-let activePickerBtn = null, activeGroupName = "";
-function showStickerPopup(event, btn, gName) {
-    event.stopPropagation(); activePickerBtn = btn; activeGroupName = gName;
-    const grid = document.getElementById('stickerGrid');
-    grid.innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="selectSticker('${s}')">${s}</div>`).join('');
-    document.getElementById('stickerPopup').style.display = 'flex';
-}
-function selectSticker(st) {
-    if(activePickerBtn) activePickerBtn.innerText = st;
-    if(!groupConfigs[activeGroupName]) groupConfigs[activeGroupName] = { visible: true, sticker: "📦" };
-    groupConfigs[activeGroupName].sticker = st;
-    document.getElementById('stickerPopup').style.display = 'none';
-}
-
-function closeSettings() { document.getElementById('overlay').style.display = 'none'; document.getElementById('settingsPanel').style.display = 'none'; }
+// HÀM ĐÓNG BẢNG CÀI ĐẶT
 function saveSettings() {
-    masterTarget = parseFloat(document.getElementById('setTargetDay').value) || 500;
-    localStorage.setItem('tamHoaMasterTarget', masterTarget);
-    document.querySelectorAll('.chk-item').forEach(item => {
-        const chk = item.querySelector('.g-vis');
-        const name = chk.getAttribute('data-name');
-        const st = item.querySelector('.st-picker-btn').innerText;
-        groupConfigs[name] = { visible: chk.checked, sticker: st };
-    });
-    localStorage.setItem('tamHoaSlimConfigs', JSON.stringify(groupConfigs));
-    closeSettings(); renderDaily();
+    if(typeof config === 'undefined') return;
+
+    // 1. Nối dây cho ô nhập Doanh thu và Nhóm hàng
+    config.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
+    config.boostNH = parseFloat(document.getElementById('boostNH').value) || 1.0;
+
+    // 2. Nối dây cho các nút tích hiện cột
+    config.showCols.dt = document.getElementById('showDT').checked;
+    config.showCols.bk = document.getElementById('showBK').checked;
+    config.showCols.tg = document.getElementById('showTG').checked;
+    config.showCols.btm = document.getElementById('showBTM').checked;
+
+    // 3. Ghi nhớ vào sổ tay hệ thống
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    
+    alert("Đã lưu thiết lập thành công! ✅");
+    closeSettings();
+    masterProcess(); // Lệnh này để số nhảy ngay lập tức sau khi lưu
+}
+function closeSettings() {
+    document.getElementById('settingsPanel').style.display = 'none';
+    document.getElementById('setOverlay').style.display = 'none';
+    if(document.getElementById('stkTrayBox')) document.getElementById('stkTrayBox').style.display = 'none';
+}
+    async function captureReport() { 
+    // 1. Lấy ngày và tháng hiện tại từ máy tính
+    const ngay = new Date().getDate();
+    const thang = new Date().getMonth() + 1; // Trong code tháng bắt đầu từ 0 nên phải cộng thêm 1
+
+    // 2. Chụp hình
+    const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true }); 
+    const link = document.createElement('a'); 
+    
+    // 3. Đặt tên file: SKST + Ngày + Tháng
+    link.download = `SKST ${ngay}-${thang}.png`; 
+    
+    link.href = canvas.toDataURL(); 
+    link.click(); 
+}
+    async function captureStaffDetail() { 
+    // 1. Lấy cái tên nhân viên đang hiện trên bảng (chỗ chữ in hoa to nhất ấy)
+    const tenNV = document.getElementById('stName').innerText || "NhanVien";
+    
+    // 2. Chụp tấm hình với độ nét cao (scale: 5 là siêu nét luôn)
+    const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true }); 
+    
+    // 3. Tạo lệnh tải về
+    const link = document.createElement('a'); 
+    
+    // 4. ĐẶT TÊN FILE THEO Ý ÔNG: Sức khỏe + Tên nhân viên
+    link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
+    
+    link.href = canvas.toDataURL(); 
+    link.click(); 
+}
+    function toggleSelection(type) { const keys = Object.keys(config[type]); const any = keys.some(k => config[type][k].show); keys.forEach(k => config[type][k].show = !any); openSettings(); }
+    function filterGroups() { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    function filterStaff() { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
+    function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
+    
+    function clearTrash() {
+        if(confirm("Ông Thông có chắc muốn dọn sạch danh sách cũ không?")) {
+            config.groups = {}; config.staffs = {};
+            localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+            location.reload(); 
+        }
+    }
+// --- BỘ CÔNG CỤ SAO LƯU DÀNH CHO ÔNG THÔNG ---
+function exportConfig() {
+    const data = localStorage.getItem('tamHoaV31_28');
+    if (!data) return alert("Chưa có cài đặt nào để lưu hết ông ơi!");
+    const blob = new Blob([data], {type: 'application/json'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `CaiDat_TamHoa_${new Date().getDate()}_${new Date().getMonth()+1}.json`;
+    link.click();
 }
 
-function renderDaily() {
-    const raw = document.getElementById('inpRaw').value, dt = parseFloat(document.getElementById('inpDT').value) || 0, tg = parseFloat(document.getElementById('inpTG').value) || 0, time = document.getElementById('inpTime').value;
-    if(!raw) return;
-    const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== "");
-    allParsedGroups = []; let groupIndices = [];
-    for (let i = 0; i < lines.length; i++) if (lines[i].startsWith("Thi đua ") && !lines[i].includes("BC Thi đua") && lines[i].length < 60) groupIndices.push(i);
-    for (let k = 0; k < groupIndices.length; k++) {
-        let startIdx = groupIndices[k], endIdx = (k < groupIndices.length - 1) ? groupIndices[k+1] : lines.length;
-        let name = trimName(lines[startIdx]), r = 0, t = 0, p = 0;
-        for (let j = startIdx + 1; j < endIdx; j++) {
-            if (lines[j].includes("Realtime")) r = parseFloat(lines[j+1]) || 0;
-            if (lines[j].includes("Target Ngày") && !lines[j].includes("% HT")) t = parseFloat(lines[j+1]) || 0;
-            if (lines[j].includes("% HT Target Ngày")) p = parseFloat(lines[j+1].replace('%','')) || 0;
-        }
-        allParsedGroups.push({ name, r, t, p });
+function importConfig() {
+    document.getElementById('importFile').click();
+}
+
+function processFile(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const content = e.target.result;
+                JSON.parse(content); 
+                localStorage.setItem('tamHoaV31_28', content);
+                alert("Đã nạp cài đặt thành công! Hệ thống sẽ tự nạp lại.");
+                location.reload();
+            } catch (err) {
+                alert("Lỗi! File không đúng định dạng rồi ông.");
+            }
+        };
+        reader.readAsText(file);
     }
-    
-    document.getElementById('outDTStr').innerText = dt + "/" + masterTarget;
-    const pDT = ((dt / masterTarget) * 100).toFixed(1);
-    document.getElementById('outDTPct').innerText = Math.round(pDT) + "%";
-    document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
-    document.getElementById('outTGVal').innerText = tg + "%";
-    document.getElementById('outFooterTime').innerText = time;
-    
-    let displayList = allParsedGroups.filter(g => groupConfigs[g.name]?.visible !== false);
-    displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
-    
-    let gridHtml = ""; let datCount = 0;
-    displayList.forEach(g => {
-        if(g.t > 0 && g.p >= 100) datCount++;
-        let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
-        gridHtml += `<div class="group-card"><div class="group-name">${groupConfigs[g.name]?.sticker || "📦"} ${g.name}</div><div class="group-stats"><div class="group-num">${Math.round(g.r)}${g.t>0 ? '/'+Math.round(g.t) : ''}</div><div class="group-pct ${pCl}">${Math.round(g.p)}%</div></div></div>`;
-    });
-    document.getElementById('outGrid').innerHTML = gridHtml;
-    document.getElementById('outDatCount').innerText = `${datCount}/${displayList.filter(x=>x.t>0).length}`;
-    
-    let prefix = "", mainStatus = "", footer = "";
-    if (currentMode === 'now') {
-        prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
-        mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${dt}/${masterTarget}TR (${pDT}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${dt}/${masterTarget}TR (${pDT}%)\n Còn thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
-        footer = "\n🚀 Team mình PUSH SỐ GẤP 💪🔥";
-    } else if (currentMode === 'morning') {
-        prefix = `☀️ KẾT THÚC CA SÁNG: `;
-        mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${dt}/${masterTarget}TR (${pDT}%). 🚀` : `⚠️ Kết ca sáng: ${dt}/${masterTarget}TR (${pDT}%)\n Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
-        footer = "\n🚀 Team ca chiều PUSH SỐ GẤP! 🔥";
+}
+
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (DÁN VÀO ĐÂY) ---
+
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (ĐÃ CẬP NHẬT TỰ LƯU) ---
+
+function toggleNatureMode(isNature) {
+    if (isNature) {
+        document.body.classList.add('nature-mode');
+        saveActiveMode('nature-mode', 'natureMode');
     } else {
-        prefix = `🏁 TỔNG KẾT NGÀY: `;
-        mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${dt}/${masterTarget}TR (${pDT}%). 🏆` : `📉 Hôm nay về: ${dt}/${masterTarget}TR (${pDT}%)\n Thiếu: ${Math.round(Math.abs(masterTarget-dt))}TR`;
-        footer = "\nCám ơn team, chúc cả nhà ngủ ngon! 😴";
+        document.body.classList.remove('nature-mode');
+        saveActiveMode(null, null);
     }
-
-    let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${tg}%\n\n`;
-    const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
-    const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
-
-    if(highG.length > 0) { 
-        txt += `✅ NHÓM ĐÃ ĐẠT:\n`; 
-        highG.forEach(g => txt += `${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`);
-        txt += `\n`;
-    }
-
-    if(lowG.length > 0) { 
-        txt += `🔥 NHÓM CHƯA ĐẠT:\n`; 
-        lowG.forEach(g => txt += `${groupConfigs[g.name]?.sticker || "📦"} ${g.name}: ${Math.round(g.p)}%\n`); 
-    }
-
-    document.getElementById('lienText').value = txt + footer;
-    document.getElementById('outputArea').style.display = "block";
 }
-async function generateAIReport() {
-    const aiDisplay = document.getElementById('aiContent');
-    const btn = document.getElementById('btnAI');
-    const reportBox = document.getElementById('lienText');
-    const API_KEY = "AIzaSyBo3nUKRX2J6KBUKL6j3ymx8P9HuWTVHAU"; 
 
-    if (!reportBox.value.trim() || allParsedGroups.length === 0) {
-        alert("Chưa có số liệu kìa ông Thông! Dán dữ liệu BI rồi bấm Xuất Chiến trước nhé.");
-        return;
+function toggleRacingMode(isRacing) {
+    if (isRacing) {
+        document.body.classList.add('racing-mode');
+        saveActiveMode('racing-mode', 'racingMode');
+    } else {
+        document.body.classList.remove('racing-mode');
+        saveActiveMode(null, null);
     }
+}
 
-    btn.innerText = "⏳ AI ĐANG SUY NGHĨ...";
-    aiDisplay.innerText = "Đang kết nối bộ não Gemini 1.5...";
+function toggleCyberMode(isCyber) {
+    if (isCyber) {
+        document.body.classList.add('cyber-mode');
+        saveActiveMode('cyber-mode', 'cyberMode');
+    } else {
+        document.body.classList.remove('cyber-mode');
+        saveActiveMode(null, null);
+    }
+}
 
-    const rawData = allParsedGroups.map(g => `${g.name}: đạt ${Math.round(g.p)}%`).join(", ");
-    const currentStatus = reportBox.value;
+function toggleDarkMode(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        saveActiveMode('dark-mode', 'darkMode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        saveActiveMode(null, null);
+    }
+}
 
-    const promptText = `Bạn là quản lý siêu thị Tam Hòa. Hãy đọc báo cáo này: "${currentStatus}". 
-    Dữ liệu % các nhóm: ${rawData}.
-    Hãy viết 3-4 câu nhận xét thật "có hồn", thân mật, thiện cảm.
-    Quy tắc:
-    1. Tuyệt đối không dùng từ "bạn" hoặc "nhân viên".
-    2. Xưng hô "anh em", "team mình", "cả nhà".
-    3. Phải phân loại: Khen nhóm đạt (%), nhắc nhẹ nhóm gần đạt (>70%), và PUSH GẤP nhóm 0% hoặc thấp.
-    4. Nếu là 'Cuối ngày' thì chúc ngủ ngon, ngày mai bù số; 'Kết ca sáng' nhắc bàn giao ca chiều; 'Hiện tại' thì đôn đốc.
-    5. Mỗi câu 1 sticker nổi bật ở đầu dòng.`;
-
-    try {
-        // --- ĐÂY LÀ URL ĐÃ SỬA ĐỂ HẾT LỖI 404 ---
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            })
-        });
-
-        const result = await response.json();
-        
-        if (result.candidates && result.candidates[0].content) {
-            const aiText = result.candidates[0].content.parts[0].text.trim();
-            aiDisplay.innerText = aiText;
-            
-            const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
-            reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT:\n${aiText}`;
-            btn.innerText = "✅ AI ĐÃ XONG!";
-        } else {
-            console.error("Phản hồi lỗi từ Google:", result);
-            throw new Error("AI_RESPONSE_EMPTY");
+// Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
+function saveActiveMode(className, modeId) {
+    const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
+    const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
+    
+    // Tắt hết các nút và lớp áo khác trước khi bật cái mới
+    modes.forEach((id, index) => {
+        if (id !== modeId) {
+            const btn = document.getElementById(id);
+            if(btn) btn.checked = false;
+            document.body.classList.remove(classes[index]);
         }
+    });
 
-    } catch (error) {
-        console.error("Lỗi chi tiết:", error);
-        // Bộ não dự phòng thông minh tại chỗ
-        let backup = "";
-        const low = allParsedGroups.filter(g => g.t > 0 && g.p < 100).map(g => g.name).slice(0, 2).join(", ");
-        
-        if (currentStatus.includes("CUỐI NGÀY")) {
-            backup = `🌟 Cảm ơn anh em Tam Hòa đã nỗ lực cả ngày. Nhóm ${low || 'số liệu'} chưa đạt thì mai mình bù số nhé. Chúc cả nhà ngủ ngon! 😴`;
-        } else {
-            backup = `🚀 Team mình ơi, nỗ lực đẩy mạnh nhóm ${low || 'số liệu'} nhé. Anh em tập trung ra số quyết liệt để về đích rực rỡ nào! 🔥`;
-        }
-        
-        aiDisplay.innerText = backup;
-        const cleanReport = reportBox.value.split("🤖 AI NHẬN XÉT:")[0].trim();
-        reportBox.value = cleanReport + `\n\n🤖 AI NHẬN XÉT (Offline):\n${backup}`;
-        btn.innerText = "⚠️ ĐÃ SOI XONG";
+    // Ghi nhớ vào cấu hình của ông Thông
+    if(typeof config !== 'undefined') {
+        config.activeMode = className; 
+        config.activeModeId = modeId;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
     }
 }
-function copyToLien() {
-    const box = document.getElementById('lienText'); box.select(); document.execCommand('copy');
-    const btn = document.getElementById('btnCopy'); btn.innerText = "✅ ĐÃ COPY!";
-    setTimeout(() => { btn.innerText = "📋 COPY CHỮ"; }, 1500);
+
+// Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
+window.addEventListener('load', () => {
+    if (config && config.activeMode) {
+        document.body.classList.add(config.activeMode);
+        const btn = document.getElementById(config.activeModeId);
+        if(btn) btn.checked = true;
+    }
+});
+// Hàm để đóng bảng chi tiết nhân viên
+function closeDetail() {
+    const detail = document.getElementById('dpDetail');
+    const overlay = document.getElementById('ovDetail');
+    
+    if(detail && overlay) {
+        detail.style.display = 'none';
+        overlay.style.display = 'none';
+    }
 }
+function hideInputArea() {
+    const inputArea = document.getElementById('inputSection');
+    const btnShow = document.getElementById('btnShowInput');
+    
+    inputArea.classList.add('hidden'); // Ẩn khu vực nhập
+    btnShow.style.display = 'block';   // Hiện nút mở lại
+}
+
+function toggleInputArea() {
+    const inputArea = document.getElementById('inputSection');
+    const btnShow = document.getElementById('btnShowInput');
+    
+    if (inputArea.classList.contains('hidden')) {
+        inputArea.classList.remove('hidden');
+        btnShow.innerText = "🔼 THU GỌN KHU VỰC NHẬP";
+    } else {
+        inputArea.classList.add('hidden');
+        btnShow.innerText = "⌨️ HIỆN KHU VỰC NHẬP DỮ LIỆU";
+    }
+}
+function hideInputFields() {
+    document.getElementById('inputFields').classList.add('collapsed');
+}
+
+function toggleInputFields() {
+    const fields = document.getElementById('inputFields');
+    fields.classList.toggle('collapsed');
+}
+function hideInputFields() {
+    // Tự động ẩn 5 ô nhập sau khi ông Thông bấm Xuất Số
+    document.getElementById('inputFields').classList.add('collapsed');
+}
+
+function toggleInputFields() {
+    // Bấm nút bàn phím để hiện/ẩn thủ công các ô nhập
+    const fields = document.getElementById('inputFields');
+    fields.classList.toggle('collapsed');
+}
+// --- KẾT THÚC BỘ ĐIỀU KHIỂN ---
 </script>
 </body>
 </html>
