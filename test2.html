@@ -162,7 +162,9 @@ body.nature-mode {
 
 @media (max-width: 600px) {
     .input-container {
-        grid-template-columns: repeat(3, 1fr); 
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important; /* Ép chia đôi màn hình */
+        gap: 5px !important;
     }
 }
 .info-sub { 
@@ -272,23 +274,23 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 <body>
 <div class="header-controls">
     <div id="inputFields">
-        <!-- Grid thông minh: Máy tính 4 cột, Điện thoại 2 cột -->
-        <div class="input-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 5px;">
-            <div class="input-item"><label>1. SỨC KHỎE ST</label><textarea id="i1" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>2. DOANH THU NV</label><textarea id="i2" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>3. NHÓM HÀNG NV</label><textarea id="i3" placeholder="Dán..."></textarea></div>
-            <div class="input-item"><label>4. BK+TG NV</label><textarea id="i45" placeholder="Dán gộp..."></textarea></div>
+        <!-- Grid: Máy tính 4 ô ngang, Điện thoại tự theo CSS Media ở trên -->
+        <div class="input-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+            <div class="input-item"><label>1. SKST</label><textarea id="i1" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>2. DTNV</label><textarea id="i2" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>3. NHNV</label><textarea id="i3" placeholder="Dán..."></textarea></div>
+            <div class="input-item"><label>4. BK + TG</label><textarea id="i45" placeholder="Dán gộp..."></textarea></div>
         </div>
     </div>
 
-    <!-- Thanh 6 nút cân bằng -->
+    <!-- Thanh 6 nút dưới chân ô dán -->
     <div class="action-bar" style="display: flex; gap: 4px; margin-top: 8px;">
         <button class="btn" style="background:#6c757d; flex: 1;" onclick="openSettings()">⚙️ CÀI ĐẶT</button>
         <button class="btn" style="background:#004a99; flex: 1;" onclick="masterProcess(); hideInputFields();">⚡ XUẤT SỐ</button>
-        <button class="btn" style="background:#28a745; flex: 1;" onclick="captureReport()">📷 CHỤP HÌNH</button>
-        <button class="btn" style="background:#e67e22; flex: 1;" onclick="generateFullReport()">🚀 NHẬN XÉT</button>
+        <button class="btn" style="background:#28a745; flex: 1;" onclick="captureReport()">📷 CHỤP</button>
+        <button class="btn" style="background:#e67e22; flex: 1;" onclick="generateFullReport()">🚀 COPY</button>
         <button class="btn" style="background:#8e44ad; flex: 1;" onclick="toggleReward()">🏆 THƯỞNG</button>
-        <button class="btn" style="background:#444; flex: 1;" onclick="toggleInputFields()">⌨️ NHẬP LIỆU</button>
+        <button class="btn" style="background:#444; flex: 1;" onclick="toggleInputFields()">⌨️ NHẬP</button>
     </div>
 </div>
               
