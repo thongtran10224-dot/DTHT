@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tam Hòa Commander - V15.6 Final Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --primary: #004a99; --accent: #ffc107; --bg: #f0f2f5; --success: #28a745; --danger: #dc3545; --black: #000; }
+        * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; }
+        body { background: var(--bg); margin: 0; padding: 0; touch-action: manipulation; overflow-x: hidden; }
+        .container { padding: 5px; width: 100vw; max-width: 600px; margin: 0 auto; }
+        .input-card { background: white; padding: 10px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .main-title { font-size: 18px; font-weight: 950; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        input, textarea { border: 2px solid #ddd; border-radius: 8px; padding: 8px; font-size: 15px; font-weight: 950; width: 100%; margin-bottom: 4px; }
+        .mode-group { display: flex; gap: 4px; margin-bottom: 6px; }
+        .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 950; font-size: 10px; text-transform: uppercase; }
+        .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 950; font-size: 15px; cursor: pointer; text-transform: uppercase; }
+        #finalReportArea { background: var(--bg); padding: 5px; width: 100%; }
+        .skst-row { display: flex; background: #fff; padding: 12px 8px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 8px; border-left: 6px solid var(--primary); width: 100%; align-items: center; }
+        .skst-item { flex: 1; text-align: center; border-right: 1px solid #eee; overflow: hidden; padding: 0 4px; }
+        .skst-item:last-child { border-right: none; }
+        .m-label { font-size: 10px; font-weight: 950; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .skst-value { font-size: 20px; font-weight: 950; color: var(--primary); margin: 0; white-space: nowrap; }
+        .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
+        .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; width: 100%; }
+        .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 8px 6px; border-radius: 8px; border-bottom: 3px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
+        .group-name { font-size: 11px; font-weight: 950; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; margin-bottom: 6px; text-transform: uppercase; min-height: 2.6em; line-height: 1.2; display: flex; align-items: center; gap: 8px; word-break: break-word; }
+        .group-sticker { font-size: 24px; flex-shrink: 0; }
+        .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
+        .group-num { font-size: 13px; font-weight: 950; color: var(--primary); }
+        .group-pct { font-size: 11px; font-weight: 950; padding: 4px 8px; border-radius: 8px; min-width: 55px; text-align: center; white-space: nowrap; }
+        #lienText { background: #fffbe6; border: 2px dashed var(--primary); font-weight: 600; height: 220px; margin-top: 8px; font-size: 12px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; }
+        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
+        .settings-panel {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    width: 95%;
+    max-width: 500px;
+    max-height: 85vh;
+    padding: 15px;
+    border-radius: 20px;
+    z-index: 2001;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+#settingsAccordion {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+.acc-header {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 950;
+    color: var(--primary);
+    border: 1px solid #eee;
+}
+
+.acc-content {
+    display: none;
+    padding: 5px 5px 15px 5px;
+}
+
+.acc-item.active .acc-content {
+    display: block;
+}
+
+/* --- HỆ THỐNG GIAO DIỆN (THEMES) --- */
+body.theme-racing { --primary: #ff4500; --bg: #fff5f0; }
+body.theme-racing .btn-main { background: linear-gradient(45deg, #ff4500, #ff8c00); }
+
+body.theme-natural { --primary: #2d6a4f; --bg: #f0f7f4; }
+body.theme-natural .settings-panel, body.theme-natural .input-card { border-radius: 30px; border: 2px solid #95d5b2; }
+
+/* --- Độ lại Theme Hiện Đại cho sắc nét --- */
+body.theme-modern { --primary: #00d4ff; --bg: #0b0e14; color: #ffffff; }
+body.theme-modern .input-card, 
+body.theme-modern .skst-item, 
+body.theme-modern .group-card, 
+body.theme-modern .settings-panel { 
+    background: #1c2128; 
+    color: #ffffff !important; /* Ép chữ phải trắng tinh */
+    border: 1px solid #30363d; 
+    box-shadow: 0 4px 10px rgba(0,212,255,0.1); 
+}
+body.theme-modern .group-name { 
+    color: #00d4ff !important; /* Tên nhóm hàng màu xanh neon cho nổi */
+    border-bottom: 1px solid #30363d; 
+}
+body.theme-modern .m-label { color: #8b949e; }
+body.theme-modern .skst-value { color: #00d4ff; text-shadow: 0 0 5px rgba(0,212,255,0.5); }
+body.theme-modern input, body.theme-modern textarea { 
+    background: #0d1117; 
+    color: white; 
+    border-color: #30363d; 
+}
+        #groupChecklist { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
+        .chk-item { display: flex; flex-direction: column; padding: 10px 5px; border-bottom: 1px solid #f0f0f0; gap: 8px; }
+        .chk-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .chk-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .st-picker-btn { cursor: pointer; font-size: 28px; padding: 4px 8px; background: #f0f0f0; border-radius: 6px; flex-shrink: 0; }
+        .chk-name-text { font-weight: 950; font-size: 9px; text-transform: uppercase; line-height: 1.2; color: #666; }
+        .nickname-input { font-size: 12px; padding: 6px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-weight: 950; text-transform: uppercase; background: #fffdf0; }
+        .g-vis { width: 22px; height: 22px; flex-shrink: 0; cursor: pointer; }
+        .sticker-popup {
+    display: none;
+    position: fixed;
+    background: white;
+    border: 3px solid var(--primary);
+    padding: 10px;
+    border-radius: 20px;
+    z-index: 3000;
+    width: 90%; /* Nới rộng ra 90% màn hình điện thoại cho thoáng */
+    max-width: 350px; /* Nhưng không quá 350px để tránh bị thô */
+    max-height: 400px;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    flex-direction: column;
+    overflow: hidden; /* Khóa không cho tràn ra ngoài */
+}
+        .sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Chia đều 4 cột mỗi hàng cho rộng rãi */
+    gap: 15px; /* Khoảng cách giữa các sticker */
+    overflow-y: auto; /* Chỉ cho phép kéo lên xuống */
+    overflow-x: hidden; /* Triệt tiêu thanh cuộn ngang */
+    padding: 15px 5px;
+    flex: 1;
+}
+        .st-opt { cursor: pointer; font-size: 30px; text-align: center; padding: 8px; }
+        .st-close { background: #f0f0f0; text-align: center; padding: 12px; font-weight: 950; border-radius: 8px; margin-top: 5px; cursor: pointer; }
+        .pct-high { background: var(--success); color: #fff; }
+        .pct-mid { background: var(--accent); color: #000; }
+        .pct-low { background: var(--danger); color: #fff; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .setting-row { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="input-card">
+        <div class="main-title"><span>🔥 SOI DOANH THU</span><span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span></div>
+        <div class="mode-group">
+            <button class="mode-btn active" id="btnNow" onclick="setMode('now')">🔥 HIỆN TẠI</button>
+            <button class="mode-btn" id="btnMorning" onclick="setMode('morning')">☀️ CA SÁNG</button>
+            <button class="mode-btn" id="btnEnd" onclick="setMode('end')">🏁 CUỐI NGÀY</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px;">
+            <input type="number" id="inpDT" placeholder="DT (Tr)" inputmode="numeric">
+            <input type="number" id="inpTG" placeholder="TG %" inputmode="numeric">
+            <input type="text" id="inpTime" placeholder="Giờ">
+        </div>
+        <textarea id="inpRaw" rows="3" placeholder="Dán dữ liệu BI vào đây..."></textarea>
+        <button class="btn-main" onclick="renderDaily()">🚀 XUẤT CHIẾN SOI NGÀY</button>
+    </div>
+    <div id="outputArea" style="display: none;">
+        <div id="finalReportArea">
+            <div class="skst-row">
+                <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStr" class="skst-value">0/0</div></div>
+                <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPct" class="skst-value">0%</div></div>
+                <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGVal" class="skst-value">0%</div></div>
+            </div>
+            <div class="capture-frame">
+                <div style="background:var(--primary); color:white; padding:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-weight:950; font-size:10px; text-transform:uppercase;">🔹 CHI TIẾT NHÓM HÀNG</h3>
+                    <span id="outDatCount" style="background:var(--success); padding: 4px 10px; border-radius: 20px; font-weight: 950; font-size: 13px; font-weight:950; font-size:9px;">0/0</span>
+                </div>
+                <div class="group-grid" id="outGrid"></div>
+                <div style="text-align:center; padding:3px; color:#999; font-size:8px; font-weight:950; background:#fafafa; border-top:1px solid #eee;">TAM HÒA - <span id="outFooterTime"></span></div>
+            </div>
+        </div>
+        <div class="btn-grid">
+            <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="copyToLien()">📋 COPY CHỮ</button>
+            <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="captureReport()">📸 CHỤP ẢNH</button>
+        </div>
+        <textarea id="lienText" readonly></textarea>
+    </div>
+</div>
+<div class="overlay" id="overlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+    <!-- Tiêu đề cố định -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:18px;">🛠️ HỆ THỐNG CÀI ĐẶT</h3>
+        <span style="cursor:pointer; font-size:24px;" onclick="closeSettings()">✖</span>
+    </div>
+
+    <!-- Vùng Ngăn Kéo tự cuộn -->
+    <div id="settingsAccordion">
+        <!-- Ngăn 1: Giao diện -->
+        <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">
+                <span>🎨 PHONG CÁCH GIAO DIỆN</span> <span>▼</span>
+            </div>
+            <div class="acc-content">
+                <select id="setTheme" style="width:100%; padding:12px; border-radius:10px; font-weight:950; border:2px solid #ddd;">
+                    <option value="default">📱 Mặc định (TGDD)</option>
+                    <option value="theme-racing">🚀 Tăng Tốc (Rực cháy)</option>
+                    <option value="theme-natural">🌿 Natural (Tươi mới)</option>
+                    <option value="theme-modern">💎 Hiện Đại (Luxury)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Ngăn 2: Mục tiêu -->
+        <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">
+                <span>🎯 MỤC TIÊU DOANH THU</span> <span>▼</span>
+            </div>
+            <div class="acc-content">
+                <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border: 2px solid #ddd;">
+            </div>
+        </div>
+
+        <!-- Ngăn 3: Nhóm hàng -->
+        <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">
+                <span>📦 QUẢN LÝ NHÓM HÀNG</span> <span>▼</span>
+            </div>
+            <div class="acc-content" id="groupChecklist">
+                <!-- Script sẽ tự đổ dữ liệu vào đây -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Nút Lưu nằm ngoài vùng cuộn -->
+    <button onclick="saveSettings()" style="width:100%; background:#28a745; color:white; border:none; padding:15px; border-radius:12px; font-weight:950; cursor:pointer; margin-top:10px;">
+        💾 LƯU CẤU HÌNH & ĐÓNG
+    </button>
+</div>
+<div id="stickerPopup" class="sticker-popup">
+    <div class="sticker-grid" id="stickerGrid"></div>
+    <div class="st-close" onclick="document.getElementById('stickerPopup').style.display='none'">ĐÓNG</div>
+</div>
+<script>
+let currentMode = 'now', allParsedGroups = []; 
+let groupConfigs = JSON.parse(localStorage.getItem('tamHoaSlimConfigs')) || {};
+let masterTarget = localStorage.getItem('tamHoaMasterTarget') || 500;
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+}
+function autoTime() { document.getElementById('inpTime').value = new Date().getHours() + "H" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes(); }
+autoTime();
+function captureReport() {
+    const area = document.getElementById('finalReportArea'), btn = document.getElementById('btnCap');
+    btn.innerText = "⏳ ĐANG CHỤP...";
+    window.scrollTo(0,0);
+    setTimeout(() => {
+        html2canvas(area, { scale: 10, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
+            const link = document.createElement('a'); link.download = `TamHoa_${document.getElementById('outFooterTime').innerText}.png`;
+            link.href = canvas.toDataURL("image/png"); link.click();
+            btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
+        });
+    }, 150);
+}
+function trimName(name) {
+    return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
+               .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship").replace("Pin sạc dự phòng", "Sạc dự phòng")
+               .replace("Tai nghe Bluetooth", "Tai nghe").replace("Phụ kiện - Đồng hồ", "Phụ kiện")
+               .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
+}
+function openSettings() {
+    document.getElementById('setTargetDay').value = masterTarget;
+    const list = document.getElementById('groupChecklist'); list.innerHTML = "";
+    let filteredGroups = allParsedGroups.filter(g => g.name.length < 50 && !g.name.includes("QUẠT ĐIỀU HÒAQUẠT GIÓ"));
+    let sortedGroups = filteredGroups.sort((a,b) => (b.t > 0) - (a.t > 0) || a.name.localeCompare(b.name));
+    sortedGroups.forEach(g => {
+        const conf = groupConfigs[g.name] || { visible: true, sticker: "📦", nickname: "" };
+        list.innerHTML += `
+            <div class="chk-item">
+                <div class="chk-top">
+                    <div class="chk-left">
+                        <span class="st-picker-btn" onclick="showStickerPopup(event, this, '${g.name}')">${conf.sticker}</span>
+                        <span class="chk-name-text">${g.name}</span>
+                    </div>
+                    <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
+                </div>
+                <input type="text" class="nickname-input" placeholder="Đặt biệt danh cho ${g.name}..." value="${conf.nickname || ''}">
+            </div>`;
+    });
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('settingsPanel').style.display = 'flex';
+}
+const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
+let activePickerBtn = null, activeGroupName = "";
+function showStickerPopup(event, btn, gName) {
+    event.stopPropagation(); activePickerBtn = btn; activeGroupName = gName;
+    const grid = document.getElementById('stickerGrid');
+    grid.innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="selectSticker('${s}')">${s}</div>`).join('');
+    document.getElementById('stickerPopup').style.display = 'flex';
+}
+function selectSticker(st) {
+    if(activePickerBtn) activePickerBtn.innerText = st;
+    if(!groupConfigs[activeGroupName]) groupConfigs[activeGroupName] = { visible: true, sticker: "📦", nickname: "" };
+    groupConfigs[activeGroupName].sticker = st;
+    document.getElementById('stickerPopup').style.display = 'none';
+}
+function closeSettings() { document.getElementById('overlay').style.display = 'none'; document.getElementById('settingsPanel').style.display = 'none'; }
+function saveSettings() {
+    masterTarget = parseFloat(document.getElementById('setTargetDay').value) || 500;
+    localStorage.setItem('tamHoaMasterTarget', masterTarget);
+    
+    // Lưu Theme mới
+    const selectedTheme = document.getElementById('setTheme').value;
+    localStorage.setItem('tamHoaTheme', selectedTheme);
+    applyTheme(selectedTheme);
+
+    document.querySelectorAll('.chk-item').forEach(item => {
+        const chk = item.querySelector('.g-vis');
+        const name = chk.getAttribute('data-name');
+        const st = item.querySelector('.st-picker-btn').innerText;
+        const nick = item.querySelector('.nickname-input').value.trim();
+        groupConfigs[name] = { visible: chk.checked, sticker: st, nickname: nick };
+    });
+    localStorage.setItem('tamHoaSlimConfigs', JSON.stringify(groupConfigs));
+    closeSettings(); renderDaily();
+}
+function renderDaily() {
+    const raw = document.getElementById('inpRaw').value, 
+          dt = parseFloat(document.getElementById('inpDT').value) || 0, 
+          tg = parseFloat(document.getElementById('inpTG').value) || 0, 
+          time = document.getElementById('inpTime').value;
+    
+    if(!raw) return;
+    
+    const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== "");
+    allParsedGroups = []; 
+    let groupIndices = [];
+    
+    for (let i = 0; i < lines.length; i++) 
+        if (lines[i].startsWith("Thi đua ") && !lines[i].includes("BC Thi đua") && lines[i].length < 60) 
+            groupIndices.push(i);
+            
+    for (let k = 0; k < groupIndices.length; k++) {
+        let startIdx = groupIndices[k], endIdx = (k < groupIndices.length - 1) ? groupIndices[k+1] : lines.length;
+        let name = trimName(lines[startIdx]), r = 0, t = 0, p = 0;
+        for (let j = startIdx + 1; j < endIdx; j++) {
+            if (lines[j].includes("Realtime")) r = parseFloat(lines[j+1]) || 0;
+            if (lines[j].includes("Target Ngày") && !lines[j].includes("% HT")) t = parseFloat(lines[j+1]) || 0;
+            if (lines[j].includes("% HT Target Ngày")) p = parseFloat(lines[j+1].replace('%','')) || 0;
+        }
+        allParsedGroups.push({ name, r, t, p });
+    }
+
+    document.getElementById('outDTStr').innerText = dt + "/" + masterTarget;
+    const pDT = ((dt / masterTarget) * 100).toFixed(1);
+    document.getElementById('outDTPct').innerText = Math.round(pDT) + "%";
+    document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('outTGVal').innerText = tg + "%";
+    document.getElementById('outFooterTime').innerText = time;
+
+    let displayList = allParsedGroups.filter(g => groupConfigs[g.name]?.visible !== false);
+    displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
+    
+    let gridHtml = ""; 
+    let datCount = 0;
+    displayList.forEach(g => {
+        if(g.t > 0 && g.p >= 100) datCount++;
+        let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
+        let finalName = groupConfigs[g.name]?.nickname || g.name;
+        gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${Math.round(g.r)}${g.t>0 ? '/'+Math.round(g.t) : ''}</div><div class="group-pct ${pCl}">${Math.round(g.p)}%</div></div></div>`;
+    });
+    
+    document.getElementById('outGrid').innerHTML = gridHtml;
+    const totalGroups = displayList.filter(x=>x.t>0).length;
+    document.getElementById('outDatCount').innerText = `${datCount}/${totalGroups}`;
+
+    // Hàm chuyển đổi số sang sticker (Dành cho 3 chỉ số quan trọng)
+    const toSticker = (num) => {
+        const stickers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
+        return num.toString().split('').map(d => d === '.' ? '.' : (stickers[parseInt(d)] || d)).join('');
+    };
+
+    let prefix = "", mainStatus = "", footer = "";
+    if (currentMode === 'now') {
+        prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
+        mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Còn thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
+        footer = "\n🚀 Team mình nhận thông tin PUSH SỐ GẤP 💪🔥";
+    } else if (currentMode === 'morning') {
+        prefix = `☀️ KẾT THÚC CA SÁNG: `;
+        mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). 🚀` : `⚠️ Kết ca sáng: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
+        footer = "\n🚀 Team ca chiều nhận thông tin PUSH SỐ GẤP! 🔥";
+    } else {
+        prefix = `🏁 TỔNG KẾT NGÀY: `;
+        mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%). 🏆` : `📉 Hôm nay về: ${toSticker(dt)}/${toSticker(masterTarget)}TR (${toSticker(Math.round(pDT))}%)\n👉 Thiếu: ${toSticker(Math.round(Math.abs(masterTarget-dt)))}TR`;
+        footer = "\nCám ơn team, chúc cả nhà ngủ ngon! 😴";
+    }
+
+    let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${toSticker(tg)}%\n🎯 SỐ NHÓM ĐẠT: ${toSticker(datCount)}/${toSticker(totalGroups)}\n\n`;
+
+    const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
+    const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
+    
+    if(highG.length > 0) { 
+        txt += `✅ NHÓM ĐÃ ĐẠT:\n`; 
+        highG.forEach(g => {
+            let n = groupConfigs[g.name]?.nickname || g.name;
+            txt += `${groupConfigs[g.name]?.sticker || "📦"} ${n}: ${Math.round(g.p)}%\n`;
+        });
+        txt += `\n`;
+    }
+    if(lowG.length > 0) { 
+        txt += `🔥 NHÓM CHƯA ĐẠT:\n`; 
+        lowG.forEach(g => {
+            let n = groupConfigs[g.name]?.nickname || g.nickname || g.name;
+            txt += `${groupConfigs[g.name]?.sticker || "📦"} ${n}: ${Math.round(g.p)}%\n`;
+        }); 
+    }
+    
+    document.getElementById('lienText').value = txt + footer;
+    document.getElementById('outputArea').style.display = "block";
+}
+function copyToLien() {
+    const box = document.getElementById('lienText'); box.select(); document.execCommand('copy');
+    const btn = document.getElementById('btnCopy'); btn.innerText = "✅ ĐÃ COPY!";
+    setTimeout(() => { btn.innerText = "📋 COPY CHỮ"; }, 1500);
+}
+function toggleAcc(header) {
+    const item = header.parentElement;
+    const isActive = item.classList.contains('active');
+    document.querySelectorAll('.acc-item').forEach(el => el.classList.remove('active'));
+    if (!isActive) item.classList.add('active');
+}
+
+function applyTheme(themeName) {
+    document.body.classList.remove('theme-racing', 'theme-natural', 'theme-modern');
+    if (themeName !== 'default') document.body.classList.add(themeName);
+}
+
+// Chỉ tải Theme khi mở trang, KHÔNG mở bảng cài đặt
+window.addEventListener('load', () => {
+    const savedTheme = localStorage.getItem('tamHoaTheme') || 'default';
+    if(document.getElementById('setTheme')) document.getElementById('setTheme').value = savedTheme;
+    applyTheme(savedTheme);
+});
+</script>
+</body>
+</html>
