@@ -73,7 +73,9 @@ body.racing-mode .excel-table-wrapper {
     background: #1e1e1e !important;
 }
 
-/* 2. ĐỘ 5 Ô CHỈ SỐ F1 (XE TO + VẠCH KẺ TRẮNG TINH) */
+/* --- 🏎️ FIX TRIỆT ĐỂ VẠCH KẺ ĐƯỜNG - CHỤP HÌNH BAO DÍNH --- */
+
+/* 2. ĐỘ 5 Ô CHỈ SỐ F1 (DÙNG BORDER ĐỂ CHỤP HÌNH KHÔNG MẤT) */
 body.racing-mode .sk-card {
     background: linear-gradient(180deg, #333, #000) !important;
     border: 2px solid #e74c3c !important;
@@ -83,7 +85,7 @@ body.racing-mode .sk-card {
     margin-top: 35px !important;
 }
 
-/* Xe F1 khổng lồ (38px) */
+/* Xe F1 khổng lồ */
 body.racing-mode .sk-card::before {
     content: "🏎️💨"; 
     position: absolute; 
@@ -93,21 +95,21 @@ body.racing-mode .sk-card::before {
     animation: racingShake 0.15s infinite alternate;
 }
 
-/* VẠCH KẺ ĐƯỜNG: TRẮNG TINH - ĐẬM - KHÔNG MỜ (Cái ông cần nè) */
+/* VẠCH KẺ ĐƯỜNG KIỂU MỚI: DÙNG BORDER DASHED (BAO CHỤP HÌNH) */
 body.racing-mode .sk-card::after {
     content: "";
     position: absolute;
-    bottom: 8px;
+    bottom: 12px; /* Đẩy lên cao chút cho rõ */
     left: 10%;
     width: 80%;
-    height: 4px; /* Tăng độ dày lên 4px cho rõ */
-    background: repeating-linear-gradient(90deg, 
-        #ffffff, #ffffff 15px, 
-        transparent 15px, transparent 30px); /* Vạch trắng tinh 15px cách nhau 15px */
-    opacity: 1 !important; /* Ép độ đậm 100% không cho mờ */
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Thêm chút ánh sáng cho nổi */
+    height: 0; /* Không dùng chiều cao */
+    
+    /* Dùng viền đứt đoạn thay cho màu Gradient */
+    border-bottom: 4px dashed #ffffff !important; 
+    
+    opacity: 1 !important;
+    filter: drop-shadow(0 0 2px #fff); /* Thêm chút ánh sáng */
 }
-
 /* 3. QUAN TRỌNG: TRẢ LẠI MÀU CHO CÁC Ô NHÓM HÀNG */
 /* Ép các ô báo động (Đỏ/Vàng) phải hiện lên rõ trên nền đen */
 body.racing-mode .bg-bad { 
