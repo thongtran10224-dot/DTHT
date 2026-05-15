@@ -306,6 +306,93 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
     margin-top: 0;
     pointer-events: none;
 }
+/* --- CSS CHO DANH SÁCH GIAO DIỆN HÀNG DỌC CỦA ÔNG THÔNG --- */
+.mode-list {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px;               
+    padding: 10px 0;
+}
+
+.mode-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;              
+    padding: 15px;     
+    background: #fdfdfd;
+    border-radius: 10px;
+    font-weight: 950;
+    font-size: 15px;
+    cursor: pointer;
+    border: 2px solid #f0f2f5;
+    transition: 0.2s;
+}
+
+.mode-item:active { background: #e8f0fe; }
+
+.mode-item input[type="checkbox"] {
+    transform: scale(1.6); /* Ô tích siêu to cho ông dễ bấm */
+}
+/* ⚙️ 1. DIY METAL MODE */
+body.diy-mode { background: #2c3e50 !important; color: #ecf0f1 !important; }
+.diy-mode .sk-card { 
+    background: linear-gradient(145deg, #34495e, #2c3e50) !important;
+    border: 2px solid #7f8c8d !important;
+    box-shadow: 5px 5px 10px #1a252f, -2px -2px 5px #3e5871 !important;
+    border-radius: 5px !important;
+}
+.diy-mode .sk-label { color: #bdc3c7 !important; }
+.diy-mode .sk-value { color: #e67e22 !important; text-shadow: 1px 1px 0px #000; }
+.diy-mode th { background: #1a252f !important; color: #e67e22 !important; border: 1px solid #7f8c8d !important; }
+
+/* 📟 2. MATRIX NEON MODE */
+body.matrix-mode { background: #000 !important; color: #00ff41 !important; font-family: 'Courier New', monospace !important; }
+.matrix-mode .sk-card { 
+    background: rgba(0, 255, 65, 0.05) !important;
+    border: 1px solid #00ff41 !important;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2) !important;
+}
+.matrix-mode .sk-value { color: #fff !important; text-shadow: 0 0 8px #00ff41; }
+.matrix-mode table { border: 1px solid #00ff41 !important; }
+.matrix-mode th, .matrix-mode td { border: 1px solid #004400 !important; color: #00ff41 !important; }
+.matrix-mode .bg-good { background: #003300 !important; box-shadow: inset 0 0 10px #00ff41; }
+
+/* 🏆 3. ROYAL GOLD MODE */
+body.royal-mode { background: #f4f7f6 !important; color: #1a2a6c !important; }
+.royal-mode .sk-card { 
+    background: #fff !important;
+    border-left: 5px solid #b8860b !important;
+    box-shadow: 0 4px 15px rgba(184, 134, 11, 0.15) !important;
+    border-radius: 0 10px 10px 0 !important;
+}
+.royal-mode .sk-value { color: #b8860b !important; font-weight: 900 !important; }
+.royal-mode th { background: #1a2a6c !important; color: #fff !important; border: none !important; }
+.royal-mode .bg-good { background: #fcf3cf !important; color: #b8860b !important; border: 1px solid #b8860b !important; }
+/* ⚙️ 1. GIAO DIỆN CƠ KHÍ - INDUSTRIAL GEAR */
+body.gear-mode { background: #dcdde1 !important; color: #2f3640 !important; }
+.gear-mode .sk-card {
+    background: #f5f6fa !important;
+    border: 4px solid #718093 !important;
+    border-radius: 15px !important;
+    position: relative;
+    overflow: visible !important;
+}
+/* Thêm bánh răng ở góc */
+.gear-mode .sk-card::before { content: "⚙️"; position: absolute; top: -10px; left: -10px; font-size: 20px; animation: spin 4s linear infinite; }
+.gear-mode .sk-card::after { content: "🔧"; position: absolute; bottom: -5px; right: -5px; font-size: 18px; transform: rotate(45deg); }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* ⛓️ 2. GIAO DIỆN GAI GÓC - RUGGED ROPE */
+body.rope-mode { background: #f7f1e3 !important; }
+.rope-mode .sk-card {
+    background: #ffffff !important;
+    border: 5px double #84817a !important; /* Viền kép nhìn như dây thừng quấn */
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70% !important; /* Hình dạng hơi méo mó bụi bặm */
+    position: relative;
+}
+/* Thêm dây xích/thừng quấn quanh */
+.rope-mode .sk-card::before { content: "⛓️"; position: absolute; top: -12px; width: 100%; text-align: center; font-size: 16px; }
+.rope-mode .sk-card::after { content: "⚓"; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 18px; }
 </style>
 </head>
 <body>
@@ -345,16 +432,21 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 
     <!-- 1. Ô GIAO DIỆN -->
     <div class="accordion-item" id="itemStyle">
-        <div class="accordion-header" onclick="toggleAccordion('itemStyle')">🎨 GIAO DIỆN HIỂN THỊ <span>▼</span></div>
-        <div class="accordion-content">
-            <div style="display: flex; justify-content: space-around; padding: 10px;">
-                <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
-                <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
-                <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
-                <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
-            </div>
+    <div class="accordion-header" onclick="toggleAccordion('itemStyle')">🎨 GIAO DIỆN HIỂN THỊ <span>▼</span></div>
+    <div class="accordion-content">
+        <div class="mode-list">
+            <label class="mode-item"><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙 Chế độ Ban đêm</label>
+            <label class="mode-item"><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿 Chế độ Thiên nhiên</label>
+            <label class="mode-item"><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️ Chế độ Racing (Tăng tốc)</label>
+            <label class="mode-item"><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖 Chế độ Cyberpunk</label>
+            <label class="mode-item"><input type="checkbox" id="diyMode" onchange="toggleDIYMode(this.checked)"> ⚙️ Chế độ DIY METAL (Cơ khí)</label>
+            <label class="mode-item"><input type="checkbox" id="matrixMode" onchange="toggleMatrixMode(this.checked)"> 📟 Chế độ MATRIX NEON (Hacker)</label>
+            <label class="mode-item"><input type="checkbox" id="royalMode" onchange="toggleRoyalMode(this.checked)"> 🏆 Chế độ ROYAL GOLD (Hoàng gia)</label>
+            <label class="mode-item"><input type="checkbox" id="gearMode" onchange="toggleGearMode(this.checked)"> ⚙️ Chế độ CƠ KHÍ (Bánh răng)</label>
+            <label class="mode-item"><input type="checkbox" id="ropeMode" onchange="toggleRopeMode(this.checked)"> ⛓️ Chế độ GAI GÓC (Dây thừng)</label>
         </div>
     </div>
+</div>
 
     <!-- 2. Ô TARGET VÀ CHỈ SỐ -->
     <div class="accordion-item" id="itemTarget">
@@ -375,7 +467,7 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 
     <!-- 3. Ô QUẢN LÝ NHÓM & NHÂN VIÊN (GOM CHUNG) -->
     <div class="accordion-item" id="itemData">
-        <div class="accordion-header" onclick="toggleAccordion('itemData')">👥 QUẢN LÝ NHÓM & NHÂN VIÊN <span>▼</span></div>
+        <div class="accordion-header" onclick="toggleAccordion('itemData')">👥 NHÓM HÀNG & NHÂN VIÊN <span>▼</span></div>
         <div class="accordion-content">
              <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;">
                 <div id="stkTrayContent" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 10px;"></div>
@@ -1050,6 +1142,41 @@ function toggleDarkMode(isDark) {
     }
 }
 
+function toggleDIYMode(show) {
+    document.body.classList.toggle('diy-mode', show);
+    if(show) { // Tắt các chế độ khác khi bật DIY
+        document.getElementById('matrixMode').checked = false; toggleMatrixMode(false);
+        document.getElementById('royalMode').checked = false; toggleRoyalMode(false);
+    }
+}
+function toggleMatrixMode(show) {
+    document.body.classList.toggle('matrix-mode', show);
+    if(show) {
+        document.getElementById('diyMode').checked = false; toggleDIYMode(false);
+        document.getElementById('royalMode').checked = false; toggleRoyalMode(false);
+    }
+}
+function toggleRoyalMode(show) {
+    document.body.classList.toggle('royal-mode', show);
+    if(show) {
+        document.getElementById('diyMode').checked = false; toggleDIYMode(false);
+        document.getElementById('matrixMode').checked = false; toggleMatrixMode(false);
+    }
+}
+function toggleGearMode(show) {
+    document.body.classList.toggle('gear-mode', show);
+    if(show) {
+        document.getElementById('ropeMode').checked = false; toggleRopeMode(false);
+        document.getElementById('natureMode').checked = false; toggleNatureMode(false);
+    }
+}
+function toggleRopeMode(show) {
+    document.body.classList.toggle('rope-mode', show);
+    if(show) {
+        document.getElementById('gearMode').checked = false; toggleGearMode(false);
+        document.getElementById('natureMode').checked = false; toggleNatureMode(false);
+    }
+}
 // Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
 function saveActiveMode(className, modeId) {
     const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
