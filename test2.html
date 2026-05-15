@@ -6,6 +6,9 @@
     <title>Tam Hòa Master V31.41 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+.accordion-content { display: none; }
+.accordion-item.active .accordion-content { display: block; }
+.accordion-header { cursor: pointer; border-bottom: 1px solid #eee; }
 /* Hiệu ứng mượt cho khu vực nhập liệu */
 #inputSection {
     transition: all 0.4s ease-in-out;
@@ -306,72 +309,70 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 <div class="settings-panel" id="settingsPanel">
     <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
 
-<div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
-    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
-    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span>
-            <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+    <!-- 1. Ô GIAO DIỆN -->
+    <div class="accordion-item" id="itemStyle">
+        <div class="accordion-header" onclick="toggleAccordion('itemStyle')">🎨 GIAO DIỆN HIỂN THỊ <span>▼</span></div>
+        <div class="accordion-content">
+            <div style="display: flex; justify-content: space-around; padding: 10px;">
+                <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
+                <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
+                <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
+                <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 5px;">
-            <span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span>
-            <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+    </div>
+
+    <!-- 2. Ô TARGET VÀ CHỈ SỐ -->
+    <div class="accordion-item" id="itemTarget">
+        <div class="accordion-header" onclick="toggleAccordion('itemTarget')">🚀 TARGET & CHỈ SỐ CỘT <span>▼</span></div>
+        <div class="accordion-content">
+            <div style="display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
+                <div><span style="font-size: 11px; font-weight: 950;">🎯 Boost DT:</span> <input type="number" id="boostDT" step="0.1" style="width: 55px; text-align: center; font-weight: 950;"></div>
+                <div><span style="font-size: 11px; font-weight: 950;">📦 Boost NH:</span> <input type="number" id="boostNH" step="0.1" style="width: 55px; text-align: center; font-weight: 950;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-around; padding-top: 10px;">
+                <label><input type="checkbox" id="showDT"> DT</label>
+                <label><input type="checkbox" id="showBK"> BK</label>
+                <label><input type="checkbox" id="showTG"> TG</label>
+                <label><input type="checkbox" id="showBTM"> BTM</label>
+            </div>
         </div>
-        <span style="font-size: 9px; color: #666;">(Mặc định là 1.0)</span>
+    </div>
+
+    <!-- 3. Ô QUẢN LÝ NHÓM & NHÂN VIÊN (GOM CHUNG) -->
+    <div class="accordion-item" id="itemData">
+        <div class="accordion-header" onclick="toggleAccordion('itemData')">👥 QUẢN LÝ NHÓM & NHÂN VIÊN <span>▼</span></div>
+        <div class="accordion-content">
+             <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;">
+                <div id="stkTrayContent" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 10px;"></div>
+             </div>
+             <!-- Nhóm hàng -->
+             <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 Tìm nhóm..." class="search-box">
+             <div style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 10px;"><table style="width:100%"><tbody id="groupList"></tbody></table></div>
+             <!-- Nhân viên -->
+             <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="🔍 Tìm tên..." class="search-box">
+             <div style="max-height: 150px; overflow-y: auto; border: 1px solid #eee;"><table style="width:100%"><tbody id="staffList"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- 4. Ô CHỨC NĂNG -->
+    <div class="accordion-item" id="itemSystem">
+        <div class="accordion-header" onclick="toggleAccordion('itemSystem')" style="color: #d63031;">🛠️ CHỨC NĂNG HỆ THỐNG <span>▼</span></div>
+        <div class="accordion-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
+                <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
+                <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+        <button onclick="saveSettings()" style="padding:12px; background:#28a745; color:#fff; border:none; border-radius:8px; font-weight:950;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:12px; background:#6c757d; color:#fff; border:none; border-radius:8px; font-weight:950;">ĐÓNG ❌</button>
     </div>
 </div>
-
-<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
-    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
-    <div style="display: flex; justify-content: space-around;">
-        <label><input type="checkbox" id="showDT" checked> DT</label>
-        <label><input type="checkbox" id="showBK" checked> BK</label>
-        <label><input type="checkbox" id="showTG" checked> TG</label>
-        <label><input type="checkbox" id="showBTM" checked> BTM</label>
-    </div>
-</div>
-
-<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
-    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
-    <div style="display: flex; justify-content: space-around;">
-        <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
-        <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
-        <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
-        <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
-    </div>
-</div>
-
-    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
-    
-    <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
-
-    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span>
-        <button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button>
-    </div>
-    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
-        <table style="width:100%"><tbody id="groupList"></tbody></table>
-    </div>
-
-    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
-    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-        <span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span>
-        <button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button>
-    </div>
-    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
-        <table style="width:100%"><tbody id="staffList"></tbody></table>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-        <button onclick="saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
-        <button onclick="closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
-        <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
-        <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
-        <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
-    </div>
-    <div style="display:none;"><input id="boostDT" value="1"><input id="boostNH" value="1"></div>
-</div>
-
+   
 <input type="file" id="importFile" style="display:none" onchange="processFile(this)">
 
 <!-- ĐÂY LÀ PHẦN HIỂN THỊ CHI TIẾT NHÂN VIÊN - PHẢI NẰM RIÊNG BIỆT RA NGOÀI -->
@@ -810,20 +811,37 @@ function openSettings() {
         panel.style.display = 'block';
         overlay.style.display = 'block';
 
-        // --- ĐOẠN NÀY ĐỂ HIỆN SỐ NHÂN (BOOST) ĐÂY ÔNG ---
         document.getElementById('boostDT').value = config.boostDT || 1.0; 
         document.getElementById('boostNH').value = config.boostNH || 1.0;
         
-        // Load lại mấy cái nút Checkbox
         const sc = config.showCols;
         document.getElementById('showDT').checked = sc.dt;
         document.getElementById('showBK').checked = sc.bk;
         document.getElementById('showTG').checked = sc.tg;
         document.getElementById('showBTM').checked = sc.btm;
 
-        // Load lại danh sách Nhóm và Nhân viên
-        document.getElementById('groupList').innerHTML = Object.keys(config.groups).map(gn => `<tr><td><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td><td style="font-size:20px; cursor:pointer;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td><td style="font-size:10px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" style="width:60px" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
-        document.getElementById('staffList').innerHTML = Object.keys(config.staffs).map(sid => `<tr><td><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td><td style="font-size:10px; text-align:left;">${getShort(sid)}</td><td><input type="text" class="alias-input" style="width:80px" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
+        // Đổ dữ liệu Nhóm hàng
+        const gList = document.getElementById('groupList');
+        if (gList) {
+            gList.innerHTML = Object.keys(config.groups).map(gn => `
+                <tr>
+                    <td style="width:30px"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td>
+                    <td style="font-size:24px; cursor:pointer; width:40px; text-align:center;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td>
+                    <td style="font-size:11px; text-align:left; font-weight:950;">${gn}</td>
+                    <td style="width:80px"><input type="text" class="alias-input" style="width:70px; font-weight:950;" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td>
+                </tr>`).join("");
+        }
+
+        // Đổ dữ liệu Nhân viên
+        const sList = document.getElementById('staffList');
+        if (sList) {
+            sList.innerHTML = Object.keys(config.staffs).map(sid => `
+                <tr>
+                    <td style="width:30px"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td>
+                    <td style="font-size:11px; text-align:left; font-weight:950;">${getShort(sid)}</td>
+                    <td style="width:110px"><input type="text" class="alias-input" style="width:100px; font-weight:950;" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td>
+                </tr>`).join("");
+        }
     }
 }
 
@@ -1053,6 +1071,25 @@ function toggleInputFields() {
     const fields = document.getElementById('inputFields');
     fields.classList.toggle('collapsed');
 }
+function toggleAccordion(parentId) {
+    const targetItem = document.getElementById(parentId);
+    const isActive = targetItem.classList.contains('active');
+    
+    document.querySelectorAll('.accordion-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    if (!isActive) {
+        targetItem.classList.add('active');
+    }
+}
+
+// Thêm CSS cho menu xổ (Dán vào đầu thẻ <style> hoặc bất kỳ đâu trong <style>)
+/* 
+.accordion-content { display: none; padding: 10px; border-top: 1px solid #eee; }
+.accordion-item.active .accordion-content { display: block; }
+.accordion-header { cursor: pointer; padding: 12px; background: #f8f9fa; font-weight: 950; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+*/
 // --- KẾT THÚC BỘ ĐIỀU KHIỂN ---
 </script>
 </body>
