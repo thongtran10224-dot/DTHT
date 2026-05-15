@@ -8,7 +8,25 @@
     <style>
 .accordion-content { display: none; }
 .accordion-item.active .accordion-content { display: block; }
-.accordion-header { cursor: pointer; border-bottom: 1px solid #eee; }
+.accordion-header { 
+    cursor: pointer; 
+    padding: 16px 12px;
+    background: #ffffff; 
+    font-weight: 950; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    border-bottom: 1px solid #eee; 
+    font-size: 15px;
+    color: #333;
+    transition: all 0.2s;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.accordion-header span { font-size: 12px; color: #004a99; }
+.accordion-content { display: none; padding: 10px; border-top: 1px solid #eee; background: #fff; }
+.accordion-item.active .accordion-content { display: block; margin-bottom: 10px; }
 /* Hiệu ứng mượt cho khu vực nhập liệu */
 #inputSection {
     transition: all 0.4s ease-in-out;
@@ -220,7 +238,23 @@ body.nature-mode {
         .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
         .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
-        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .settings-panel { 
+    display:none; 
+    position:fixed; 
+    top:50%; 
+    left:50%; 
+    transform:translate(-50%,-50%); 
+    background:white; 
+    width: 98%;          /* Chiếm hết chiều ngang mobile */
+    max-width: 600px;    /* Nới rộng bảng ra 600px */
+    padding: 10px 5px;   /* Thu hẹp lề để ô nhập có thêm chỗ */
+    border-radius: 12px; 
+    z-index: 9001; 
+    max-height: 95vh; 
+    overflow-y: auto; 
+    box-sizing: border-box; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
         #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
         .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
         .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
@@ -811,6 +845,7 @@ function openSettings() {
         panel.style.display = 'block';
         overlay.style.display = 'block';
 
+        // 1. Nạp các chỉ số Target
         document.getElementById('boostDT').value = config.boostDT || 1.0; 
         document.getElementById('boostNH').value = config.boostNH || 1.0;
         
@@ -820,26 +855,48 @@ function openSettings() {
         document.getElementById('showTG').checked = sc.tg;
         document.getElementById('showBTM').checked = sc.btm;
 
-        // Đổ dữ liệu Nhóm hàng
+        // 2. Đổ dữ liệu Nhóm hàng - Layout Tiêu đề trên, Ô nhập dưới (Chống mất góc)
         const gList = document.getElementById('groupList');
         if (gList) {
             gList.innerHTML = Object.keys(config.groups).map(gn => `
-                <tr>
-                    <td style="width:30px"><input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked"></td>
-                    <td style="font-size:24px; cursor:pointer; width:40px; text-align:center;" onclick="showStkTray('${gn}')">${config.groups[gn].stk || '📦'}</td>
-                    <td style="font-size:11px; text-align:left; font-weight:950;">${gn}</td>
-                    <td style="width:80px"><input type="text" class="alias-input" style="width:70px; font-weight:950;" value="${config.groups[gn].alias||''}" onchange="config.groups['${gn}'].alias=this.value"></td>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 5px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <input type="checkbox" ${config.groups[gn].show?'checked':''} onchange="config.groups['${gn}'].show=this.checked" style="transform: scale(1.4);">
+                            <span style="font-size: 15px; font-weight: 950; color: #333;">${gn.toUpperCase()}</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; padding-left: 20px;">
+                            <div style="font-size: 28px; cursor: pointer; background: #f0f2f5; padding: 5px 12px; border-radius: 8px; border: 1px solid #ddd;" onclick="showStkTray('${gn}')">
+                                ${config.groups[gn].stk || '📦'}
+                            </div>
+                            <input type="text" class="alias-input" 
+                                style="flex: 1; width: 100%; height: 40px; font-size: 15px; font-weight: 950; border: 2px solid #004a99; border-radius: 6px; padding: 0 10px; box-sizing: border-box;" 
+                                placeholder="Biệt danh nhóm..."
+                                value="${config.groups[gn].alias||''}" 
+                                onchange="config.groups['${gn}'].alias=this.value">
+                        </div>
+                    </td>
                 </tr>`).join("");
         }
 
-        // Đổ dữ liệu Nhân viên
+        // 3. Đổ dữ liệu Nhân viên - Layout dễ bấm (Chống mất góc)
         const sList = document.getElementById('staffList');
         if (sList) {
             sList.innerHTML = Object.keys(config.staffs).map(sid => `
-                <tr>
-                    <td style="width:30px"><input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked"></td>
-                    <td style="font-size:11px; text-align:left; font-weight:950;">${getShort(sid)}</td>
-                    <td style="width:110px"><input type="text" class="alias-input" style="width:100px; font-weight:950;" value="${config.staffs[sid].alias||''}" onchange="config.staffs['${sid}'].alias=this.value"></td>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 5px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <input type="checkbox" ${config.staffs[sid].show?'checked':''} onchange="config.staffs['${sid}'].show=this.checked" style="transform: scale(1.4);">
+                            <span style="font-size: 15px; font-weight: 950; color: #004a99;">${getShort(sid).toUpperCase()}</span>
+                        </div>
+                        <div style="padding-left: 20px;">
+                            <input type="text" class="alias-input" 
+                                style="width: 100%; height: 40px; font-size: 15px; font-weight: 950; border: 2px solid #555; border-radius: 6px; padding: 0 10px; box-sizing: border-box;" 
+                                placeholder="Biệt danh nhân viên..."
+                                value="${config.staffs[sid].alias||''}" 
+                                onchange="config.staffs['${sid}'].alias=this.value">
+                        </div>
+                    </td>
                 </tr>`).join("");
         }
     }
