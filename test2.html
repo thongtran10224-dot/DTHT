@@ -58,8 +58,12 @@
 }
 /* --- 🏎️ ĐỘ LẠI RACING MODE: XE CHẠY + GIỮ VIỀN ĐỎ + GIỮ MÀU Ô NHÓM HÀNG --- */
 
-/* 1. Nền bảng và viền đỏ hầm hố */
+/* 1. NỀN TỔNG THỂ VÀ CHỤP HÌNH */
 body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
+#screenshotArea { 
+    padding-top: 55px !important; 
+    background: #1a1a1a !important; 
+}
 
 /* Trả lại viền đỏ cho bảng Sức Khỏe Nhóm Hàng và Bảng Nhân Viên */
 body.racing-mode .sk-groups-wrapper, 
@@ -69,18 +73,39 @@ body.racing-mode .excel-table-wrapper {
     background: #1e1e1e !important;
 }
 
-/* 2. Ô chỉ số F1 (5 ô trên cùng) */
+/* 2. ĐỘ 5 Ô CHỈ SỐ F1 (XE TO + VẠCH KẺ TRẮNG TINH) */
 body.racing-mode .sk-card {
     background: linear-gradient(180deg, #333, #000) !important;
     border: 2px solid #e74c3c !important;
     border-radius: 8px 30px 8px 8px !important;
     position: relative;
     overflow: visible !important;
+    margin-top: 35px !important;
 }
+
+/* Xe F1 khổng lồ (38px) */
 body.racing-mode .sk-card::before {
     content: "🏎️💨"; 
-    position: absolute; top: -22px; left: 10px; font-size: 22px;
-    animation: racingShake 0.2s infinite alternate;
+    position: absolute; 
+    top: -45px; 
+    left: 5px; 
+    font-size: 38px; 
+    animation: racingShake 0.15s infinite alternate;
+}
+
+/* VẠCH KẺ ĐƯỜNG: TRẮNG TINH - ĐẬM - KHÔNG MỜ (Cái ông cần nè) */
+body.racing-mode .sk-card::after {
+    content: "";
+    position: absolute;
+    bottom: 8px;
+    left: 10%;
+    width: 80%;
+    height: 4px; /* Tăng độ dày lên 4px cho rõ */
+    background: repeating-linear-gradient(90deg, 
+        #ffffff, #ffffff 15px, 
+        transparent 15px, transparent 30px); /* Vạch trắng tinh 15px cách nhau 15px */
+    opacity: 1 !important; /* Ép độ đậm 100% không cho mờ */
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Thêm chút ánh sáng cho nổi */
 }
 
 /* 3. QUAN TRỌNG: TRẢ LẠI MÀU CHO CÁC Ô NHÓM HÀNG */
@@ -108,12 +133,17 @@ body.racing-mode .sticky-col {
     color: #f1c40f !important; 
     border-right: 2px solid #e74c3c !important; 
 }
-
+/* 4. FIX CÀI ĐẶT CHỮ ĐEN */
+body.racing-mode .settings-panel,
+body.racing-mode .settings-panel *,
+body.racing-mode .settings-panel label,
+body.racing-mode .settings-panel span {
+    color: #333 !important;
+}
 @keyframes racingShake {
     from { transform: translateY(0); }
     to { transform: translateY(-2px); }
 }
-
 /* --- 🤖 GIAO DIỆN CYBERPUNK (CÔNG NGHỆ) --- */
 body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
 .cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
