@@ -726,10 +726,19 @@ body.rope-mode { background: #f7f1e3 !important; }
         } else { rw.style.setProperty('display', 'none', 'important'); }
     }
 
-    function showStaffDetail(sid) {
-    if(!processedData) return;
+    // --- HÀM MỞ CHI TIẾT NHÂN VIÊN - BẢN FULL CỦA ÔNG THÔNG ---
+function showStaffDetail(sid) {
+    const dp = document.getElementById('dpDetail');
+    const ov = document.getElementById('ovDetail');
+    if(!dp || !ov || !processedData) return;
+
+    dp.style.display = 'block';
+    ov.style.display = 'block';
+    
     const { storeInfo, sData, gNames } = processedData;
     const s = sData.find(x => x.id === sid);
+    if(!s) return;
+
     const slnv = sData.filter(x => config.staffs[x.id]?.show).length || 1;
     const bDT = parseFloat(config.boostDT) || 1.0;
     const bNH = parseFloat(config.boostNH) || 1.0;
@@ -743,38 +752,15 @@ body.rope-mode { background: #f7f1e3 !important; }
     document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
     document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
     
-    // --- LÀM ĐẸP 2 Ô DOANH THU PHÍA TRÊN ---
-    const boxConfigs = [
-        { id: 'box1', subId: 'box1sub', label: 'DOANH THU' },
-        { id: 'box2', subId: 'box2sub', label: 'CÒN LẠI' }
-    ];
-
-    const boxes = document.querySelectorAll('.grid-info .info-box');
-    
-    // Chỉnh 2 ô đầu (Doanh thu & Còn lại)
-    [0, 1].forEach(i => {
-        if(boxes[i]) {
-            boxes[i].style.minHeight = "80px";
-            boxes[i].style.display = "flex";
-            boxes[i].style.flexDirection = "column";
-            boxes[i].style.justifyContent = "center";
-            boxes[i].style.background = "#fff";
-            boxes[i].style.border = "2px solid #004a99";
-            boxes[i].style.borderRadius = "8px";
-            boxes[i].style.padding = "5px";
-        }
-    });
-
+    // Đổ số vào 2 ô tròn/vuông phía trên
     document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
-    document.getElementById('box1').style.fontSize = "20px";
-    document.getElementById('box1sub').innerText = `Dự kiến: ${Math.round(p_dk_boost)}%`;
-    document.getElementById('box1sub').style.fontWeight = "950";
+    document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
 
-    document.getElementById('box2').innerText = `${Math.round(conLaiDT)}tr`;
-    document.getElementById('box2').style.fontSize = "20px";
-    document.getElementById('box2sub').innerText = `Mỗi ngày: ${moiNgayDT.toFixed(1)}tr`;
-    document.getElementById('box2sub').style.fontWeight = "950";
+    // CHỖ NÀY QUAN TRỌNG: HIỂN THỊ "MỖI NGÀY CẦN CHẠY"
+    document.getElementById('box2').innerHTML = `<span style="color: #d63031;">${Math.round(conLaiDT)}tr</span>`;
+    document.getElementById('box2sub').innerHTML = `Mỗi ngày chạy: <b style="color: #d63031; font-size: 14px;">${moiNgayDT.toFixed(1)}tr</b>`;
 
+    // Vẽ bảng nhóm hàng bên dưới
     let itms = [];
     storeInfo.groups.filter(g => config.groups[g.n]?.show).forEach(g => {
         let tb_g_nv = (g.t * bNH) / slnv;
@@ -782,61 +768,40 @@ body.rope-mode { background: #f7f1e3 !important; }
         let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
         itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
     });
-
-    const soNhomDat = itms.filter(x => x.p >= 100).length;
     
-    // --- Ô PHỤ (TG - BK - NHÓM ĐẠT) ---
-    if(boxes[2]) {
-        boxes[2].style.gridColumn = "span 2";
-        boxes[2].style.minHeight = "85px"; 
-        boxes[2].style.display = "flex";
-        boxes[2].style.alignItems = "center";
-        boxes[2].style.background = "#f0f7ff";
-        boxes[2].style.border = "2px solid #004a99";
-        boxes[2].style.borderRadius = "8px";
-        boxes[2].style.marginTop = "8px";
-        boxes[2].innerHTML = `
-            <div style="display: flex; justify-content: space-around; align-items: center; width: 100%; font-weight: 950;">
-                <span style="display: flex; flex-direction: column; align-items: center;">
-                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">TRẢ GÓP</small>
-                    <span style="color: #2e7d32; font-size: 20px;">💰 ${Math.round(s.tg)}%</span>
-                </span>
-                <span style="display: flex; flex-direction: column; align-items: center;">
-                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">BÁN KÈM</small>
-                    <span style="color: #ed6c02; font-size: 20px;">✨ ${Math.round(s.bk)}%</span>
-                </span>
-                <span style="display: flex; flex-direction: column; align-items: center;">
-                    <small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">NHÓM ĐẠT</small>
-                    <span style="color: #d32f2f; font-size: 20px;">📦 ${soNhomDat}/${itms.length}</span>
-                </span>
-            </div>
-        `;
-    }
-    if(boxes[3]) boxes[3].style.display = 'none';
-
     itms.sort((a,b) => b.p - a.p);
-
-    let tableHtml = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead><tbody id="detBody">`;
-    let body = '';
+    let h = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>MỖI NGÀY</th></tr></thead><tbody>`;
     itms.forEach(it => {
         const conG = Math.max(0, it.t - it.r);
-        const moiNgayG = conG / daysLeft;
         const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
-        body += `<tr class="${rowClass}">
-            <td style="text-align:left; font-size:11px;">${getDN(it.n, false)}</td>
-            <td>${Math.round(it.t)}</td>
-            <td>${Math.round(it.r)}</td>
-            <td>${Math.round(it.p)}%</td>
-            <td style="color:red; font-weight:950;">${Math.round(conG)}</td>
-            <td style="background:#fffbe6; color:#000; font-weight:950;">${moiNgayG.toFixed(1)}</td>
+        h += `<tr class="${rowClass}">
+            <td style="text-align:left;">${getDN(it.n, false)}</td>
+            <td>${Math.round(it.t)}</td><td>${Math.round(it.r)}</td><td>${Math.round(it.p)}%</td>
+            <td style="background:#fffbe6; color:#d63031; font-weight:950;">${(conG/daysLeft).toFixed(1)}</td>
         </tr>`;
     });
+    document.querySelector('.detail-table').innerHTML = h + `</tbody>`;
+}
 
-    const detailTable = document.querySelector('.detail-table');
-    detailTable.innerHTML = tableHtml + body + `</tbody>`;
+// HÀM LƯU THEO KIỂU MỚI (Dán đè lên hàm toggleTheme cũ)
+function toggleTheme(themeName) {
+    const themes = ['nature', 'matrix', 'diy', 'royal', 'dark', 'racing', 'cyber'];
+    themes.forEach(t => {
+        document.body.classList.remove(t + '-mode');
+        const btn = document.getElementById(t + 'Mode');
+        if(btn) btn.checked = false;
+    });
+    
+    if (themeName !== 'none') {
+        const fullClass = themeName + '-mode';
+        document.body.classList.add(fullClass);
+        const activeBtn = document.getElementById(themeName + 'Mode');
+        if(activeBtn) activeBtn.checked = true;
 
-    document.getElementById('ovDetail').style.display = 'block'; 
-    document.getElementById('dpDetail').style.display = 'block';
+        config.activeMode = fullClass;
+        config.activeModeId = themeName + 'Mode';
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+    }
 }
 
 
@@ -1100,111 +1065,174 @@ function processFile(input) {
 
 // --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (DÁN VÀO ĐÂY) ---
 
-// --- BỘ ĐIỀU KHIỂN GIAO DIỆN TỔNG HỢP (ĐÃ CẬP NHẬT TỰ LƯU) ---
+// --- BỘ ĐIỀU KHIỂN GIAO DIỆN "MIX" CHUẨN V31.42 (BY THÔNG DIY) ---
 
-function toggleNatureMode(isNature) {
-    if (isNature) {
-        document.body.classList.add('nature-mode');
-        saveActiveMode('nature-mode', 'natureMode');
-    } else {
-        document.body.classList.remove('nature-mode');
-        saveActiveMode(null, null);
-    }
-}
-
-function toggleRacingMode(isRacing) {
-    if (isRacing) {
-        document.body.classList.add('racing-mode');
-        saveActiveMode('racing-mode', 'racingMode');
-    } else {
-        document.body.classList.remove('racing-mode');
-        saveActiveMode(null, null);
-    }
-}
-
-function toggleCyberMode(isCyber) {
-    if (isCyber) {
-        document.body.classList.add('cyber-mode');
-        saveActiveMode('cyber-mode', 'cyberMode');
-    } else {
-        document.body.classList.remove('cyber-mode');
-        saveActiveMode(null, null);
-    }
-}
-
-function toggleDarkMode(isDark) {
-    if (isDark) {
-        document.body.classList.add('dark-mode');
-        saveActiveMode('dark-mode', 'darkMode');
-    } else {
-        document.body.classList.remove('dark-mode');
-        saveActiveMode(null, null);
-    }
-}
-
-function toggleDIYMode(show) {
-    document.body.classList.toggle('diy-mode', show);
-    if(show) { // Tắt các chế độ khác khi bật DIY
-        document.getElementById('matrixMode').checked = false; toggleMatrixMode(false);
-        document.getElementById('royalMode').checked = false; toggleRoyalMode(false);
-    }
-}
-function toggleMatrixMode(show) {
-    document.body.classList.toggle('matrix-mode', show);
-    if(show) {
-        document.getElementById('diyMode').checked = false; toggleDIYMode(false);
-        document.getElementById('royalMode').checked = false; toggleRoyalMode(false);
-    }
-}
-function toggleRoyalMode(show) {
-    document.body.classList.toggle('royal-mode', show);
-    if(show) {
-        document.getElementById('diyMode').checked = false; toggleDIYMode(false);
-        document.getElementById('matrixMode').checked = false; toggleMatrixMode(false);
-    }
-}
-function toggleGearMode(show) {
-    document.body.classList.toggle('gear-mode', show);
-    if(show) {
-        document.getElementById('ropeMode').checked = false; toggleRopeMode(false);
-        document.getElementById('natureMode').checked = false; toggleNatureMode(false);
-    }
-}
-function toggleRopeMode(show) {
-    document.body.classList.toggle('rope-mode', show);
-    if(show) {
-        document.getElementById('gearMode').checked = false; toggleGearMode(false);
-        document.getElementById('natureMode').checked = false; toggleNatureMode(false);
-    }
-}
-// Hàm quan trọng: Vừa đổi giao diện, vừa lưu vào bộ nhớ localStorage
-function saveActiveMode(className, modeId) {
-    const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
-    const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
+// 1. Hàm điều khiển NỀN (Tự động tắt cái cũ và LƯU vào bộ nhớ)
+function toggleTheme(themeName) {
+    const themes = ['nature', 'matrix', 'diy', 'royal', 'dark', 'racing', 'cyber'];
     
-    // Tắt hết các nút và lớp áo khác trước khi bật cái mới
-    modes.forEach((id, index) => {
-        if (id !== modeId) {
-            const btn = document.getElementById(id);
-            if(btn) btn.checked = false;
-            document.body.classList.remove(classes[index]);
-        }
+    // Tắt sạch các lớp nền cũ trên body
+    themes.forEach(t => document.body.classList.remove(t + '-mode'));
+    
+    // Tắt sạch các dấu tích trong bảng cài đặt
+    themes.forEach(t => {
+        const btn = document.getElementById(t + 'Mode');
+        if(btn) btn.checked = false;
     });
+    
+    if (themeName !== 'none') {
+        const fullClass = themeName + '-mode';
+        const modeId = themeName + 'Mode';
+        
+        // Bật nền mới
+        document.body.classList.add(fullClass);
+        const activeBtn = document.getElementById(modeId);
+        if(activeBtn) activeBtn.checked = true;
 
-    // Ghi nhớ vào cấu hình của ông Thông
-    if(typeof config !== 'undefined') {
-        config.activeMode = className; 
-        config.activeModeId = modeId;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+        // Ghi nhớ vào sổ tay hệ thống của ông Thông
+        if(typeof config !== 'undefined') {
+            config.activeMode = fullClass;
+            config.activeModeId = modeId;
+            localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
+        }
     }
 }
 
-// Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
+// 2. Hàm điều khiển PHỤ KIỆN (Mix thoải mái: Bánh răng, Dây xích)
+function toggleAddon(addonName) {
+    const addonClass = addonName + '-mode';
+    document.body.classList.toggle(addonClass);
+}
+
+// 3. Hàm cũ của ông Thông (Giữ lại để tương thích với các nút bấm hiện tại)
+function toggleNatureMode(is) { if(is) toggleTheme('nature'); else toggleTheme('none'); }
+function toggleRacingMode(is) { if(is) toggleTheme('racing'); else toggleTheme('none'); }
+function toggleCyberMode(is) { if(is) toggleTheme('cyber'); else toggleTheme('none'); }
+function toggleDarkMode(is) { if(is) toggleTheme('dark'); else toggleTheme('none'); }
+function toggleDIYMode(is) { if(is) toggleTheme('diy'); else toggleTheme('none'); }
+function toggleMatrixMode(is) { if(is) toggleTheme('matrix'); else toggleTheme('none'); }
+function toggleRoyalMode(is) { if(is) toggleTheme('royal'); else toggleTheme('none'); }
+
+// Phụ kiện giữ nguyên hàm lẻ cho dễ quản lý
+function toggleGearMode(show) { document.body.classList.toggle('gear-mode', show); }
+function toggleRopeMode(show) { document.body.classList.toggle('rope-mode', show); }
+
+// 4. Lệnh chạy khi vừa mở trang (Load lại giao diện đã lưu)
 window.addEventListener('load', () => {
     if (config && config.activeMode) {
         document.body.classList.add(config.activeMode);
         const btn = document.getElementById(config.activeModeId);
         if(btn) btn.checked = true;
+    }
+});
+
+// 5. HÀM MỞ CHI TIẾT NHÂN VIÊN (FIX LỖI NHẤP KHÔNG RA)
+function showStaffDetail(sid) {
+    // Hiện overlay và panel chi tiết
+    const dp = document.getElementById('dpDetail');
+    const ov = document.getElementById('ovDetail');
+    if(dp && ov) {
+        dp.style.display = 'block';
+        ov.style.display = 'block';
+        
+        // Gọi hàm vẽ dữ liệu nhân viên (Hàm này ông đã có sẵn ở trên)
+        // Lưu ý: Sid là ID đầy đủ (Ví dụ: '67543 - TRAN VAN KHOA')
+        if (typeof renderStaffDetailData === 'function') {
+            renderStaffDetailData(sid);
+        } else {
+            // Nếu không tìm thấy hàm render riêng, tui dùng chính hàm cũ của ông
+            const s = processedData.sData.find(x => x.id === sid);
+            if(s) {
+                 // Tui copy lại một phần logic gốc của ông để đảm bảo nó chạy
+                 const slnv = processedData.sData.filter(x => config.staffs[x.id]?.show).length || 1;
+                 const bDT = parseFloat(config.boostDT) || 1.0;
+                 const bNH = parseFloat(config.boostNH) || 1.0;
+                 const daysLeft = getRemainingDays(), daysPassed = getPassedDays(), daysTotal = getTotalDays();
+                 const t_nv_boost = (processedData.storeInfo.t_goc * bDT) / slnv;
+                 const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
+                 
+                 document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
+                 document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
+                 document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
+                 document.getElementById('box1sub').innerText = `Dự kiến: ${Math.round(p_dk_boost)}%`;
+                 document.getElementById('box2').innerText = `${Math.round(Math.max(0, t_nv_boost - s.dt))}tr`;
+                 document.getElementById('box2sub').innerText = `Mỗi ngày: ${(Math.max(0, t_nv_boost - s.dt)/daysLeft).toFixed(1)}tr`;
+                 
+                 // Vẽ bảng nhóm hàng (Logic rút gọn cho mượt)
+                 let itms = [];
+                 processedData.storeInfo.groups.filter(g => config.groups[g.n]?.show).forEach(g => {
+                     let tb_g_nv = (g.t * bNH) / slnv;
+                     let r_g_nv = s.data[processedData.gNames.indexOf(g.n)] || 0;
+                     let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
+                     itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
+                 });
+                 itms.sort((a,b) => b.p - a.p);
+                 // --- ĐOẠN FIX HIỂN THỊ CỘT MỖI NGÀY TRONG BẢNG CHI TIẾT ---
+// Ông dán đè đoạn này vào phần vẽ bảng trong hàm showStaffDetail nhé
+
+let h = `<thead>
+    <tr>
+        <th>NHÓM HÀNG</th>
+        <th>TARGET</th>
+        <th>LŨY KẾ</th>
+        <th>DỰ KIẾN</th>
+        <th style="color:red;">CÒN</th>
+        <th style="background:#fffbe6; color:#d63031;">MỖI NGÀY</th>
+    </tr>
+</thead><tbody>`;
+
+itms.forEach(it => {
+    const conG = Math.max(0, it.t - it.r); // Số tiền còn lại của nhóm đó
+    const moiNgayG = (conG / daysLeft).toFixed(1); // Số tiền cần chạy mỗi ngày của nhóm đó
+    const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
+    
+    h += `<tr class="${rowClass}">
+        <td style="text-align:left; font-size:11px;">${getDN(it.n, false)}</td>
+        <td>${Math.round(it.t)}</td>
+        <td>${Math.round(it.r)}</td>
+        <td>${Math.round(it.p)}%</td>
+        <td style="color:red; font-weight:950;">${Math.round(conG)}</td>
+        <td style="background:#fffbe6; color:#d63031; font-weight:950;">${moiNgayG}</td>
+    </tr>`;
+});
+
+document.querySelector('.detail-table').innerHTML = h + `</tbody>`;
+            }
+        }
+    }
+}
+
+function closeDetail() {
+    document.getElementById('dpDetail').style.display = 'none';
+    document.getElementById('ovDetail').style.display = 'none';
+}
+
+function toggleAccordion(parentId) {
+    const targetItem = document.getElementById(parentId);
+    const isActive = targetItem.classList.contains('active');
+    document.querySelectorAll('.accordion-item').forEach(item => item.classList.remove('active'));
+    if (!isActive) targetItem.classList.add('active');
+}
+
+function toggleInputFields() { document.getElementById('inputFields').classList.toggle('collapsed'); }
+function hideInputFields() { document.getElementById('inputFields').classList.add('collapsed'); }
+    
+// Lệnh này chạy ngay khi vừa mở trang (Load lại giao diện cũ)
+window.addEventListener('load', () => {
+    // Nếu trong sổ tay có ghi nhớ giao diện cũ
+    if (config && config.activeMode) {
+        // Tự động bật nền đó lên
+        document.body.classList.add(config.activeMode);
+        
+        // Tự động tích vào nút đó trong bảng Cài đặt
+        const savedBtn = document.getElementById(config.activeModeId);
+        if(savedBtn) savedBtn.checked = true;
+        
+        // Fix thêm: Nếu ID lưu là dạng cũ, mình ép nó về hàm toggleTheme để đồng bộ
+        const themeName = config.activeModeId.replace('Mode', '');
+        // Đảm bảo các radio button được tích đúng
+        const radioBtn = document.querySelector(`input[name="mainTheme"][id="${config.activeModeId}"]`);
+        if(radioBtn) radioBtn.checked = true;
     }
 });
 // Hàm để đóng bảng chi tiết nhân viên
