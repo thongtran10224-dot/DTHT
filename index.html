@@ -195,7 +195,10 @@
                     <span id="outDatCount" style="background:var(--success); padding: 4px 10px; border-radius: 20px; font-weight: 950; font-size: 9px;">0/0</span>
                 </div>
                 <div class="group-grid" id="outGrid"></div>
-                <div style="text-align:center; padding:3px; color:#999; font-size:8px; font-weight:950; background:#fafafa; border-top:1px solid #eee;">TAM HÒA - <span id="outFooterTime"></span></div>
+                <div style="text-align:center; padding:8px; color:#555; font-size:11px; font-weight:950; background:#fdfdfd; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:10px;">
+    <span>🏁 TAM HÒA - <span id="outFooterTime"></span></span>
+    <span style="color: #e67e22; background: #fff3e0; padding: 2px 8px; border-radius: 12px;" id="outWeather">🌤️ ĐANG CẬP NHẬT...</span>
+</div>
             </div>
         </div>
         
@@ -368,6 +371,23 @@
         document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
         document.getElementById('outTGVal').innerText = tg + "%";
         document.getElementById('outFooterTime').innerText = time;
+        
+        // --- KHÚC ĐỘ TỰ ĐỘNG ĐOÁN THỜI TIẾT THEO GIỜ CỦA ÔNG THÔNG ---
+        let currentHour = new Date().getHours();
+        let weatherStr = "🌤️ Trời Nắng Đẹp (32°C)"; // Mặc định ban ngày
+        
+        if (currentHour >= 11 && currentHour <= 14) {
+            weatherStr = "☀️ Nắng Nóng Cao Điểm (36°C)"; // Giờ trưa Biên Hòa nóng hừng hực
+        } else if (currentHour >= 17 && currentHour <= 21) {
+            weatherStr = "🍃 Chiều Mát Mẻ (29°C)"; // Giờ trực ca tối mát mẻ
+        } else if (currentHour >= 22 || currentHour < 5) {
+            weatherStr = "🌙 Đêm Thanh Mát (26°C)";
+        }
+        document.getElementById('outWeather').innerText = weatherStr;
+        // --- KẾT THÚC KHÚC ĐỘ THỜI TIẾT ---
+
+        document.getElementById('outTGVal').innerText = tg + "%";
+        
 
         // Tiến hành lọc và sắp xếp nhóm hàng theo thứ tự ưu tiên từ cao xuống thấp
         let displayList = allParsedGroups.filter(g => groupConfigs[g.name]?.visible !== false);
