@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <title>Tam Hòa Master V31.42 - Quản lý Thông</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
+        /* // Màu sắc chủ đạo ban đầu của hệ thống // */
         :root { 
             --primary: #004a99; 
             --bg: #f0f2f5; 
@@ -16,6 +18,7 @@
             --highlight: #e67e22; 
         }
         
+        /* // Chỉnh phông chữ và canh lề toàn trang // */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background-color: var(--bg);
@@ -23,6 +26,7 @@
             margin: 8px;
         }
 
+        /* // Dàn áo cho các mục xổ xuống (Accordion) trong Cài đặt // */
         .accordion-content { display: none; padding: 10px; border-top: 1px solid #eee; background: #fff; }
         .accordion-item.active .accordion-content { display: block; margin-bottom: 10px; }
         .accordion-header { 
@@ -43,6 +47,7 @@
         }
         .accordion-header span { font-size: 12px; color: #004a99; }
 
+        /* // Hiệu ứng trượt đóng mở của khu vực dán dữ liệu nguyên liệu // */
         #inputFields {
             transition: all 0.3s ease-in-out;
             max-height: 600px;
@@ -57,6 +62,7 @@
             pointer-events: none;
         }
 
+        /* // Chia ô cho các hộp dán dữ liệu // */
         .input-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr); 
@@ -68,6 +74,7 @@
         .input-item { display: flex; flex-direction: column; gap: 3px; }
         .input-item label { font-size: 9px; font-weight: 950; color: #004a99; text-align: center; }
         
+        /* // Định dạng cho ô dán văn bản nguyên liệu // */
         textarea { 
             width: 100%; 
             height: 70px !important; 
@@ -81,13 +88,16 @@
             color: #000 !important;
         }
 
+        /* // Tự động co giãn ô nhập liệu khi xem bằng điện thoại // */
         @media (max-width: 600px) {
             .input-container { grid-template-columns: 1fr 1fr !important; }
         }
 
+        /* // Định dạng thanh nút bấm điều khiển chính // */
         .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
         
+        /* // Dàn áo cho 5 card Sức khỏe Siêu thị ở trên cùng // */
         .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
         .sk-card { 
             background: #fff; 
@@ -104,6 +114,7 @@
         .sk-label { font-size: 11px; font-weight: 950; color: #666; margin-bottom: 4px; }
         .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
         
+        /* // Khung bọc bên ngoài các bảng dữ liệu Excel // */
         .sk-groups-wrapper, .excel-table-wrapper { 
             background: white; 
             border-radius: 12px; 
@@ -113,24 +124,32 @@
             margin-bottom: 15px; 
         }
         
+        /* // Định dạng chung cho các bảng số liệu // */
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
         thead th { background: var(--primary); color: white; font-size: 9px; }
         
+        /* // Định dạng các cột chỉ số cố định (DT, BK, TG, BTM) // */
         .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
+        /* // Khóa cứng cột TÊN NV khi cuộn màn hình sang ngang // */
         .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
         
+        /* // Các màu xếp hạng tự động (Xanh - Vàng - Đỏ) // */
         .bg-good { background-color: var(--success) !important; color: #006100 !important; } 
         .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; } 
         .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
         .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
         
+        /* // Cỡ chữ của các dòng thông tin nhỏ trong bảng Nhóm hàng tổng // */
         .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
         .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
         .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
         
+        /* // Màn hình mờ đen che phía sau khi mở bảng cài đặt // */
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
+        
+        /* // Khung hộp thoại Cài đặt hệ thống // */
         .settings-panel { 
             display:none; 
             position:fixed; 
@@ -149,53 +168,53 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
         
+        /* // Chia ô khay chọn sticker icon // */
         #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
         .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; color: #000 !important; }
         
+        /* // Khung hộp thoại xem Chi tiết của từng nhân viên // */
         .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; color: #333; }
         #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
         .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
         .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         
+        /* // Bố cục chia ô thông tin tròn/vuông phía trên bảng chi tiết // */
         .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
         .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
         .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; color: #333; }
         .info-sub { font-size: 11px !important; color: #d63031 !important; margin-top: 2px !important; font-weight: 950 !important; display: block !important; }
         
+        /* // Định dạng riêng cho bảng nhỏ bên trong Chi tiết nhân viên // */
         .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
         .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
         
+        /* // Ô nhập biệt danh trong phần cài đặt // */
         .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
+        /* // Nút bấm Chọn tất cả / Bỏ chọn nhanh // */
         .batch-btn-group { display: flex; gap: 5px; margin-bottom: 8px; }
         .batch-btn { padding: 4px 8px; font-size: 11px; font-weight: 950; border-radius: 4px; cursor: pointer; border: 1px solid #ccc; background: #f8f9fa; color: #333; }
         .batch-btn.select-all { border-color: #004a99; color: #004a99; }
         .batch-btn.deselect-all { border-color: #d63031; color: #d63031; }
 
-        .reward-panel { 
-            display: none; 
-            background: #fff; 
-            margin-top: 15px; 
-            border-radius: 8px; 
-            border: 2px solid #ffd700; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            overflow: hidden; 
-        }
-        .reward-header {
-            background: linear-gradient(90deg, #1e3799, #004a99);
-            color: #fff; padding: 10px; text-align: center;
-            font-weight: 950; font-size: 13px; text-transform: uppercase;
-        }
+        /* // Khung chứa bảng vinh danh chiến thần thưởng // */
+        .reward-panel { display: none; background: #fff; margin-top: 15px; border-radius: 8px; border: 2px solid #ffd700; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .reward-header { background: linear-gradient(90deg, #1e3799, #004a99); color: #fff; padding: 10px; text-align: center; font-weight: 950; font-size: 13px; text-transform: uppercase; }
         .reward-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px; color: #333; }
         .reward-name { font-weight: 950; color: #004a99; }
         .reward-value { font-weight: 950; color: #d63031; }
 
+        /* // Danh sách hàng lựa chọn giao diện trong menu cài đặt // */
         .mode-list { display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }
         .mode-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: #fdfdfd; border-radius: 10px; font-weight: 950; font-size: 15px; cursor: pointer; border: 2px solid #f0f2f5; transition: 0.2s; color: #333 !important; }
         .mode-item input[type="checkbox"] { transform: scale(1.6); }
 
-        /* --- 🏎️ CHẾ ĐỘ RACING MODE --- */
+        /* ----------------------------------------------------------------- */
+        /* 🏎️ CÁC BỘ DÀN ÁO ĐỘ THÊM (THEME CHẾ ĐỘ)                             */
+        /* ----------------------------------------------------------------- */
+        
+        /* // 🏎️ Chế độ Racing (Tăng tốc) // */
         body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
         body.racing-mode #screenshotArea { padding-top: 55px !important; background: #1a1a1a !important; }
         body.racing-mode .sk-groups-wrapper, body.racing-mode .excel-table-wrapper { border: 3px solid #e74c3c !important; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4) !important; background: #1e1e1e !important; }
@@ -210,7 +229,7 @@
         body.racing-mode .bg-good { background-color: #c6efce !important; color: #006100 !important; }
         @keyframes racingShake { from { transform: translateY(0); } to { transform: translateY(-2px); } }
 
-        /* --- 🌙 CHẾ ĐỘ BAN ĐÊM (DARK MODE) --- */
+        /* // 🌙 Chế độ Ban đêm (Dark Mode) // */
         body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
         body.dark-mode .header-controls, body.dark-mode .settings-panel, body.dark-mode .detail-panel, body.dark-mode #captureArea { background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important; }
         body.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
@@ -223,7 +242,7 @@
         body.dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
         body.dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
 
-        /* --- 🌿 CHẾ ĐỘ THIÊN NHIÊN (NATURE MODE) --- */
+        /* // 🌿 Chế độ Thiên nhiên (Nature) // */
         body.nature-mode { background: #f4f7f4 !important; color: #27ae60 !important; }
         body.nature-mode .sk-groups-wrapper, body.nature-mode .excel-table-wrapper { background: #ffffff !important; border: 2px solid #27ae60 !important; border-radius: 12px !important; margin-top: 30px !important; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important; }
         body.nature-mode .sk-card { background: #ffffff !important; border: 5px double #27ae60 !important; border-radius: 50% !important; min-height: 110px !important; width: 110px !important; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important; }
@@ -234,21 +253,21 @@
         body.nature-mode td { border: 1px solid #e0eadd !important; color: #333; }
         body.nature-mode .sticky-col { background: #ffffff !important; border-right: 2px solid #27ae60 !important; color: #27ae60 !important; }
 
-        /* --- 🤖 CHẾ ĐỘ CYBERPUNK --- */
+        /* // 🤖 Chế độ Cyberpunk // */
         body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
         body.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
         body.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
         body.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
         body.cyber-mode td { color: #33ff00; border: 1px solid #00fbff !important; }
 
-        /* ⚙️ CHẾ ĐỘ DIY METAL */
+        /* // 🛠️ Chế độ DIY METAL (Cơ khí) // */
         body.diy-mode { background: #2c3e50 !important; color: #ecf0f1 !important; }
         body.diy-mode .sk-card { background: linear-gradient(145deg, #34495e, #2c3e50) !important; border: 2px solid #7f8c8d !important; box-shadow: 5px 5px 10px #1a252f, -2px -2px 5px #3e5871 !important; border-radius: 5px !important; }
         body.diy-mode .sk-label { color: #bdc3c7 !important; }
         body.diy-mode .sk-value { color: #e67e22 !important; text-shadow: 1px 1px 0px #000; }
         body.diy-mode th { background: #1a252f !important; color: #e67e22 !important; border: 1px solid #7f8c8d !important; }
 
-        /* 📟 CHẾ ĐỘ MATRIX NEON */
+        /* // 📟 Chế độ MATRIX NEON // */
         body.matrix-mode { background: #000 !important; color: #00ff41 !important; font-family: 'Courier New', monospace !important; }
         body.matrix-mode .sk-card { background: rgba(0, 255, 65, 0.05) !important; border: 1px solid #00ff41 !important; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2) !important; }
         body.matrix-mode .sk-value { color: #fff !important; text-shadow: 0 0 8px #00ff41; }
@@ -256,27 +275,29 @@
         body.matrix-mode th, body.matrix-mode td { border: 1px solid #004400 !important; color: #00ff41 !important; }
         body.matrix-mode .bg-good { background: #003300 !important; box-shadow: inset 0 0 10px #00ff41; }
 
-        /* 🏆 CHẾ ĐỘ ROYAL GOLD */
+        /* // 🏆 Chế độ ROYAL GOLD (Hoàng gia) // */
         body.royal-mode { background: #f4f7f6 !important; color: #1a2a6c !important; }
         body.royal-mode .sk-card { background: #fff !important; border-left: 5px solid #b8860b !important; box-shadow: 0 4px 15px rgba(184, 134, 11, 0.15) !important; border-radius: 0 10px 10px 0 !important; }
         body.royal-mode .sk-value { color: #b8860b !important; font-weight: 900 !important; }
         body.royal-mode th { background: #1a2a6c !important; color: #fff !important; border: none !important; }
         body.royal-mode .bg-good { background: #fcf3cf !important; color: #b8860b !important; border: 1px solid #b8860b !important; }
 
-        /* ⚙️ PHỤ KIỆN: CƠ KHÍ */
+        /* // ⚙️ Phụ kiện trang trí: Bánh răng cơ khí // */
         body.gear-mode .sk-card { background: #f5f6fa !important; border: 4px solid #718093 !important; border-radius: 15px !important; position: relative; overflow: visible !important; }
         body.gear-mode .sk-card::before { content: "⚙️"; position: absolute; top: -10px; left: -10px; font-size: 20px; animation: spin 4s linear infinite; }
         body.gear-mode .sk-card::after { content: "🔧"; position: absolute; bottom: -5px; right: -5px; font-size: 18px; transform: rotate(45deg); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* ⛓️ PHỤ KIỆN: GAI GÓC */
+        /* // ⛓️ Phụ kiện trang trí: Gai góc dây thừng // */
         body.rope-mode .sk-card { background: #ffffff !important; border: 5px double #84817a !important; border-radius: 30% 70% 70% 30% / 30% 30% 70% 70% !important; position: relative; }
         body.rope-mode .sk-card::before { content: "⛓️"; position: absolute; top: -12px; width: 100%; text-align: center; font-size: 16px; }
         body.rope-mode .sk-card::after { content: "⚓"; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 18px; }
     </style>
 </head>
 <body>
+
 <div class="header-controls">
+    
     <div id="inputFields">
         <div class="input-container">
             <div class="input-item"><label>1. SỨC KHỎE SIÊU THỊ</label><textarea id="i1" placeholder="Dán..."></textarea></div>
@@ -297,10 +318,14 @@
 </div>
               
 <div id="reportOutput" style="display:none; background:#fffbe6; padding:10px; margin-bottom:10px; border-radius:8px; border:1px dashed #e67e22; white-space:pre-wrap; font-family:monospace; color:#333;"></div>
+
 <div id="screenshotArea">
     <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    
     <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
+    
     <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+    
     <div id="rewardOutput" class="reward-panel"></div>
 </div>
 
@@ -386,6 +411,7 @@
     <div id="captureArea">
         <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
         <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
+        
         <div class="grid-info">
             <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
             <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
@@ -396,8 +422,8 @@
             </div>
             <div class="info-box">
                 <div class="info-label">BÁN KÈM & TRẢ GÓP</div>
-                <div id="box4" class="info-val" style="color: #e67e22 !important;">0% / 0%</div>
-                <div id="box4sub" class="info-sub" style="color: #e67e22 !important;"></div>
+                <div id="box4" class="info-val" style="padding: 0px;"></div>
+                <div id="box4sub" class="info-sub" style="color: #e67e22 !important;">BK / TG lũy kế</div>
             </div>
         </div>
         <table class="detail-table"></table>
@@ -409,16 +435,23 @@
 </div>
 
 <script>
+    // Khai báo các linh kiện ghi nhớ tạm thời trong bộ não máy tính
     let processedData = null, curGKey = null;
     let config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{}, activeMode: 'none', activeModeId: '' };
+    // Danh sách sticker để đổi biểu tượng cho nhóm hàng
     const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","ATM","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
 
+    // Các hàm tính toán thời gian, ngày tháng tự động trong tháng hiện hành
     function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
     function getPassedDays() { return new Date().getDate(); }
     function getTotalDays() { return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); }
+    
+    // Hàm xử lý định dạng hiển thị tên Nhóm hàng kèm biểu tượng sticker
     const getDN = (id, useBigStk = true) => { const item = config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
+    // Hàm lấy chữ cuối cùng của tên nhân viên để hiển thị cho gọn bảng
     const getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
 
+    // Bộ phận tự động tính toán để tô màu Xanh, Vàng, Đỏ dựa theo xếp hạng thành tích số liệu
     function getRankColor(v, a, isNH = false, rev = false) {
         if (v === 0 && !rev) return "bg-zero";
         if (isNH) { if (v >= 100) return "bg-good"; if (v >= 80) return "bg-mid"; return "bg-bad"; }
@@ -429,6 +462,9 @@
         return r <= 0.35 ? "bg-good" : r <= 0.65 ? "bg-mid" : "bg-bad";
     }
 
+    // =================================================================
+    // ⚡ BỘ XỬ LÝ CHÍNH: ĐỔ SỐ VÀ PHÂN TÍCH NGUYÊN LIỆU ĐẦU VÀO
+    // =================================================================
     function masterProcess() {
         const raw = [
             document.getElementById('i1').value.trim(),
@@ -439,6 +475,7 @@
         
         if(!raw[0] || !raw[2]) return;
 
+        // Bóc tách nguyên liệu Ô số 1: Sức khỏe siêu thị tổng quát
         let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
         const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
         
@@ -460,6 +497,7 @@
             }
         });
 
+        // Bóc tách nguyên liệu Ô số 3: Lấy danh sách cột tên nhóm hàng
         const l3 = raw[2].split('\n').map(l => l.trim());
         let gNames = []; 
         let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
@@ -467,6 +505,7 @@
             for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); 
         }
 
+        // Bóc tách nguyên liệu Ô số 3: Lấy danh sách số liệu nhóm hàng của từng nhân viên
         let sData = []; 
         let isC = false;
         l3.forEach(l => {
@@ -484,6 +523,7 @@
             if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
         });
 
+        // Bóc tách nguyên liệu Ô số 2: Khớp doanh thu cá nhân vào danh sách
         const l2 = raw[1].split('\n'); 
         l2.forEach(l => { 
             const p = l.trim().split(/\t|\s{2,}/); 
@@ -491,6 +531,7 @@
             if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; 
         });
 
+        // Bóc tách nguyên liệu Ô số 4: Khớp tỷ lệ Bán kèm % và Trả góp % của nhân viên
         const lCombined = raw[3].split('\n');
         lCombined.forEach(l => {
             const p = l.trim().split(/\t|\s{2,}/);
@@ -501,6 +542,7 @@
             }
         });
 
+        // Tự động ghi nhận danh sách Nhóm mới và Nhân viên mới xuất hiện vào hệ thống cài đặt nâng cao
         let activeG = {}; 
         storeInfo.groups.forEach(g => { activeG[g.n] = config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
         config.groups = activeG;
@@ -509,11 +551,15 @@
         sData.forEach(s => { activeS[s.id] = config.staffs[s.id] || { show: true, alias: "" }; });
         config.staffs = activeS;
         
+        // Lưu giữ lại cấu hình cài đặt vào bộ nhớ của trình duyệt web
         localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
         processedData = { storeInfo, sData, gNames }; 
         renderAll();
     }
 
+    // =================================================================
+    // 📊 BỘ PHẬN VẼ GIAO DIỆN (RENDER) - Đổ số liệu xuất ra màn hình công khai
+    // =================================================================
     function renderAll() {
         if(!processedData) return;
         const { storeInfo, sData, gNames } = processedData;
@@ -528,6 +574,7 @@
             return { ...g, tb, pb };
         }).sort((a,b) => b.pb - a.pb);
 
+        // Đổ số liệu hoàn chỉnh vào 5 ô card Tổng Sức Khỏe Siêu Thị phía trên cùng
         document.getElementById('skStore').innerHTML = `
             <div class="sk-card"><div class="sk-label">LŨY KẾ/TARGET</div><div class="sk-value">${Math.round(storeInfo.dt)}/${Math.round(storeInfo.t_boost)}</div></div>
             <div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${Math.round(storeInfo.p_boost)}%</div></div>
@@ -535,6 +582,7 @@
             <div class="sk-card"><div class="sk-label">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
             <div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
         
+        // Đổ số liệu hoàn chỉnh vào bảng ngang tình trạng sức khỏe nhóm hàng tổng siêu thị
         let gh = '', gb = '<tr>';
         actG.forEach(g => { 
             gh += `<th>${getDN(g.n)}</th>`; 
@@ -543,6 +591,7 @@
         document.getElementById('gh').innerHTML = gh; 
         document.getElementById('gb').innerHTML = gb + '</tr>';
         
+        // Đổ số liệu cấu trúc bảng ma trận cột dọc hàng ngang chi tiết của tập thể nhân viên
         const visS = sData.filter(s => config.staffs[s.id]?.show); 
         const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
         let mh = `<th class="sticky-col">TÊN NV</th>`;
@@ -578,6 +627,7 @@
         document.getElementById('skGroups').style.display = 'block'; 
         document.getElementById('reportArea').style.display = 'block';
 
+        // Tính toán tìm kiếm xem ai đứng đầu các nhóm hàng đạt 100% để xếp giải thưởng chiến thần
         let rewardHtml = `<div class="reward-header">🏆 CHIẾN THẦN NHÓM HÀNG (ĐẠT 100%)</div>`;
         let hasReward = false;
         actG.filter(g => g.pb >= 100).forEach(g => {
@@ -597,6 +647,7 @@
         else { rwDiv.innerHTML = `<div style="padding:15px; text-align:center; font-weight:900; color:#666;">Chưa nhóm nào đạt 100% kkk.</div>`; }
     }
 
+    // Nút nhấn để bật tắt ẩn hiện khung vinh danh thưởng chiến thần nhóm hàng
     function toggleReward() {
         const rw = document.getElementById('rewardOutput');
         if (window.getComputedStyle(rw).display === 'none') {
@@ -605,6 +656,9 @@
         } else { rw.style.setProperty('display', 'none', 'important'); }
     }
 
+    // =================================================================
+    // 👤 HÀM HIỂN THỊ HỘP THOẠI POPUP CHI TIẾT SỨC KHỎE NHÂN VIÊN
+    // =================================================================
     function showStaffDetail(sid) {
         const dp = document.getElementById('dpDetail');
         const ov = document.getElementById('ovDetail');
@@ -630,6 +684,7 @@
         document.getElementById('stName').innerText = (config.staffs[sid]?.alias || getShort(sid)).toUpperCase();
         document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
         
+        // Đổ dữ liệu tính toán Doanh thu và Số tiền chạy mỗi ngày vào Ô vuông 1 và Ô vuông 2
         document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
         document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
         document.getElementById('box2').innerHTML = `<span style="color: #d63031;">${Math.round(conLaiDT)}tr</span>`;
@@ -646,21 +701,23 @@
             if (pb_g_nv >= 100) nhomDatCount++;
         });
         
+        // Đổ số liệu tỷ lệ vào Ô vuông 3: NHÓM HÀNG ĐẠT
         let tongNhomActive = itms.length;
         document.getElementById('box3').innerText = `${nhomDatCount} / ${tongNhomActive}`;
         document.getElementById('box3sub').innerText = `Tỷ lệ đạt: ${Math.round((nhomDatCount / (tongNhomActive || 1)) * 100)}%`;
 
-        // Đổ dữ liệu Bán kèm và Trả góp lũy kế của nhân viên vào ô thứ 4
-        let targetBK = 20; // 🎯 target Bán Kèm cố định, mốt muốn đổi thì sửa số 20 này
-        let targetTG = 60; // 🎯 target Trả Góp cố định, mốt muốn đổi thì sửa số 60 này
+        // ⚙️ CHỖ NÀY ĐỘ TIẾN ĐỘ TARGET CỐ ĐỊNH CHO BÁN KÈM VÀ TRẢ GÓP (Ô VUÔNG 4)
+        let targetBK = 20; // 🎯 Có thể sửa con số 20 này thành số target Bán kèm mới
+        let targetTG = 60; // 🎯 Có thể sửa con số 60 này thành số target Trả góp mới
         
         document.getElementById('box4').innerHTML = `
             <div style="font-size: 14px; text-align: left; padding-left: 10px; line-height: 1.4;">
-                • Bán Kèm: <b style="color: #004a99;">${Math.floor(s.bk)}%</b> / ${20}%<br>
-                • Trả Góp: <b style="color: #004a99;">${Math.round(s.tg)}%</b> / ${60}%
+                • Bán Kèm: <b style="color: #004a99;">${Math.floor(s.bk)}%</b> / ${targetBK}%<br>
+                • Trả Góp: <b style="color: #004a99;">${Math.round(s.tg)}%</b> / ${targetTG}%
             </div>
         `;
 
+        // Sắp xếp thứ tự danh sách nhóm hàng từ gần đạt nhất đổ xuống dưới và vẽ bảng
         itms.sort((a,b) => b.p - a.p);
         let h = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN</th><th>MỖI NGÀY</th></tr></thead><tbody>`;
         itms.forEach(it => {
@@ -676,11 +733,15 @@
         document.querySelector('.detail-table').innerHTML = h + `</tbody>`;
     }
 
+    // Hàm thực thi lệnh đóng popup xem chi tiết nhân viên
     function closeDetail() {
         document.getElementById('dpDetail').style.display = 'none';
         document.getElementById('ovDetail').style.display = 'none';
     }
 
+    // =================================================================
+    // 🎨 CÁC HÀM ĐỔI BỘ GIAO DIỆN PHONG THỦY (THEMES SWITCHER)
+    // =================================================================
     function toggleTheme(themeName) {
         const themes = ['nature', 'matrix', 'diy', 'royal', 'dark', 'racing', 'cyber'];
         themes.forEach(t => {
@@ -704,6 +765,7 @@
         localStorage.setItem('tamHoaV31_28', JSON.stringify(config));
     }
 
+    // Chuyển lệnh tích nút trong menu cài đặt sang lệnh thay đổi giao diện body tương ứng
     function toggleDarkMode(is) { if(is) toggleTheme('dark'); else toggleTheme('none'); }
     function toggleNatureMode(is) { if(is) toggleTheme('nature'); else toggleTheme('none'); }
     function toggleRacingMode(is) { if(is) toggleTheme('racing'); else toggleTheme('none'); }
@@ -714,6 +776,7 @@
     function toggleGearMode(show) { document.body.classList.toggle('gear-mode', show); }
     function toggleRopeMode(show) { document.body.classList.toggle('rope-mode', show); }
 
+    // Logic xử lý khi nhấn nút [ CHỌN TẤT CẢ ] hoặc [ BỎ CHỌN ] hàng loạt danh sách ẩn hiện
     function toggleAllCheckboxes(type, state) {
         if (!config[type]) return;
         Object.keys(config[type]).forEach(key => {
@@ -727,12 +790,16 @@
         }
     }
 
+    // =================================================================
+    // 📝 HÀM CHẠY SCRIPT TỰ ĐỘNG LẬP BÁO CÁO NHẬN XÉT ĐỂ COPY RA TELEGRAM
+    // =================================================================
     function generateFullReport() {
         if (!processedData) return;
         const { storeInfo, sData, gNames } = processedData;
         const days = getRemainingDays();
         const bNH = parseFloat(config.boostNH) || 1.0;
         
+        // Đổi các chữ số toán học thông thường sang sticker số vuông đen lớn cho ngầu
         const toStkNum = (n) => String(Math.round(n)).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
         const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
         const medals = ["🥇", "🥈", "🥉"];
@@ -750,6 +817,7 @@
             return `${stk}${cleanStk(name)} ${Math.round(g.pb)}%`; 
         }).join(", ");
 
+        // Xếp loại tự động danh sách các nhóm hàng tổng siêu thị
         let hoanThanh = fmtG(actG.filter(g => g.pb >= 100));
         let ganDat = fmtG(actG.filter(g => g.pb >= 80 && g.pb < 100));
         let canhBaoG = fmtG(actG.filter(g => g.pb < 80));
@@ -769,6 +837,7 @@
             return { name: config.staffs[s.id]?.alias || getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; 
         });
 
+        // Tìm bộ lọc danh sách Top đầu và Top đuôi cố định để tuyên dương/nhắc nhở
         const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
         
         const dtHienTai = storeInfo.dt;
@@ -776,6 +845,7 @@
         const phanTramMoi = storeInfo.p_boost;
         const canBucPha = Math.max(0, (targetMoi - dtHienTai) / days);
 
+        // Khởi tạo chuỗi lắp ghép nội dung văn bản báo cáo nhận xét
         let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n`;
         r += `🏥 1. TÌNH HÌNH CHUNG\n`;
         r += `🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${Math.round(phanTramMoi)}%\n`;
@@ -795,6 +865,7 @@
         let sortBtm = [...st].sort((a,b) => a.btm - b.btm); 
         r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
         
+        // Hiện văn bản lên khung vàng nền và tự động kích hoạt lệnh Copy vào bộ nhớ đệm điện thoại
         const out = document.getElementById('reportOutput'); 
         out.innerText = r; 
         out.style.display = 'block'; 
@@ -812,6 +883,9 @@
         document.body.removeChild(temp);
     }
 
+    // =================================================================
+    // ⚙️ CÁC HÀM HỖ TRỢ ĐIỀU KHIỂN HỆ THỐNG CÀI ĐẶT VÀ LƯU TRỮ TRONG PANEL
+    // =================================================================
     function openSettings() {
         const panel = document.getElementById('settingsPanel');
         const overlay = document.getElementById('setOverlay');
@@ -833,6 +907,7 @@
                 if(cb) cb.checked = (id === config.activeModeId);
             });
 
+            // Vẽ bảng quản lý Nhóm hàng trong cài đặt nâng cao
             const gList = document.getElementById('groupList');
             if (gList) {
                 gList.innerHTML = Object.keys(config.groups).map(gn => `
@@ -856,6 +931,7 @@
                     </tr>`).join("");
             }
 
+            // Vẽ bảng danh sách nhân sự quản lý danh sách tên gọi trong cài đặt
             const sList = document.getElementById('staffList');
             if (sList) {
                 sList.innerHTML = Object.keys(config.staffs).map(sid => `
@@ -878,6 +954,7 @@
         }
     }
 
+    // Lưu các dữ liệu thiết lập cài đặt vào LocalStorage của máy
     function saveSettings() {
         if(typeof config === 'undefined') return;
         config.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
@@ -894,12 +971,14 @@
         if(processedData) masterProcess();
     }
 
+    // Đóng giao diện cài đặt hệ thống công tác quản lý
     function closeSettings() {
         document.getElementById('settingsPanel').style.display = 'none';
         document.getElementById('setOverlay').style.display = 'none';
         if(document.getElementById('stkTrayBox')) document.getElementById('stkTrayBox').style.display = 'none';
     }
 
+    // Tự động chụp và tải ảnh màn hình tiến độ Sức khỏe siêu thị tổng
     async function captureReport() { 
         const ngay = new Date().getDate();
         const thang = new Date().getMonth() + 1;
@@ -910,6 +989,7 @@
         link.click(); 
     }
 
+    // Tự động chụp và tải ảnh màn hình tiến độ chi tiết của riêng 1 cá nhân nhân viên
     async function captureStaffDetail() { 
         const tenNV = document.getElementById('stName').innerText || "NhanVien";
         const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true }); 
@@ -919,11 +999,15 @@
         link.click(); 
     }
 
+    // Lọc tìm kiếm cũ (giữ lại cấu trúc cũ để bổ trợ chạy chương trình)
     function filterGroups() { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
     function filterStaff() { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    
+    // Khởi chạy mở menu khay sticker icon chọn nhanh
     function showStkTray(gn) { curGKey = gn; document.getElementById('stkTrayContent').innerHTML = STICKERS.map(s => `<div class="stk-item" onclick="applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
     function applyStk(s) { if(curGKey) { config.groups[curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; openSettings(); } }
     
+    // Nút dọn rác reset sạch sẽ hệ thống lưu trữ ban đầu
     function clearTrash() {
         if(confirm("Ông Thông có chắc muốn dọn sạch danh sách cũ không?")) {
             config.groups = {}; config.staffs = {}; config.activeMode = 'none'; config.activeModeId = '';
@@ -932,6 +1016,7 @@
         }
     }
 
+    // Xuất file dự phòng cấu hình setup (.json) để lưu giữ về máy tính
     function exportConfig() {
         const data = localStorage.getItem('tamHoaV31_28');
         if (!data) return alert("Chưa có cài đặt nào để lưu hết ông ơi!");
@@ -942,6 +1027,7 @@
         link.click();
     }
 
+    // Kích hoạt nút dán nạp file sao lưu từ máy tính vào hệ thống lại
     function importConfig() { document.getElementById('importFile').click(); }
 
     function processFile(input) {
@@ -961,6 +1047,7 @@
         }
     }
 
+    // Đóng mở xếp chồng mục tiêu thanh danh sách cài đặt
     function toggleAccordion(parentId) {
         const targetItem = document.getElementById(parentId);
         const isActive = targetItem.classList.contains('active');
@@ -968,9 +1055,11 @@
         if (!isActive) targetItem.classList.add('active');
     }
 
+    // Bật tắt nhanh thanh chứa dán nguyên liệu đầu vào dữ liệu số
     function toggleInputFields() { document.getElementById('inputFields').classList.toggle('collapsed'); }
     function hideInputFields() { document.getElementById('inputFields').classList.add('collapsed'); }
 
+    // Tự động nhận diện lưu giữ bộ dàn áo giao diện phong thủy khi mở lại trình duyệt web
     window.addEventListener('load', () => {
         if (config && config.activeMode && config.activeMode !== 'none') {
             document.body.classList.add(config.activeMode);
