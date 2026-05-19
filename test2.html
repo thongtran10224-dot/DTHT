@@ -414,7 +414,11 @@
         
         <div class="grid-info">
             <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
-            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
+            <div class="info-box">
+    <div class="info-label" id="box2Label">CÒN LẠI</div>
+    <div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div>
+    <div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div>
+</div>
             <div class="info-box">
                 <div class="info-label">NHÓM HÀNG ĐẠT</div>
                 <div id="box3" class="info-val" style="color: #27ae60 !important;">0 / 0</div>
@@ -659,8 +663,9 @@
         
         document.getElementById('box1').innerText = `${Math.round(s.dt)} / ${Math.round(t_nv_boost)}`;
         document.getElementById('box1sub').innerText = `Dự kiến đạt: ${Math.round(p_dk_boost)}%`;
-        document.getElementById('box2').innerHTML = `<span style="color: #d63031;">${Math.round(conLaiDT)}tr</span>`;
-        document.getElementById('box2sub').innerHTML = `${daysLeft} NGÀY, MỖI NGÀY <b style="color: #d63031; font-size: 13px;">${moiNgayDT.toFixed(1)}tr</b>`;
+        document.getElementById('box2Label').innerText = `CÒN LẠI ${daysLeft} NGÀY`;
+        document.getElementById('box2').innerText = `${Math.round(conLaiDT)}tr`;
+        document.getElementById('box2sub').innerText = `Mỗi ngày chạy: ${moiNgayDT.toFixed(1)}tr`;
 
         let itms = [];
         let nhomDatCount = 0;
