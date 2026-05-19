@@ -116,19 +116,36 @@
         
         /* // Khung bọc bên ngoài các bảng dữ liệu Excel // */
         .sk-groups-wrapper, .excel-table-wrapper { 
-            background: white; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            border: 2px solid #004a99; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
-            margin-bottom: 15px; 
-        }
+    background: white; 
+    border-radius: 12px; 
+    overflow-x: auto !important; /* 🔥 Đổi từ hidden thành auto để bật thanh cuộn ngang, vuốt thoải mái không sợ mất góc */
+    border: 2px solid #004a99; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    margin-bottom: 15px; 
+}
         
         /* // Định dạng chung cho các bảng số liệu // */
-        table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
-        th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
-        thead th { background: var(--primary); color: white; font-size: 9px; }
-        
+table { 
+    border-collapse: collapse; 
+    text-align: center; 
+    table-layout: auto; 
+    width: 100%; 
+    /* 🔥 Đã xóa min-width: max-content để bảng tự co dãn vừa màn hình, không bị tràn mất góc */
+}
+
+th, td { 
+    border: 1px solid #aaa; 
+    padding: 6px 2px; /* 🔥 Thu gọn khoảng cách chữ một tí để nhét vừa các cột */
+    font-weight: bold; 
+    font-size: 10px;  /* 🔥 Hạ xuống 10px để hiển thị đầy đủ trên mọi dòng điện thoại */
+    white-space: nowrap; 
+}
+
+thead th { 
+    background: var(--primary); 
+    color: white; 
+    font-size: 9px; 
+}
         /* // Định dạng các cột chỉ số cố định (DT, BK, TG, BTM) // */
         .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; } 
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
