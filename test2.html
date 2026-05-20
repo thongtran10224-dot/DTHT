@@ -114,14 +114,15 @@
         .sk-label { font-size: 11px; font-weight: 950; color: #666; margin-bottom: 4px; }
         .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
         
+        /* 🔥 Đã thêm overflow: hidden !important để bo tròn tuyệt đối 4 góc của bảng bên trong */
         .sk-groups-wrapper, .excel-table-wrapper { 
-    background: white; 
-    border-radius: 12px; 
-    overflow: visible !important; 
-    border: 2px solid #004a99; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
-    margin-bottom: 4px; /* 🔥 Đã hạ từ 15px xuống 4px để thu hẹp khoảng hở giữa 2 bảng */
-}
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden !important; 
+            border: 2px solid #004a99; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            margin-bottom: 4px;
+        }
         
         /* // Định dạng chung cho các bảng số liệu // */
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
@@ -215,8 +216,8 @@
         
         /* // 🏎️ Chế độ Racing (Tăng tốc) // */
         body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
-        body.racing-mode .sk-groups-wrapper, body.racing-mode .excel-table-wrapper { border: 3px solid #e74c3c !important; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4) !important; background: #1e1e1e !important; }
-        body.racing-mode .sk-card { background: linear-gradient(180deg, #333, #000) !important; border: 2px solid #e74c3c !important; border-radius: 8px 30px 8px 8px !important; position: relative; overflow: visible !important; margin-top: 35px !important; }
+        body.racing-mode .sk-groups-wrapper, body.racing-mode .excel-table-wrapper { border: 3px solid #e74c3c !important; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4) !important; background: #1e1e1e !important; overflow: hidden !important; }
+        body.racing-mode .sk-card { background: linear-gradient(180deg, #333, #000) !important; border: 2px solid #e74c3c !important; border-radius: 12px !important; position: relative; overflow: visible !important; margin-top: 35px !important; }
         body.racing-mode .sk-card::before { content: "🏁🏎️💨"; position: absolute; top: -45px; left: 5px; font-size: 45px; animation: racingShake 0.15s infinite alternate; }
         body.racing-mode .sk-card::after { content: ""; position: absolute; bottom: 12px; left: 10%; width: 80%; border-bottom: 4px dashed #ffffff !important; opacity: 1 !important; filter: drop-shadow(0 0 2px #fff); }
         body.racing-mode td { color: #fff; border: 1px solid #444 !important; }
@@ -231,7 +232,7 @@
         body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
         body.dark-mode .header-controls, body.dark-mode .settings-panel, body.dark-mode .detail-panel, body.dark-mode #captureArea { background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important; }
         body.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
-        body.dark-mode .sk-card, body.dark-mode .sk-groups-wrapper, body.dark-mode .excel-table-wrapper { background-color: #252525 !important; border-color: #004a99 !important; }
+        body.dark-mode .sk-card, body.dark-mode .sk-groups-wrapper, body.dark-mode .excel-table-wrapper { background-color: #252525 !important; border-color: #004a99 !important; overflow: hidden !important; }
         body.dark-mode .sk-label { color: #aaa !important; }
         body.dark-mode .sk-value { color: #ffeb9c !important; }
         body.dark-mode td, body.dark-mode th { border-color: #444 !important; color: #fff !important; }
@@ -242,7 +243,7 @@
 
         /* // 🌿 Chế độ Thiên nhiên (Nature) // */
         body.nature-mode { background: #f4f7f4 !important; color: #27ae60 !important; }
-        body.nature-mode .sk-groups-wrapper, body.nature-mode .excel-table-wrapper { background: #ffffff !important; border: 2px solid #27ae60 !important; border-radius: 12px !important; margin-top: 4px !important; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important; }
+        body.nature-mode .sk-groups-wrapper, body.nature-mode .excel-table-wrapper { background: #ffffff !important; border: 2px solid #27ae60 !important; border-radius: 12px !important; margin-top: 4px !important; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important; overflow: hidden !important; }
         body.nature-mode .sk-card { background: #ffffff !important; border: 5px double #27ae60 !important; border-radius: 50% !important; min-height: 110px !important; width: 110px !important; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important; }
         body.nature-mode .sk-card::before { content: "🍃"; position: absolute; top: -5px; right: -5px; font-size: 24px; }
         body.nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
@@ -253,20 +254,22 @@
 
         /* // 🤖 Chế độ Cyberpunk // */
         body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
-        body.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
+        body.cyber-mode .excel-table-wrapper, body.cyber-mode .sk-groups-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; overflow: hidden !important; }
         body.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
         body.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
         body.cyber-mode td { color: #33ff00; border: 1px solid #00fbff !important; }
 
         /* // 🛠️ Chế độ DIY METAL (Cơ khí) // */
         body.diy-mode { background: #2c3e50 !important; color: #ecf0f1 !important; }
-        body.diy-mode .sk-card { background: linear-gradient(145deg, #34495e, #2c3e50) !important; border: 2px solid #7f8c8d !important; box-shadow: 5px 5px 10px #1a252f, -2px -2px 5px #3e5871 !important; border-radius: 5px !important; }
+        body.diy-mode .sk-groups-wrapper, body.diy-mode .excel-table-wrapper { overflow: hidden !important; border-radius: 12px !important; }
+        body.diy-mode .sk-card { background: linear-gradient(145deg, #34495e, #2c3e50) !important; border: 2px solid #7f8c8d !important; box-shadow: 5px 5px 10px #1a252f, -2px -2px 5px #3e5871 !important; border-radius: 12px !important; }
         body.diy-mode .sk-label { color: #bdc3c7 !important; }
         body.diy-mode .sk-value { color: #e67e22 !important; text-shadow: 1px 1px 0px #000; }
         body.diy-mode th { background: #1a252f !important; color: #e67e22 !important; border: 1px solid #7f8c8d !important; }
 
         /* // 📟 Chế độ MATRIX NEON // */
         body.matrix-mode { background: #000 !important; color: #00ff41 !important; font-family: 'Courier New', monospace !important; }
+        body.matrix-mode .sk-groups-wrapper, body.matrix-mode .excel-table-wrapper { overflow: hidden !important; }
         body.matrix-mode .sk-card { background: rgba(0, 255, 65, 0.05) !important; border: 1px solid #00ff41 !important; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2) !important; }
         body.matrix-mode .sk-value { color: #fff !important; text-shadow: 0 0 8px #00ff41; }
         body.matrix-mode table { border: 1px solid #00ff41 !important; }
@@ -275,6 +278,7 @@
 
         /* // 🏆 Chế độ ROYAL GOLD (Hoàng gia) // */
         body.royal-mode { background: #f4f7f6 !important; color: #1a2a6c !important; }
+        body.royal-mode .sk-groups-wrapper, body.royal-mode .excel-table-wrapper { overflow: hidden !important; }
         body.royal-mode .sk-card { background: #fff !important; border-left: 5px solid #b8860b !important; box-shadow: 0 4px 15px rgba(184, 134, 11, 0.15) !important; border-radius: 0 10px 10px 0 !important; }
         body.royal-mode .sk-value { color: #b8860b !important; font-weight: 900 !important; }
         body.royal-mode th { background: #1a2a6c !important; color: #fff !important; border: none !important; }
@@ -372,13 +376,13 @@
              </div>
              
              <div class="batch-btn-group">
-                 <button class="batch-btn select-all" onclick="toggleAllCheckboxes('groups', true)">[ NHÓM TẤT CẢ ]</button>
+                 <button class="batch-btn select-all" onclick="toggleAllCheckboxes('groups', true)">[ CHỌN TẤT CẢ ]</button>
                  <button class="batch-btn deselect-all" onclick="toggleAllCheckboxes('groups', false)">[ BỎ CHỌN ]</button>
              </div>
              <div style="max-height: 180px; overflow-y: auto; border: 1px solid #eee; margin-bottom: 15px;"><table style="width:100%"><tbody id="groupList"></tbody></table></div>
              
              <div class="batch-btn-group">
-                 <button class="batch-btn select-all" onclick="toggleAllCheckboxes('staffs', true)">[ NV TẤT CẢ ]</button>
+                 <button class="batch-btn select-all" onclick="toggleAllCheckboxes('staffs', true)">[ CHỌN TẤT CẢ ]</button>
                  <button class="batch-btn deselect-all" onclick="toggleAllCheckboxes('staffs', false)">[ BỎ CHỌN ]</button>
              </div>
              <div style="max-height: 180px; overflow-y: auto; border: 1px solid #eee;"><table style="width:100%"><tbody id="staffList"></tbody></table></div>
