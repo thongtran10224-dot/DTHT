@@ -93,10 +93,10 @@
         .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 950; font-size: 10px; text-transform: uppercase; }
         .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         #finalReportAreaDay { background: #f0f2f5; padding: 4px; width: 100%; }
-        .skst-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #fff; padding: 10px 4px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 6px; border-left: 6px solid var(--primary); border-right: 6px solid var(--primary); width: 100%; align-items: center; }
+        .skst-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #fff; padding: 10px 4px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 6px; border-left: 6px solid var(--primary); border-right: 6px solid var(--primary); width: 100%; align-items: center; }
         .skst-item { background: #fff; padding: 12px 2px; text-align: center; border-right: 1.5px solid #e0e6ed; overflow: hidden; min-height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .skst-item:last-child { border-right: none; }
-        .m-label { font-size: 10px; font-weight: 900; color: #555; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px; }
+        .m-label { font-size: 10px; font-weight: 900; color: #555; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.2px; }
         .skst-value { font-size: 22px; font-weight: 950; color: var(--primary); margin: 0; white-space: nowrap; }
         .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
         .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; width: 100%; }
@@ -159,24 +159,23 @@
         </div>
         
         <div id="outputAreaDay" style="display: none;">
-            <div id="finalReportAreaDay" style="background: #f0f2f5; padding: 4px; border-radius: 12px; width: 100%; box-sizing: border-box;">
+           <div id="finalReportAreaDay" style="background: #f0f2f5; padding: 4px; border-radius: 12px; width: 100%; box-sizing: border-box;">
                 
-                <div style="text-align:center; padding:12px 8px; color:#555; font-size:13px; font-weight:950; background:#fff; border-bottom:4px dashed #004a99; border-radius:10px 10px 0 0; display:flex; justify-content:center; align-items:center; gap:15px; width:100%; box-sizing:border-box; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                    <span style="display:flex; align-items:center; gap:4px;"><span style="font-size:24px; line-height:1; display:inline-block; margin-right:2px;">🏁🏎️💨</span> DOANH THU - <span id="outFooterTimeDay"></span></span>
-                    <span style="color: #e67e22; background: #fff3e0; padding: 3px 10px; border-radius: 12px; font-size:11px; white-space:nowrap;" id="outWeatherDay">🌤️ ĐANG CẬP NHẬT...</span>
-                </div>
-                
-                <div class="skst-row">
+                <div class="skst-row" style="border-radius: 10px 10px 10px 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); margin-top: 2px;">
                     <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStrDay" class="skst-value">0/0</div></div>
                     <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPctDay" class="skst-value">0%</div></div>
-                    <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGValDay" class="skst-value">0%</div></div>
-                    <div class="skst-item" style="border-right: none;"><div class="m-label">NHÓM ĐẠT</div><div id="outDatCountDay" class="skst-value" style="color: #28a745;">0/0</div></div>
+                    <div class="skst-item" style="border-right: none;"><div class="m-label">TRẢ GÓP</div><div id="outTGValDay" class="skst-value">0%</div></div>
                 </div>
                 
-                <div class="capture-frame" style="border: none; box-shadow: none; background: transparent; padding: 0;">
+                <div class="capture-frame" style="margin-top: 6px;">
+                    <div style="background:var(--primary); color:white; padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0; font-weight:950; font-size:11px; text-transform:uppercase; letter-spacing: 0.5px;">🔹 CHI TIẾT NHÓM HÀNG</h3>
+                        <span id="outDatCountDay" style="background:#28a745; padding: 4px 12px; border-radius: 20px; font-weight: 950; font-size: 11px; color:#fff; white-space:nowrap;">0/0</span>
+                    </div>
                     <div class="group-grid" id="outGridDay"></div>
                 </div>
                 </div>
+            </div>
             <div class="btn-grid">
                 <button class="btn-main" id="btnCopyDay" style="background:var(--black); color:var(--accent);" onclick="copyToLienDay()">📋 COPY CHỮ</button>
                 <button class="btn-main" id="btnCapDay" style="background: #e67e22; color: white;" onclick="captureReportDay()">📸 CHỤP ẢNH</button>
@@ -902,15 +901,11 @@
         document.getElementById('outDTPctDay').innerText = roundTamHoa(parseFloat(pDT)) + "%";
         document.getElementById('outDTPctDay').style.color = pDT >= 100 ? '#28a745' : '#dc3545';
         document.getElementById('outTGValDay').innerText = roundTamHoa(tg) + "%";
-        document.getElementById('outFooterTimeDay').innerText = time;
         
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=10.9574&longitude=106.8427&current=temperature_2m,weather_code&timezone=Asia%2FBangkok`)
-            .then(res => res.json()).then(data => {
-                const temp = roundTamHoa(data.current.temperature_2m); const code = data.current.weather_code; let status = "🌤️ Trời Đẹp";
-                if (code === 0) status = "☀️ Trời Quang"; else if (code >= 1 && code <= 3) status = "🌤️ Nhiều Mây"; else if (code >= 61 && code <= 65) status = "🌧️ Mưa Giông";
-                document.getElementById('outWeatherDay').innerText = `${status} (${temp}°C)`;
-            }).catch(() => { document.getElementById('outWeatherDay').innerText = "🌤️ Nắng Đẹp (32°C)"; });
-
+        // Đoạn dây điện an toàn: Có ô giờ thì điền, không có thì chạy tiếp không báo lỗi
+        let outTimeEl = document.getElementById('outFooterTimeDay');
+        if (outTimeEl) outTimeEl.innerText = time;
+        
         let displayList = allParsedGroupsDay.filter(g => groupConfigsDay[g.name]?.visible !== false);
         displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
         let gridHtml = ""; let datCount = 0;
