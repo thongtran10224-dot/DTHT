@@ -255,24 +255,34 @@
 </div>
 <input type="file" id="importFileMonth" style="display:none" onchange="processFileMonth(this)">
 
-<!-- POPUP THIẾT LẬP NGÀY -->
+<!-- ========================================== -->
+<!-- POPUP THIẾT LẬP NGÀY (ĐÃ NÂNG CẤP NÚT & CHỌN TẤT CẢ) -->
+<!-- ========================================== -->
 <div class="overlay" id="setOverlayDay" onclick="closeSettingsDay()"></div>
 <div class="settings-panel" id="settingsPanelDay">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT TARGET NGÀY</h3>
         <span style="cursor:pointer; font-size:22px;" onclick="closeSettingsDay()">✖</span>
     </div>
+    
     <div class="setting-row">
         <label style="display:block; font-weight:950; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
         <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
     </div>
-    <div id="groupChecklist"></div>
-    <button onclick="saveSettingsDay()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 5px;">LƯU THIẾT LẬP NGÀY</button>
-</div>
 
-<div id="stickerPopupDay" class="sticker-popup">
-    <div class="sticker-grid" id="stickerGridDay"></div>
-    <div class="st-close" onclick="document.getElementById('stickerPopupDay').style.display='none'">ĐÓNG Khay</div>
+    <!-- Thanh công cụ chọn nhanh mới thêm cho ông Thông -->
+    <div class="title-row" style="margin-top: 5px; margin-bottom: 5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG HIỂN THỊ</span>
+        <button type="button" class="toggle-all-btn" onclick="toggleAllGroupsDay()">Chọn/Bỏ Tất Cả 🔄</button>
+    </div>
+
+    <div id="groupChecklist"></div>
+
+    <!-- Cụm nút Lưu và Đóng trực quan -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button onclick="saveSettingsDay()" style="width:100%; background:var(--success); color:#006100; border:2px solid #006100; padding:12px; border-radius:8px; font-weight: 950; cursor:pointer; text-transform:uppercase;">LƯU NGÀY ✅</button>
+        <button onclick="closeSettingsDay()" style="width:100%; background:#6c757d; color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; cursor:pointer; text-transform:uppercase;">ĐÓNG ❌</button>
+    </div>
 </div>
 
 <!-- POPUP CHI TIẾT SỨC KHỎE NHÂN VIÊN -->
@@ -755,6 +765,20 @@
                    .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
     }
 
+// --- HÀM CHỌN / BỎ CHỌN TẤT CẢ NHÓM HÀNG TAB NGÀY ---
+function toggleAllGroupsDay() {
+    const checkboxes = document.querySelectorAll('#groupChecklist .g-vis');
+    if (checkboxes.length === 0) return;
+    
+    // Kiểm tra xem có ông nào đang được tích không
+    const anyChecked = Array.from(checkboxes).some(chk => chk.checked);
+    
+    // Nếu có ít nhất 1 cái được tích -> Bỏ tích tất cả. Ngược lại -> Tích chọn tất cả.
+    checkboxes.forEach(chk => {
+        chk.checked = !anyChecked;
+    });
+}
+
     function openSettingsDay() {
         document.getElementById('setTargetDay').value = masterTargetDay;
         const list = document.getElementById('groupChecklist'); list.innerHTML = "";
@@ -908,9 +932,21 @@
         const btn = document.getElementById('btnCopyDay'); btn.innerText = "✅ ĐÃ COPY!"; setTimeout(() => { btn.innerText = "📋 COPY CHỮ"; }, 1500);
     }
 
-    // Tự động load giờ khi mở trang ca làm việc
+    // Tự động load giờ, nạp Target vào bộ não và ép máy chạy tính toán chuẩn xác từ đầu
     window.addEventListener('load', () => {
         autoTimeDay();
+        
+        // 1. Bốc số từ bộ nhớ, ép về kiểu số chuẩn (nếu chưa có thì lấy 500)
+        masterTargetDay = parseFloat(localStorage.getItem('tamHoaMasterTarget')) || 500;
+        
+        // 2. Điền số vào ô nhập trong bảng cài đặt cho ông thấy
+        let setTargetInp = document.getElementById('setTargetDay');
+        if(setTargetInp) setTargetInp.value = masterTargetDay;
+        
+        // 3. Kích hoạt bộ não tính toán chạy luôn với số Target vừa nạp
+        if (typeof renderDailyDay === "function") {
+            renderDailyDay();
+        }
     });
 </script>
 </body>
