@@ -713,13 +713,13 @@
     function closeSettingsMonth() { document.getElementById('settingsPanelMonth').style.display = 'none'; document.getElementById('setOverlayMonth').style.display = 'none'; document.getElementById('stkTrayBoxMonth').style.display = 'none'; }
     
     async function captureReportMonth() {
-        const canvas = await html2canvas(document.getElementById('screenshotAreaMonth'), { scale: 5, useCORS: true }); 
+        const canvas = await html2canvas(document.getElementById('screenshotAreaMonth'), { scale: 10, useCORS: true }); 
         const link = document.createElement('a'); link.download = `SKST_Thang_${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
         link.href = canvas.toDataURL(); link.click(); 
     }
     async function captureStaffDetailMonth() { 
         const tenNV = document.getElementById('stNameMonth').innerText || "NhanVien";
-        const canvas = await html2canvas(document.getElementById('captureAreaMonth'), { scale: 5, useCORS: true }); 
+        const canvas = await html2canvas(document.getElementById('captureAreaMonth'), { scale: 10, useCORS: true }); 
         const link = document.createElement('a'); link.download = `SK_${tenNV}_Ngay_${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
         link.href = canvas.toDataURL(); link.click(); 
     }
@@ -750,7 +750,7 @@
         const area = document.getElementById('finalReportAreaDay'), btn = document.getElementById('btnCapDay');
         btn.innerText = "⏳ ĐANG CHỤP..."; window.scrollTo(0,0);
         setTimeout(() => {
-            html2canvas(area, { scale: 5, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
+            html2canvas(area, { scale: 10, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
                 const link = document.createElement('a'); link.download = `TamHoa_Ngay_${document.getElementById('outFooterTimeDay').innerText}.png`;
                 link.href = canvas.toDataURL("image/png"); link.click();
                 btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
