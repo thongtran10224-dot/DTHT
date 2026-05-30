@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V4)
+// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V31)
 // @namespace    http://tampermonkey.net/
-// @version      4
+// @version      31
 // @description  Hút số 5 pha tự động và đổ trực tiếp vào giao diện HTML gốc của Quản lý Thông!
 // @match        *://bi.thegioididong.com/*
 // @grant        none
@@ -27,94 +27,228 @@
         let style = document.createElement('style');
         style.innerHTML = `
             /* --- BÊ NGUYÊN CSS GỐC CỦA ÔNG VÀO ĐÂY --- */
-            body.racing-mode { background: #1a1a1a !important; color: #fff !important; }
-            .racing-mode .excel-table-wrapper { border: 4px solid #e74c3c !important; box-shadow: 0 0 15px #e74c3c !important; }
-            .racing-mode .sk-card { border: 5px solid #f1c40f !important; border-radius: 10px 30px !important; background: #000 !important; }
-            .racing-mode th { background: #c0392b !important; color: #fff !important; }
-            .racing-mode .settings-panel, .racing-mode .settings-panel * { color: #333 !important; }
-            .racing-mode .settings-panel { background-color: #ffffff !important; }
-            body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
-            .cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
-            .cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
-            .cyber-mode th { background: #ff00ff !important; color: #fff !important; }
-            body.nature-mode { background: #f4f7f4 !important; }
-            .nature-mode .sk-groups-wrapper, .nature-mode .excel-table-wrapper { background: #ffffff !important; border: 2px solid #27ae60 !important; border-radius: 12px !important; margin-top: 4px !important; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important; position: relative; }
-            .nature-mode .sk-card { background: #ffffff !important; border: 5px double #27ae60 !important; border-radius: 50% !important; min-height: 110px !important; width: 110px !important; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important; }
-            .nature-mode .sk-card::before { content: "🍃"; position: absolute; top: -5px; right: -5px; font-size: 24px; }
-            .nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
-            .nature-mode .sk-value { color: #d35400 !important; font-size: 18px !important; }
-            .nature-mode th { background: #27ae60 !important; color: #fff !important; }
-            .nature-mode td { border: 1px solid #e0eadd !important; }
-            .nature-mode .sticky-col { background: #ffffff !important; border-right: 2px solid #27ae60 !important; color: #27ae60 !important; }
-            .reward-panel { display: none !important; background: #fff; margin-top: 15px; border-radius: 8px; border: 2px solid #ffd700; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
-            .reward-header { background: linear-gradient(90deg, #1e3799, #004a99); color: #fff; padding: 10px; text-align: center; font-weight: 950; font-size: 13px; text-transform: uppercase; }
-            .reward-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px; }
-            .reward-name { font-weight: 950; color: #004a99; }
-            .reward-value { font-weight: 950; color: #d63031; }
-            .input-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; background: #f0f2f5; padding: 8px; border-radius: 8px; }
-            .input-item { display: flex; flex-direction: column; gap: 3px; }
-            .input-item label { font-size: 9px; font-weight: 950; color: #004a99; text-align: center; }
-            .input-item textarea { width: 100%; height: 70px !important; font-size: 12px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 6px !important; padding: 5px !important; box-sizing: border-box; }
-            @media (max-width: 600px) { .input-container { grid-template-columns: repeat(3, 1fr); } }
-            .info-sub { font-size: 11px !important; color: #d63031 !important; margin-top: 2px !important; font-weight: 950 !important; display: block !important; }
-            :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
-            #tamhoa-super-overlay { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-            .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .btn-group { display: flex; gap: 4px; margin-top: 5px; }
-            .btn { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
-            .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
-            .sk-card { background: #fff; padding: 10px 5px; border-radius: 10px; text-align: center; border: 2px solid var(--primary); min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-            .sk-label { font-size: 11px; font-weight: 950; color: #666; margin-bottom: 4px; }
-            .sk-value { font-size: 22px; font-weight: 950; color: var(--primary); }
-            .sk-groups-wrapper, .excel-table-wrapper { background: white; border-radius: 12px; overflow: hidden; border: 2px solid #004a99; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 4px; }
-            table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
-            th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
-            thead th { background: var(--primary); color: white; font-size: 9px; }
-            .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; }
-            .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
-            .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-            .bg-good { background-color: var(--success) !important; color: #006100 !important; }
-            .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; }
-            .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
-            .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
-            .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
-            .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
-            .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
-            .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
-            .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
-            #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
-            .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
-            .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
-            #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
-            .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
-            .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-            .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-            .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
-            .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
-            .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
-            .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
-            .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
-            .boost-box { background: #fffbe6; padding: 10px; border-radius: 8px; border: 2px solid orange; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-around; }
-            .boost-item { display: flex; align-items: center; gap: 5px; font-weight: 950; font-size: 13px; color: #d35400; }
-            .boost-input { width: 55px; text-align: center; font-weight: 950; border: 2px solid #000; border-radius: 4px; padding: 6px; font-size: 15px; }
-            .set-table td { padding: 10px 5px !important; border-bottom: 1px solid #ddd !important; }
-            .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
-            .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
-            .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
-            .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
-            .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
-            body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
-            .dark-mode .header-controls, .dark-mode .settings-panel, .dark-mode .detail-panel, .dark-mode #captureArea { background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important; }
-            .dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
-            .dark-mode .sk-card, .dark-mode .sk-groups-wrapper, .dark-mode .excel-table-wrapper { background-color: #252525 !important; border-color: #004a99 !important; }
-            .dark-mode .sk-label { color: #aaa !important; }
-            .dark-mode .sk-value { color: #ffeb9c !important; }
-            .dark-mode td, .dark-mode th { border-color: #444 !important; color: #fff !important; }
-            .dark-mode .sticky-col { background-color: #252525 !important; color: #ffd700 !important; }
-            .dark-mode .bg-good { background-color: #1b4332 !important; color: #8dfbaf !important; }
-            .dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
-            .dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
+            /* // 🏎️ Chế độ Racing (Tăng tốc) đã Fix khớp nối // */
+#tamhoa-super-overlay.racing-mode { background: #1a1a1a !important; color: #fff !important; }
+#tamhoa-super-overlay.racing-mode .sk-groups-wrapper, #tamhoa-super-overlay.racing-mode .excel-table-wrapper { border: 3px solid #e74c3c !important; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4) !important; background: #1e1e1e !important; overflow: hidden !important; }
+#tamhoa-super-overlay.racing-mode .sk-card { background: linear-gradient(180deg, #333, #000) !important; border: 2px solid #e74c3c !important; border-radius: 12px !important; position: relative; overflow: visible !important; margin-top: 35px !important; }
+#tamhoa-super-overlay.racing-mode .sk-card::before { content: "🏁🏎️💨"; position: absolute; top: -45px; left: 5px; font-size: 45px; animation: racingShake 0.15s infinite alternate; }
+#tamhoa-super-overlay.racing-mode .sk-card::after { content: ""; position: absolute; bottom: 12px; left: 10%; width: 80%; border-bottom: 4px dashed #ffffff !important; opacity: 1 !important; filter: drop-shadow(0 0 2px #fff); }
+#tamhoa-super-overlay.racing-mode td { color: #fff; border: 1px solid #444 !important; }
+#tamhoa-super-overlay.racing-mode th { background: #c0392b !important; color: #fff !important; }
+#tamhoa-super-overlay.racing-mode .sticky-col { background: #252525 !important; color: #f1c40f !important; border-right: 2px solid #e74c3c !important; }
+#tamhoa-super-overlay.racing-mode .bg-bad { background-color: #ffc7ce !important; color: #9c0006 !important; }
+#tamhoa-super-overlay.racing-mode .bg-mid { background-color: #ffeb9c !important; color: #9c6500 !important; }
+#tamhoa-super-overlay.racing-mode .bg-good { background-color: #c6efce !important; color: #006100 !important; }
+@keyframes racingShake { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+
+/* --- 🤖 GIAO DIỆN CYBERPUNK (CÔNG NGHỆ) --- */
+body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
+.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
+.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
+/* --- NATURE MODE TINH TẾ V3 - ÔNG THÔNG --- */
+body.nature-mode {
+    background: #f4f7f4 !important;
+}
+
+/* 1. Viền bảng màu xanh lá mỏng, thanh thoát */
+.nature-mode .sk-groups-wrapper, .nature-mode .excel-table-wrapper {
+    background: #ffffff !important;
+    border: 2px solid #27ae60 !important;
+    border-radius: 12px !important;
+    margin-top: 4px !important;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important;
+    position: relative;
+}
+
+/* 2. Độ lại 5 ô tròn thành hình lá quấn (Dùng border kép) */
+.nature-mode .sk-card {
+    background: #ffffff !important;
+    border: 5px double #27ae60 !important;
+    border-radius: 50% !important;
+    min-height: 140px !important;
+    width: 140px !important;
+    padding: 10px !important;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* Căn giữa chữ cho chuẩn */
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+}
+
+/* Thêm lá quấn quanh ô tròn thay vì hoa */
+.nature-mode .sk-card::before {
+    content: "🍃";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 24px;
+}
+
+
+/* 3. Giữ nguyên màu sắc mát mắt của ông */
+.nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
+.nature-mode .sk-value { color: #d35400 !important; font-size: 18px !important; }
+
+.nature-mode th { background: #27ae60 !important; color: #fff !important; }
+.nature-mode td { border: 1px solid #e0eadd !important; }
+.nature-mode .sticky-col {
+    background: #ffffff !important;
+    border-right: 2px solid #27ae60 !important;
+    color: #27ae60 !important;
+}
+
+/* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
+.reward-panel {
+    display: none !important;
+    background: #fff;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.reward-header {
+    background: linear-gradient(90deg, #1e3799, #004a99);
+    color: #fff; padding: 10px; text-align: center;
+    font-weight: 950; font-size: 13px; text-transform: uppercase;
+}
+.reward-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px;
+}
+.reward-name { font-weight: 950; color: #004a99; }
+.reward-value { font-weight: 950; color: #d63031; }
+
+.input-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    background: #f0f2f5;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.input-item label {
+    font-size: 9px;
+    font-weight: 950;
+    color: #004a99;
+    text-align: center;
+}
+
+.input-item textarea {
+    width: 100%;
+    height: 70px !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    border: 2px solid #000 !important;
+    border-radius: 6px !important;
+    padding: 5px !important;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .input-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.info-sub {
+    font-size: 11px !important;
+    color: #d63031 !important;
+    margin-top: 2px !important;
+    font-weight: 950 !important;
+    display: block !important;
+}
+        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 60px !important; font-size: 13px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 8px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
+        .btn-group { display: flex; gap: 4px; margin-top: 5px; }
+        .btn { flex: 1; padding: 6px 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
+        .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
+        .sk-card {
+    background: #fff;
+    padding: 12px 5px;
+    border-radius: 12px;
+    text-align: center;
+    border: 3px solid var(--primary);
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.sk-label { font-size: 13px; font-weight: 950; color: #666; margin-bottom: 6px; }
+.sk-value { font-size: 26px; font-weight: 950; color: var(--primary); }
+        .sk-groups-wrapper, .excel-table-wrapper {
+    background: white;
+    border-radius: 12px;        /* 1. Bo tròn góc hộp */
+    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
+    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    margin-bottom: 4px;
+}
+        table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
+        th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        thead th { background: var(--primary); color: white; font-size: 9px; }
+        .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; }
+        .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .bg-good { background-color: var(--success) !important; color: #006100 !important; }
+        .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; }
+        .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
+        .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
+        .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
+        .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
+        .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
+        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
+        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
+        .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
+        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
+        #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
+        .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
+        .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
+        .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
+        .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
+        .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
+        .boost-box { background: #fffbe6; padding: 10px; border-radius: 8px; border: 2px solid orange; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-around; }
+        .boost-item { display: flex; align-items: center; gap: 5px; font-weight: 950; font-size: 13px; color: #d35400; }
+        .boost-input { width: 55px; text-align: center; font-weight: 950; border: 2px solid #000; border-radius: 4px; padding: 6px; font-size: 15px; }
+        .set-table td { padding: 10px 5px !important; border-bottom: 1px solid #ddd !important; }
+        .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
+        .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
+        /* --- BẮT ĐẦU MÀU DARK MODE --- */
+body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+.dark-mode .header-controls, .dark-mode .settings-panel, .dark-mode .detail-panel, .dark-mode #captureArea {
+    background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important;
+}
+.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
+.dark-mode .sk-card, .dark-mode .sk-groups-wrapper, .dark-mode .excel-table-wrapper {
+    background-color: #252525 !important; border-color: #004a99 !important; }
+.dark-mode .sk-label { color: #aaa !important; }
+.dark-mode .sk-value { color: #ffeb9c !important; }
+.dark-mode td, .dark-mode th { border-color: #444 !important; color: #fff !important; }
+.dark-mode .sticky-col { background-color: #252525 !important; color: #ffd700 !important; }
+.dark-mode .bg-good { background-color: #1b4332 !important; color: #8dfbaf !important; }
+.dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
+.dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
+/* --- KẾT THÚC MÀU DARK MODE --- */
         `;
         document.head.appendChild(style);
 
@@ -124,95 +258,124 @@
         overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:999995; display:none; overflow-y:auto; padding-bottom: 20px;`;
         overlay.innerHTML = `
             <div class="header-controls">
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#1e3799; padding:5px 10px; color:#fff; border-radius:5px; margin-bottom:10px;">
-                    <h3 style="margin:0;">TAM HÒA MASTER V31.41</h3>
-                    <button style="background:#e74c3c; color:white; border:none; padding:5px 15px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="location.reload()">ĐÓNG BẢNG ❌</button>
-                </div>
-                <div class="input-container">
-                    <div class="input-item"><label>1. Sức khỏe ST</label><textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea></div>
-                    <div class="input-item"><label>2. Doanh Thu NV</label><textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea></div>
-                    <div class="input-item"><label>3. Nhóm Hàng NV</label><textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea></div>
-                    <div class="input-item"><label>4. Bán Kèm NV</label><textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea></div>
-                    <div class="input-item"><label>5. Trả Góp NV</label><textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea></div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="window.openSettings()">Cài Đặt ⚙️</button>
-                    <button class="btn" style="background:#004a99" onclick="window.masterProcess()">Xuất Dữ Liệu⚡</button>
-                    <button class="btn" style="background:#28a745" onclick="window.captureReport()">Chụp Hình📷</button>
-                    <button class="btn" style="background:#e67e22" onclick="window.generateFullReport()">Copy Nhận Xét🚀</button>
-                    <button class="btn" style="background:#8e44ad; font-weight:950;" onclick="window.toggleReward()">THƯỞNG 🏆</button>
-                </div>
-            </div>
-            <div id="reportOutput"></div>
-            <div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
-                <div id="skStore" class="sk-header-row" style="display:none;"></div>
-                <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
-                <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
-                <div id="rewardOutput" class="reward-panel"></div>
-            </div>
+    <div class="input-container">
+        <div class="input-item"><label>1. Sức khỏe ST</label><textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea></div>
+        <div class="input-item"><label>2. Doanh Thu NV</label><textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea></div>
+        <div class="input-item"><label>3. Nhóm Hàng NV</label><textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea></div>
+        <div class="input-item"><label>4. Bán Kèm NV</label><textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea></div>
+        <div class="input-item"><label>5. Trả Góp NV</label><textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea></div>
+    </div>
+    <div class="btn-group">
+        <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">Cài Đặt ⚙️</button>
+        <button class="btn" style="background:#004a99" onclick="masterProcess()">Xuất Dữ Liệu⚡</button>
+        <button class="btn" style="background:#28a745" onclick="captureReport()">Chụp Hình📷</button>
+        <button class="btn" style="background:#e67e22" onclick="generateFullReport()">Copy Nhận Xét🚀</button>
+        <button class="btn" style="background:#8e44ad; font-weight:950;" onclick="toggleReward()">THƯỞNG 🏆</button>
+    </div>
+</div>
+<div id="reportOutput"></div>
+<div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
+    <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
+    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+    <div id="rewardOutput" class="reward-panel"></div>
+</div>
 
-            <div class="overlay" id="setOverlay" onclick="window.closeSettings()"></div>
-            <div class="settings-panel" id="settingsPanel">
-                <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
-                <div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
-                    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
-                    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span><input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;"></div>
-                        <div style="display: flex; align-items: center; gap: 5px;"><span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span><input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;"></div>
-                    </div>
-                </div>
-                <div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
-                    <div style="display: flex; justify-content: space-around;">
-                        <label><input type="checkbox" id="showDT" checked> DT</label>
-                        <label><input type="checkbox" id="showBK" checked> BK</label>
-                        <label><input type="checkbox" id="showTG" checked> TG</label>
-                        <label><input type="checkbox" id="showBTM" checked> BTM</label>
-                    </div>
-                </div>
-                <div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
-                    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
-                    <div style="display: flex; justify-content: space-around;">
-                        <label><input type="checkbox" id="darkMode" onchange="window.toggleDarkMode(this.checked)"> 🌙</label>
-                        <label><input type="checkbox" id="natureMode" onchange="window.toggleNatureMode(this.checked)"> 🌿</label>
-                        <label><input type="checkbox" id="racingMode" onchange="window.toggleRacingMode(this.checked)"> 🏎️</label>
-                        <label><input type="checkbox" id="cyberMode" onchange="window.toggleCyberMode(this.checked)"> 🤖</label>
-                    </div>
-                </div>
-                <input type="text" id="groupSearch" onkeyup="window.filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
-                <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
-                <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;"><span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span><button class="toggle-all-btn" onclick="window.toggleSelection('groups')">Chọn/Bỏ</button></div>
-                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;"><table style="width:100%"><tbody id="groupList"></tbody></table></div>
-                <input type="text" id="staffSearch" onkeyup="window.filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
-                <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;"><span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="window.toggleSelection('staffs')">Chọn/Bỏ</button></div>
-                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;"><table style="width:100%"><tbody id="staffList"></tbody></table></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-                    <button onclick="window.saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
-                    <button onclick="window.closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
-                    <button onclick="window.exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
-                    <button onclick="window.importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
-                    <button onclick="window.clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
-                </div>
-            </div>
-            <input type="file" id="importFile" style="display:none" onchange="window.processFile(this)">
+<div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+    <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
 
-            <div class="overlay" onclick="window.closeDetail()" id="ovDetail"></div>
-            <div class="detail-panel" id="dpDetail">
-                <div id="captureArea">
-                    <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
-                    <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
-                    <div class="grid-info">
-                        <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
-                        <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
-                        <div class="info-box" style="grid-column: span 2;"></div>
-                        <div class="info-box" style="display:none;"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
-                    </div>
-                    <table class="detail-table"></table>
-                </div>
-                <div class="btn-group" style="margin-top:10px;">
-                    <button class="btn" style="background:#28a745" onclick="window.captureStaffDetail()">CHỤP ẢNH 📷</button>
-                    <button class="btn" style="background:#6c757d" onclick="window.closeDetail()">ĐÓNG ❌</button>
-                </div>
+<div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
+    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span>
+            <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span>
+            <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
+        </div>
+        <span style="font-size: 9px; color: #666;">(Mặc định là 1.0)</span>
+    </div>
+</div>
+
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="showDT" checked> DT</label>
+        <label><input type="checkbox" id="showBK" checked> BK</label>
+        <label><input type="checkbox" id="showTG" checked> TG</label>
+        <label><input type="checkbox" id="showBTM" checked> BTM</label>
+    </div>
+</div>
+
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
+        <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
+        <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
+        <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
+    </div>
+</div>
+
+    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
+
+    <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
+
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="groupList"></tbody></table>
+    </div>
+
+    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="staffList"></tbody></table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button onclick="saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
+        <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
+        <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
+        <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
+    </div>
+    <div style="display:none;"><input id="boostDT" value="1"><input id="boostNH" value="1"></div>
+</div>
+
+<input type="file" id="importFile" style="display:none" onchange="processFile(this)">
+
+<!-- ĐÂY LÀ PHẦN HIỂN THỊ CHI TIẾT NHÂN VIÊN - PHẢI NẰM RIÊNG BIỆT RA NGOÀI -->
+<div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
+<div class="detail-panel" id="dpDetail">
+    <div id="captureArea">
+        <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
+        <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
+        <div class="grid-info">
+            <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
+            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
+            <div class="info-box" style="grid-column: span 2;">
+                <!-- Phần này JS của ông sẽ tự đổ dữ liệu vào -->
             </div>
+            <div class="info-box" style="display:none;"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
+        </div>
+        <table class="detail-table">
+            <!-- JS sẽ tự đổ thead và tbody vào đây -->
+        </table>
+    </div>
+    <div class="btn-group" style="margin-top:10px;">
+        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button>
+        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
+    </div>
+</div>
         `;
         document.body.appendChild(overlay);
 
@@ -667,8 +830,8 @@
 
         let btnPwr = document.createElement('button');
         btnPwr.id = "btn-tamhoa-power";
-        btnPwr.innerHTML = "⚡ ROBOT HÚT SỐ V31 ⚡";
-        btnPwr.style.cssText = `position: fixed; top: 15px; right: 15px; z-index: 999999; padding: 10px 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: #fff; font-weight: bold; border: 2px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: sans-serif;`;
+        btnPwr.innerHTML = "⚡ XUẤT DỮ LIỆU ⚡";
+        btnPwr.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 10px 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: #fff; font-weight: bold; border: 2px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: sans-serif;`;
 
         btnPwr.onclick = async function() {
             btnPwr.style.display = 'none';
@@ -677,7 +840,7 @@
 
             [1,2,3,4,5].forEach(n => {
                 let el = document.getElementById('i'+n);
-                if (el) el.value = "🤖 Robot đang chạy, đợi xíu ông ơi...";
+                if (el) el.value = "🤖 Robot đang chạy...";
             });
 
             try {
