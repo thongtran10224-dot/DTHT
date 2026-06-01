@@ -194,7 +194,14 @@ body.nature-mode {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 .sk-label { font-size: 13px; font-weight: 950; color: #666; margin-bottom: 6px; }
-.sk-value { font-size: 26px; font-weight: 950; color: var(--primary); }
+.sk-value {
+    font-size: 38px !important; /* Tăng từ 26 lên 38 cho số to đùng */
+    font-weight: 950 !important;
+    color: var(--primary);
+    padding: 10px 0; /* Thêm khoảng trống cho thoáng */
+    line-height: 1.2;
+}
+.matrix td { font-size: 14px !important; font-weight: 900 !important; color: #000 !important; }
         .sk-groups-wrapper, .excel-table-wrapper {
     background: white;
     border-radius: 12px;
@@ -215,9 +222,27 @@ body.nature-mode {
         .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; }
         .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
         .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
-        .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
-        .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
-        .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
+        .sk-groups-table td span.main-percent {
+    display:block;
+    font-size: 24px !important; /* Tăng từ 12 lên 24 cho to rõ */
+    font-weight: 950 !important;
+    color: #000 !important; /* Ép về màu đen để không bị mờ */
+    padding: 5px 0;
+}
+        .sk-groups-table td span.sub-info {
+    display: block;
+    font-size: 16px !important; /* Tăng từ 9 lên 16 cho nó "lớn" */
+    font-weight: 950 !important;
+    color: #000 !important;
+    margin-top: 4px;
+}
+
+.sk-groups-table td span.remain-info {
+    display: block;
+    font-size: 14px !important; /* Cho số còn lại cũng to hơn */
+    font-weight: 950 !important;
+    color: #d63031 !important;
+}
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
         .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
@@ -765,35 +790,53 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 
     window.captureReport = async function() {
         const ngay = new Date().getDate(); const thang = new Date().getMonth() + 1;
-        const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true });
+        const area = document.getElementById('screenshotArea');
+
+        // Ép vùng chụp nở ra để lấy hết bảng
+        const oldWidth = area.style.width;
+        area.style.width = area.scrollWidth + "px";
+
+        // Tăng scale lên 5 cho nét căng, ép nền trắng
+        const canvas = await html2canvas(area, {
+            scale: 5,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
+
+        area.style.width = oldWidth;
         const link = document.createElement('a');
-        link.download = `SKST ${ngay}-${thang}.png`;
-        link.href = canvas.toDataURL(); link.click();
+        link.download = `SKST_${ngay}-${thang}.png`;
+        link.href = canvas.toDataURL("image/png", 1.0);
+        link.click();
     }
 
     window.captureStaffDetail = async function() {
         const tenNV = document.getElementById('stName').innerText || "NhanVien";
         const area = document.getElementById('captureArea');
 
-        // --- CHIÊU BẮT HÌNH: ÉP KHUNG NỞ RA ---
-        // Lưu lại độ rộng cũ
+        // Lưu lại độ rộng cũ để tí trả về như cũ
         const oldWidth = area.style.width;
-        // Ép nó rộng bằng độ rộng thật của nội dung bên trong
+
+        // --- CHIÊU BẮT HÌNH: ÉP KHUNG NỞ RA ---
+        // Ép vùng chụp rộng ra để lấy hết bảng, không bị mất góc
         area.style.width = area.scrollWidth + "px";
 
+        // TĂNG SCALE LÊN 3 ĐỂ ẢNH NÉT NHƯ IN, ĐỂ BỊ BÓP VẪN RÕ
         const canvas = await html2canvas(area, {
-            scale: 2,
+            scale: 10,
             useCORS: true,
-            width: area.scrollWidth, // Ép chụp đúng độ rộng đã nở ra
-            windowWidth: area.scrollWidth
+            width: area.scrollWidth,
+            windowWidth: area.scrollWidth,
+            backgroundColor: "#ffffff" // Ép nền trắng để app không bóp sai màu
         });
 
         // --- TRẢ LẠI HIỆN TRẠNG CŨ ---
         area.style.width = oldWidth;
 
         const link = document.createElement('a');
-        link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`;
-        link.href = canvas.toDataURL();
+        link.download = `SK_${tenNV}_${new Date().getDate()}-${new Date().getMonth()+1}.png`;
+        // XUẤT ẢNH PNG CHẤT LƯỢNG CAO NHẤT (1.0)
+        link.href = canvas.toDataURL("image/png", 1.0);
         link.click();
     }
 
