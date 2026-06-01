@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V31)
+// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V32)
 // @namespace    http://tampermonkey.net/
-// @version      31
+// @version      32
 // @description  Hút số 5 pha tự động và đổ trực tiếp vào giao diện HTML gốc của Quản lý Thông!
 // @match        *://bi.thegioididong.com/*
 // @grant        none
@@ -913,6 +913,21 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
         daTaoNutRobot = true;
     }
 
-    setTimeout(khoiTaoNutRobot, 1500);
+    function tuDongVaoTiem() {
+        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a =>
+            a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)')
+        );
+        if (linkTamHoa) {
+            console.log("Đang vặn ga vào tiệm Tam Hòa...");
+            linkTamHoa.click();
+        }
+    }
+
+    // Khởi động: Lái vào tiệm trước, đợi 2s cho tiệm load xong rồi mới hiện dàn nút
+    setTimeout(() => {
+        tuDongVaoTiem();
+        setTimeout(khoiTaoNutRobot, 2000);
+    }, 500);
+
     document.addEventListener('click', khoiTaoNutRobot);
 })();
