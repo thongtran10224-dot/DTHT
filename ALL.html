@@ -1,44 +1,207 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>Tam Hòa Master Commander - Quản lý Thông</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        /* --- KHUNG TRỤC TỔNG & THANH TAB --- */
-        * { box-sizing: border-box; font-family: 'Montserrat', -apple-system, sans-serif !important; }
-        body { background: #f0f2f5; margin: 0; padding: 0; touch-action: manipulation; }
-        .main-container { width: 100vw; max-width: 600px; margin: 0 auto; padding: 5px; box-sizing: border-box; }
-        
-        .tab-bar { display: flex; background: #004a99; padding: 4px; gap: 4px; border-radius: 8px; margin-bottom: 6px; box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
-        .tab-btn { flex: 1; padding: 12px 5px; color: white; font-weight: 900; border: none; background: transparent; cursor: pointer; text-align: center; font-size: 11px; text-transform: uppercase; transition: all 0.2s; }
-        .tab-btn.active { background: #e67e22; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .tab-content { display: none; width: 100%; }
-        .tab-content.active { display: block; }
+// ==UserScript==
+// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V32)
+// @namespace    http://tampermonkey.net/
+// @version      32
+// @description  Hút số 5 pha tự động và đổ trực tiếp vào giao diện HTML gốc của Quản lý Thông!
+// @match        *://bi.thegioididong.com/*
+// @grant        none
+// ==/UserScript==
 
-        /* --- STYLE CHUNG HỆ THỐNG GỐC --- */
-        :root { --primary: #004a99; --accent: #ffc107; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; --danger: #dc3545; --black: #000; }
-        .header-controls, .input-card { background: white; padding: 8px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        textarea { width: 100%; font-size: 12px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 6px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
-        input { border: 2px solid #ddd; border-radius: 8px; padding: 8px; font-size: 14px; font-weight: 950; width: 100%; margin-bottom: 4px; }
-        .btn-group, .btn-grid { display: flex; gap: 4px; margin-top: 5px; }
-        .btn, .btn-main { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; text-transform: uppercase; }
-        .btn-main { background: var(--primary); font-size: 14px; width: 100%; }
+(function() {
+    'use strict';
 
-        /* --- STYLE TAB THÁNG --- */
+    // =========================================================================
+    // KHÚC 1: DỰNG GIAO DIỆN "CON CƯNG" CỦA ÔNG THÔNG LÊN OVERLAY
+    // =========================================================================
+    function injectUserHTML() {
+        if(document.getElementById('tamhoa-super-overlay')) return;
+
+        // Bơm thư viện chụp ảnh
+        if(!document.querySelector('script[src*="html2canvas"]')) {
+            let script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            document.head.appendChild(script);
+        }
+
+        // Bơm CSS gốc của ông Thông
+        let style = document.createElement('style');
+        style.innerHTML = `
+            /* --- BÊ NGUYÊN CSS GỐC CỦA ÔNG VÀO ĐÂY --- */
+            /* // 🏎️ Chế độ Racing (Tăng tốc) đã Fix khớp nối // */
+#tamhoa-super-overlay.racing-mode { background: #1a1a1a !important; color: #fff !important; }
+#tamhoa-super-overlay.racing-mode .sk-groups-wrapper, #tamhoa-super-overlay.racing-mode .excel-table-wrapper { border: 3px solid #e74c3c !important; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4) !important; background: #1e1e1e !important; overflow: hidden !important; }
+#tamhoa-super-overlay.racing-mode .sk-card { background: linear-gradient(180deg, #333, #000) !important; border: 2px solid #e74c3c !important; border-radius: 12px !important; position: relative; overflow: visible !important; margin-top: 35px !important; }
+#tamhoa-super-overlay.racing-mode .sk-card::before { content: "🏁🏎️💨"; position: absolute; top: -45px; left: 5px; font-size: 45px; animation: racingShake 0.15s infinite alternate; }
+#tamhoa-super-overlay.racing-mode .sk-card::after { content: ""; position: absolute; bottom: 12px; left: 10%; width: 80%; border-bottom: 4px dashed #ffffff !important; opacity: 1 !important; filter: drop-shadow(0 0 2px #fff); }
+#tamhoa-super-overlay.racing-mode td { color: #fff; border: 1px solid #444 !important; }
+#tamhoa-super-overlay.racing-mode th { background: #c0392b !important; color: #fff !important; }
+#tamhoa-super-overlay.racing-mode .sticky-col { background: #252525 !important; color: #f1c40f !important; border-right: 2px solid #e74c3c !important; }
+#tamhoa-super-overlay.racing-mode .bg-bad { background-color: #ffc7ce !important; color: #9c0006 !important; }
+#tamhoa-super-overlay.racing-mode .bg-mid { background-color: #ffeb9c !important; color: #9c6500 !important; }
+#tamhoa-super-overlay.racing-mode .bg-good { background-color: #c6efce !important; color: #006100 !important; }
+@keyframes racingShake { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+
+/* --- 🤖 GIAO DIỆN CYBERPUNK (CÔNG NGHỆ) --- */
+body.cyber-mode { background: #020205 !important; color: #33ff00 !important; }
+.cyber-mode .excel-table-wrapper { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; }
+.cyber-mode .sk-card { border: 2px solid #ff00ff !important; background: rgba(255,0,255,0.1) !important; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+.cyber-mode th { background: #ff00ff !important; color: #fff !important; }
+/* --- NATURE MODE TINH TẾ V3 - ÔNG THÔNG --- */
+body.nature-mode {
+    background: #f4f7f4 !important;
+}
+
+/* 1. Viền bảng màu xanh lá mỏng, thanh thoát */
+.nature-mode .sk-groups-wrapper, .nature-mode .excel-table-wrapper {
+    background: #ffffff !important;
+    border: 2px solid #27ae60 !important;
+    border-radius: 12px !important;
+    margin-top: 4px !important;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.1) !important;
+    position: relative;
+}
+
+/* 2. Độ lại 5 ô tròn thành hình lá quấn (Dùng border kép) */
+.nature-mode .sk-card {
+    background: #ffffff !important;
+    border: 5px double #27ae60 !important;
+    border-radius: 50% !important;
+    min-height: 140px !important;
+    width: 140px !important;
+    padding: 10px !important;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* Căn giữa chữ cho chuẩn */
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+}
+
+/* Thêm lá quấn quanh ô tròn thay vì hoa */
+.nature-mode .sk-card::before {
+    content: "🍃";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 24px;
+}
+
+
+/* 3. Giữ nguyên màu sắc mát mắt của ông */
+.nature-mode .sk-label { color: #27ae60 !important; font-size: 10px !important; font-weight: 950 !important; }
+.nature-mode .sk-value { color: #d35400 !important; font-size: 18px !important; }
+
+.nature-mode th { background: #27ae60 !important; color: #fff !important; }
+.nature-mode td { border: 1px solid #e0eadd !important; }
+.nature-mode .sticky-col {
+    background: #ffffff !important;
+    border-right: 2px solid #27ae60 !important;
+    color: #27ae60 !important;
+}
+
+/* GIỮ NGUYÊN CSS CỦA ÔNG VÀ THÊM BẢNG THƯỞNG */
+.reward-panel {
+    display: none !important;
+    background: #fff;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.reward-header {
+    background: linear-gradient(90deg, #1e3799, #004a99);
+    color: #fff; padding: 10px; text-align: center;
+    font-weight: 950; font-size: 13px; text-transform: uppercase;
+}
+.reward-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px;
+}
+.reward-name { font-weight: 950; color: #004a99; }
+.reward-value { font-weight: 950; color: #d63031; }
+
+.input-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    background: #f0f2f5;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.input-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.input-item label {
+    font-size: 9px;
+    font-weight: 950;
+    color: #004a99;
+    text-align: center;
+}
+
+.input-item textarea {
+    width: 100%;
+    height: 70px !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    border: 2px solid #000 !important;
+    border-radius: 6px !important;
+    padding: 5px !important;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .input-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.info-sub {
+    font-size: 11px !important;
+    color: #d63031 !important;
+    margin-top: 2px !important;
+    font-weight: 950 !important;
+    display: block !important;
+}
+        :root { --primary: #004a99; --bg: #f0f2f5; --success: #c6efce; --mid: #ffeb9c; --bad: #ffc7ce; --text-bad: #9c0006; --highlight: #e67e22; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .header-controls { background: white; padding: 5px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 60px !important; font-size: 13px !important; font-weight: 950 !important; border: 2px solid #000 !important; border-radius: 8px !important; padding: 8px !important; box-sizing: border-box; background: #fff !important; color: #000 !important; }
+        .btn-group { display: flex; gap: 4px; margin-top: 5px; }
+        .btn { flex: 1; padding: 6px 10px; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; cursor: pointer; text-align: center; }
         .sk-header-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 6px; width: 100%; }
-        .sk-card { background: #fff; padding: 10px 2px; border-radius: 10px; text-align: center; border: 2px solid var(--primary); min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-        .sk-label { font-size: 10px; font-weight: 950; color: #666; margin-bottom: 4px; }
-        .sk-value { font-size: 18px; font-weight: 950; color: var(--primary); }
-        .sk-groups-wrapper, .excel-table-wrapper { background: white; border-radius: 12px; overflow: hidden; border: 2px solid #004a99; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 4px; }
+        .sk-card {
+    background: #fff;
+    padding: 12px 5px;
+    border-radius: 12px;
+    text-align: center;
+    border: 3px solid var(--primary);
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.sk-label { font-size: 13px; font-weight: 950; color: #666; margin-bottom: 6px; }
+.sk-value { font-size: 26px; font-weight: 950; color: var(--primary); }
+        .sk-groups-wrapper, .excel-table-wrapper {
+    background: white;
+    border-radius: 12px;        /* 1. Bo tròn góc hộp */
+    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
+    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    margin-bottom: 4px;
+}
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
         thead th { background: var(--primary); color: white; font-size: 9px; }
-        .fixed-col { width: 45px; min-width: 45px; text-align: center; }
+        .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; }
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
-        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 75px; min-width: 75px; max-width: 75px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
         .bg-good { background-color: var(--success) !important; color: #006100 !important; }
         .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; }
         .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
@@ -46,312 +209,206 @@
         .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
         .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
         .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
-        
-        .reward-panel { display: none !important; background: #fff; margin-top: 10px; border-radius: 8px; border: 2px solid #ffd700; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
-        .reward-header { background: linear-gradient(90deg, #1e3799, #004a99); color: #fff; padding: 10px; text-align: center; font-weight: 950; font-size: 13px; text-transform: uppercase; }
-        .reward-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px dashed #eee; font-size: 12px; }
-        .reward-name { font-weight: 950; color: #004a99; }
-        .reward-value { font-weight: 950; color: #d63031; }
-        
-        .input-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #f0f2f5; padding: 6px; border-radius: 8px; }
-        .input-item { display: flex; flex-direction: column; gap: 2px; }
-        .input-item label { font-size: 9px; font-weight: 950; color: #004a99; text-align: center; }
-        .input-item textarea { height: 65px !important; }
-        @media (max-width: 600px) { .input-container { grid-template-columns: repeat(3, 1fr); } }
-        .info-sub { font-size: 10px !important; color: #d63031 !important; margin-top: 2px !important; font-weight: 950 !important; display: block !important; }
-
-        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9000; }
-        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:450px; padding:15px; border-radius:12px; z-index:9001; max-height: 85vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.3); flex-direction: column !important; gap: 10px; }
-#settingsPanelDay input[type="number"] { width: 100%; box-sizing: border-box; border: 2px solid var(--primary); padding: 8px; border-radius: 8px; font-size: 14px; }
-#groupChecklist { width: 100% !important; max-height: 45vh; overflow-y: auto; display: block !important; padding-right: 3px; box-sizing: border-box; }
-#groupChecklist .chk-item { background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 10px; padding: 10px; margin-bottom: 10px; display: flex !important; flex-direction: column !important; gap: 8px; width: 100%; box-sizing: border-box; }
-#groupChecklist .chk-top { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100%; gap: 8px; }
-#groupChecklist .chk-left { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 8px; flex: 1; min-width: 0; }
-#groupChecklist .chk-name-text { font-weight: 900; font-size: 12px; text-transform: uppercase; color: #004a99; white-space: normal; word-break: break-word; display: block; }
-#groupChecklist .g-vis { width: 22px !important; height: 22px !important; margin: 0 !important; flex-shrink: 0; }
-#groupChecklist .nickname-input { width: 100% !important; font-size: 12px; padding: 6px 10px; border: 2px solid #ced4da; border-radius: 6px; font-weight: bold; box-sizing: border-box; text-transform: uppercase; margin: 0 !important; }
-#groupChecklist .nickname-input:focus { border-color: #e67e22; outline: none; }
-        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:96%; max-width:500px; padding:10px; border-radius:8px; z-index:9001; max-height: 95vh; overflow-y: auto; box-sizing: border-box; }
-        #captureAreaMonth { background: white; padding: 10px; border: 3px solid var(--primary); border-radius: 8px; }
-        .detail-title { text-align: center; font-size: 18px; color: var(--primary); margin: 0; font-weight: 900; }
-        .detail-subtitle { text-align: center; font-size: 12px; font-weight: 900; color: #d63031; margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+        .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
+        .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
+        .stk-item { font-size: 22px; cursor: pointer; text-align: center; padding: 5px; background: #eee; border-radius: 4px; }
+        .detail-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:600px; padding:10px; border-radius:8px; z-index:9001; max-height: 98vh; overflow-y: auto; box-sizing: border-box; }
+        #captureArea { background: white; padding: 15px; border: 3px solid var(--primary); border-radius: 8px; }
+        .detail-title { text-align: center; font-size: 20px; color: var(--primary); margin: 0; font-weight: 900; }
+        .detail-subtitle { text-align: center; font-size: 13px; font-weight: 900; color: #d63031; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .info-box { border: 1px solid #ddd; padding: 5px; border-radius: 5px; text-align: center; background: #fafafa; display: flex; flex-direction: column; justify-content: center; }
-        .info-val { font-size: 16px; color: var(--primary); font-weight: 950; }
-        .info-label { font-size: 11px; font-weight: 950; margin-bottom: 3px; }
-        .detail-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        .detail-table th { background: #f0f0f0; font-size: 10px; padding: 5px 3px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
-        .detail-table td { font-size: 11px; padding: 5px 3px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
-        .alias-input, .nickname-input { width: 95%; font-size: 12px; padding: 6px; border: 1px solid #888; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0 4px 0; }
-        .toggle-all-btn { padding: 4px 10px; font-size: 11px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
-        .search-box { width: 100% !important; box-sizing: border-box !important; padding: 10px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 8px !important; font-weight: 950 !important; font-size: 13px !important; }
+        .info-val { font-size: 18px; color: var(--primary); font-weight: 950; }
+        .info-label { font-size: 11px; font-weight: 950; margin-bottom: 5px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .detail-table th { background: #f0f0f0; font-size: 11px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; color: #000 !important; }
+        .detail-table td { font-size: 13px; padding: 6px 4px; border: 1px solid #aaa; font-weight: 950; text-align: center; }
+        .boost-box { background: #fffbe6; padding: 10px; border-radius: 8px; border: 2px solid orange; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-around; }
+        .boost-item { display: flex; align-items: center; gap: 5px; font-weight: 950; font-size: 13px; color: #d35400; }
+        .boost-input { width: 55px; text-align: center; font-weight: 950; border: 2px solid #000; border-radius: 4px; padding: 6px; font-size: 15px; }
+        .set-table td { padding: 10px 5px !important; border-bottom: 1px solid #ddd !important; }
+        .alias-input { width: 95%; font-size: 13px; padding: 8px; border: 1px solid #888; border-radius: 4px; font-weight: bold; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 0; }
+        .toggle-all-btn { padding: 4px 12px; font-size: 12px; background: #e8f0fe; border: 2px solid #004a99; border-radius: 6px; color: #004a99; font-weight: 950; float: right; cursor: pointer; }
+        .bottom-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .search-box { width: 100% !important; box-sizing: border-box !important; padding: 12px !important; border: 2px solid #004a99 !important; border-radius: 8px !important; margin-bottom: 10px !important; font-weight: 950 !important; font-size: 14px !important; }
+        /* --- BẮT ĐẦU MÀU DARK MODE --- */
+body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+.dark-mode .header-controls, .dark-mode .settings-panel, .dark-mode .detail-panel, .dark-mode #captureArea {
+    background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #004a99 !important;
+}
+.dark-mode textarea { background-color: #2d2d2d !important; color: #fff !important; border-color: #444 !important; }
+.dark-mode .sk-card, .dark-mode .sk-groups-wrapper, .dark-mode .excel-table-wrapper {
+    background-color: #252525 !important; border-color: #004a99 !important; }
+.dark-mode .sk-label { color: #aaa !important; }
+.dark-mode .sk-value { color: #ffeb9c !important; }
+.dark-mode td, .dark-mode th { border-color: #444 !important; color: #fff !important; }
+.dark-mode .sticky-col { background-color: #252525 !important; color: #ffd700 !important; }
+.dark-mode .bg-good { background-color: #1b4332 !important; color: #8dfbaf !important; }
+.dark-mode .bg-bad { background-color: #4c1d1f !important; color: #ff9b9b !important; }
+.dark-mode .bg-mid { background-color: #433a1b !important; color: #ffe066 !important; }
+/* --- KẾT THÚC MÀU DARK MODE --- */
+        `;
+        document.head.appendChild(style);
 
-        /* --- STYLE TAB NGÀY --- */
-        .main-title { font-size: 16px; font-weight: 950; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
-        .mode-group { display: flex; gap: 4px; margin-bottom: 6px; }
-        .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 950; font-size: 10px; text-transform: uppercase; }
-        .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        #finalReportAreaDay { background: #f0f2f5; padding: 4px; width: 100%; }
-       .skst-row { display: flex; background: #fff; padding: 10px 6px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 6px; border-left: 6px solid var(--primary); border-right: 6px solid var(--primary); width: 100%; align-items: center; }
-        .skst-item { flex: 1; text-align: center; border-right: 1px solid #eee; overflow: hidden; padding: 0 2px; }
-        .skst-item:last-child { border-right: none; }
-        .m-label { font-size: 9px; font-weight: 950; color: #666; text-transform: uppercase; margin-bottom: 3px; }
-        .skst-value { font-size: 18px; font-weight: 950; color: var(--primary); margin: 0; white-space: nowrap; }
-        .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
-        .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; width: 100%; }
-        .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 6px; border-radius: 8px; border-bottom: 3px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; min-height: 75px; }
-        .group-name { font-size: 10px; font-weight: 950; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; margin-bottom: 4px; text-transform: uppercase; min-height: 2.5em; line-height: 1.2; display: flex; align-items: center; gap: 6px; word-break: break-word; }
-        .group-sticker { font-size: 22px; flex-shrink: 0; }
-        .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
-        .group-num { font-size: 12px; font-weight: 950; color: var(--primary); }
-        .group-pct { font-size: 10px; font-weight: 950; padding: 3px 6px; border-radius: 6px; min-width: 50px; text-align: center; white-space: nowrap; }
-        #lienText { background: #fffbe6; border: 2px dashed var(--primary); font-weight: 600; height: 180px; margin-top: 6px; font-size: 12px; padding: 8px; border-radius: 8px; width:100%; line-height: 1.4; box-sizing: border-box; }
-        #groupChecklist { max-height: 40vh; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 1px solid #eee; padding: 4px; border-radius: 8px; margin-bottom: 8px; }
-        .chk-item { display: flex; flex-direction: column; padding: 8px 4px; border-bottom: 1px solid #f0f0f0; gap: 6px; }
-        .chk-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .chk-left { display: flex; align-items: center; gap: 6px; flex: 1; }
-        .st-picker-btn { cursor: pointer; font-size: 24px; padding: 2px 6px; background: #f0f0f0; border-radius: 6px; flex-shrink: 0; }
-        .chk-name-text { font-weight: 950; font-size: 9px; text-transform: uppercase; line-height: 1.2; color: #666; }
-        .g-vis { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
-        .sticker-popup { display: none; position: fixed; background: white; border: 3px solid var(--primary); padding: 6px; border-radius: 15px; z-index: 9500; width: 94%; max-width: 500px; max-height: 70vh; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.5); flex-direction: column; }
-        .sticker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; overflow-y: auto; padding: 8px; flex: 1; }
-        .st-opt { cursor: pointer; font-size: 26px; text-align: center; padding: 6px; }
-        .st-close { background: #f0f0f0; text-align: center; padding: 10px; font-weight: 950; border-radius: 8px; margin-top: 4px; cursor: pointer; }
-        .pct-high { background: #28a745; color: #fff; }
-        .pct-mid { background: #ffc107; color: #000; }
-        .pct-low { background: #dc3545; color: #fff; }
-        .setting-row { background: #f9f9f9; padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #ddd; }
-    </style>
-</head>
-<body>
-
-<div class="main-container">
-    <!-- THANH CHỌN TAB - ƯU TIÊN TAB NGÀY NẰM BÊN TRÁI -->
-    <div class="tab-bar">
-        <button class="tab-btn active" id="tabBtnDay" onclick="switchTab('day')">🔥 Soi Doanh Thu Ngày V15</button>
-        <button class="tab-btn" id="tabBtnMonth" onclick="switchTab('month')">📊 Sức Khỏe Tháng V31</button>
+        // Bơm HTML gốc của ông vào Overlay
+        let overlay = document.createElement('div');
+        overlay.id = "tamhoa-super-overlay";
+        overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:999995; display:none; overflow-y:auto; padding-bottom: 20px;`;
+        overlay.innerHTML = `
+            <div class="header-controls">
+    <div class="input-container">
+        <div class="input-item"><label>1. Sức khỏe ST</label><textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea></div>
+        <div class="input-item"><label>2. Doanh Thu NV</label><textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea></div>
+        <div class="input-item"><label>3. Nhóm Hàng NV</label><textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea></div>
+        <div class="input-item"><label>4. Bán Kèm NV</label><textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea></div>
+        <div class="input-item"><label>5. Trả Góp NV</label><textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea></div>
     </div>
-
-    <!-- ========================================== -->
-    <!-- NỘI DUNG TAB NGÀY (MẶC ĐỊNH MỞ ĐẦU TIÊN) -->
-    <!-- ========================================== -->
-    <div id="tabDay" class="tab-content active">
-        <div class="input-card">
-            <div class="main-title"><span>🔥 SOI DOANH THU NGÀY</span><span style="cursor:pointer; font-size: 24px;" onclick="openSettingsDay()">⚙️</span></div>
-            <div class="mode-group">
-                <button class="mode-btn active" id="btnNow" onclick="setModeDay('now')">🔥 HIỆN TẠI</button>
-                <button class="mode-btn" id="btnMorning" onclick="setModeDay('morning')">☀️ CA SÁNG</button>
-                <button class="mode-btn" id="btnEnd" onclick="setModeDay('end')">🏁 CUỐI NGÀY</button>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 4px;">
-                <input type="number" id="inpDT" placeholder="DT (Tr)" inputmode="numeric">
-                <input type="number" id="inpTG" placeholder="TG %" inputmode="numeric">
-                <input type="text" id="inpTime" placeholder="Giờ">
-            </div>
-            <textarea id="inpRawDay" rows="3" placeholder="Dán dữ liệu BI vào đây..."></textarea>
-            <button class="btn-main" onclick="renderDailyDay()">🚀 XUẤT CHIẾN SOI NGÀY</button>
-        </div>
-        
-        <div id="outputAreaDay" style="display: none;">
-            <div id="finalReportAreaDay">
-                <div class="skst-row">
-                    <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStrDay" class="skst-value">0/0</div></div>
-                    <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPctDay" class="skst-value">0%</div></div>
-                    <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGValDay" class="skst-value">0%</div></div>
-                </div>
-                <div class="capture-frame">
-                    <div style="background:var(--primary); color:white; padding:6px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0; font-weight:950; font-size:10px; text-transform:uppercase;">🔹 CHI TIẾT NHÓM HÀNG</h3>
-                        <span id="outDatCountDay" style="background:#28a745; padding: 4px 10px; border-radius: 20px; font-weight: 950; font-size: 9px; color:#fff;">0/0</span>
-                    </div>
-                    <div class="group-grid" id="outGridDay"></div>
-                    <div style="text-align:center; padding:8px; color:#555; font-size:11px; font-weight:950; background:#fdfdfd; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:10px;">
-                        <span>🏁🏎️💨 DTHT - <span id="outFooterTimeDay"></span></span>
-                        <span style="color: #e67e22; background: #fff3e0; padding: 2px 8px; border-radius: 12px;" id="outWeatherDay">🌤️ ĐANG CẬP NHẬT...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="btn-grid">
-                <button class="btn-main" id="btnCopyDay" style="background:var(--black); color:var(--accent);" onclick="copyToLienDay()">📋 COPY CHỮ</button>
-                <button class="btn-main" id="btnCapDay" style="background: #e67e22; color: white;" onclick="captureReportDay()">📸 CHỤP ẢNH</button>
-            </div>
-            <textarea id="lienText" readonly></textarea>
-        </div>
+    <div class="btn-group">
+        <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettings()">Cài Đặt ⚙️</button>
+        <button class="btn" style="background:#004a99" onclick="masterProcess()">Xuất Dữ Liệu⚡</button>
+        <button class="btn" style="background:#28a745" onclick="captureReport()">Chụp Hình📷</button>
+        <button class="btn" style="background:#e67e22" onclick="generateFullReport()">Copy Nhận Xét🚀</button>
+        <button class="btn" style="background:#8e44ad; font-weight:950;" onclick="toggleReward()">THƯỞNG 🏆</button>
     </div>
+</div>
+<div id="reportOutput"></div>
+<div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
+    <div id="skStore" class="sk-header-row" style="display:none;"></div>
+    <div id="skGroups" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="gh"></tr></thead><tbody id="gb"></tbody></table></div>
+    <div id="reportArea" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mh"></tr></thead><tbody id="mb"></tbody></table></div>
+    <div id="rewardOutput" class="reward-panel"></div>
+</div>
 
-    <!-- ========================================== -->
-    <!-- NỘI DUNG TAB THÁNG V31.41 -->
-    <!-- ========================================== -->
-    <div id="tabMonth" class="tab-content">
-        <div class="header-controls">
-            <div class="input-container">
-                <div class="input-item"><label>1. Sức khỏe ST</label><textarea id="i1" placeholder="Dán dữ liệu SKST..."></textarea></div>
-                <div class="input-item"><label>2. Doanh Thu NV</label><textarea id="i2" placeholder="Dán dữ liệu DTNV..."></textarea></div>
-                <div class="input-item"><label>3. Nhóm Hàng NV</label><textarea id="i3" placeholder="Dán dữ liệu NHNV..."></textarea></div>
-                <div class="input-item"><label>4. Bán Kèm NV</label><textarea id="i4" placeholder="Dán dữ liệu BKNV..."></textarea></div>
-                <div class="input-item"><label>5. Trả Góp NV</label><textarea id="i5" placeholder="Dán dữ liệu TGNV..."></textarea></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn" style="background:#6c757d; flex:0 0 40px;" onclick="openSettingsMonth()">⚙️</button>
-                <button class="btn" style="background:#004a99" onclick="masterProcessMonth()">Xuất Dữ Liệu⚡</button>
-                <button class="btn" style="background:#28a745" onclick="captureReportMonth()">Chụp Hình📷</button>
-                <button class="btn" style="background:#e67e22" onclick="generateFullReportMonth()">Copy Nhận Xét🚀</button>
-                <button class="btn" style="background:#8e44ad; font-weight:950;" onclick="toggleRewardMonth()">THƯỞNG 🏆</button>
-            </div>
+<div class="overlay" id="setOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+    <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 15px 0;">⚙️ THIẾT LẬP HỆ THỐNG</h3>
+
+<div style="border: 2px solid orange; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fffbe6;">
+    <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span>
+            <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
         </div>
-        
-        <div id="reportOutputMonth" style="display:none; background:#fffbe6; border:2px dashed #004a99; font-weight:600; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px; line-height:1.4;"></div>
-        
-        <div id="screenshotAreaMonth" style="padding: 4px; width: fit-content; min-width: 100%; box-sizing: border-box;">
-            <div id="skStoreMonth" class="sk-header-row" style="display:none;"></div>
-            <div id="skGroupsMonth" class="sk-groups-wrapper" style="display:none;"><table class="sk-groups-table"><thead><tr id="ghMonth"></tr></thead><tbody id="gbMonth"></tbody></table></div>
-            <div id="reportAreaMonth" class="excel-table-wrapper" style="display:none;"><table class="matrix"><thead><tr id="mhMonth"></tr></thead><tbody id="mbMonth"></tbody></table></div>
-            <div id="rewardOutputMonth" class="reward-panel"></div>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span>
+            <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center;">
         </div>
+        <span style="font-size: 9px; color: #666;">(Mặc định là 1.0)</span>
     </div>
 </div>
 
-<!-- POPUP THIẾT LẬP THÁNG (ĐÃ BỎ BỘ CHỌN GIAO DIỆN) -->
-<div class="overlay" id="setOverlayMonth" onclick="closeSettingsMonth()"></div>
-<div class="settings-panel" id="settingsPanelMonth">
-    <h3 style="text-align: center; color: #004a99; font-weight: 950; margin: 0 0 12px 0;">⚙️ THIẾT LẬP HỆ THỐNG THÁNG</h3>
-    <div style="border: 2px solid orange; border-radius: 8px; padding: 12px 6px 6px 6px; margin-bottom: 15px; position: relative; background: #fffbe6;">
-        <div style="font-size: 11px; font-weight: 950; color: #d35400; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid orange; border-radius: 4px;">🚀 ĐIỀU CHỈNH TARGET (BOOST)</div>
-        <div style="display: flex; justify-content: space-around; align-items: center; gap: 5px;">
-            <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="font-size: 11px; font-weight: 950;">🎯Doanh Thu:</span>
-                <input type="number" id="boostDT" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center; margin-bottom:0;">
-            </div>
-            <div style="display: flex; align-items: center; gap: 3px;">
-                <span style="font-size: 11px; font-weight: 950;">📦Nhóm hàng:</span>
-                <input type="number" id="boostNH" step="0.1" style="width: 50px; padding: 5px; border: 2px solid #000; border-radius: 4px; font-weight: 950; text-align: center; margin-bottom:0;">
-            </div>
-        </div>
-    </div>
-    <div style="border: 2px solid #eee; border-radius: 8px; padding: 12px 6px 6px 6px; margin-bottom: 15px; position: relative; background: #fafafa;">
-        <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
-        <div style="display: flex; justify-content: space-around;">
-            <label><input type="checkbox" id="showDT" checked> DT</label>
-            <label><input type="checkbox" id="showBK" checked> BK</label>
-            <label><input type="checkbox" id="showTG" checked> TG</label>
-            <label><input type="checkbox" id="showBTM" checked> BTM</label>
-        </div>
-    </div>
-    <input type="text" id="groupSearchMonth" onkeyup="filterGroupsMonth()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
-    <div id="stkTrayBoxMonth" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:8px;"><div id="stkTrayContentMonth" style="display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 8px;"></div></div>
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG THÁNG</span><button class="toggle-all-btn" onclick="toggleSelectionMonth('groups')">Chọn/Bỏ</button></div>
-    <div style="max-height: 120px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px;"><table style="width:100%"><tbody id="groupListMonth"></tbody></table></div>
-    <input type="text" id="staffSearchMonth" onkeyup="filterStaffMonth()" placeholder="🔍 TÌM TÊN NV..." class="search-box">
-    <div class="title-row"><span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span><button class="toggle-all-btn" onclick="toggleSelectionMonth('staffs')">Chọn/Bỏ</button></div>
-    <div style="max-height: 120px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 8px;"><table style="width:100%"><tbody id="staffListMonth"></tbody></table></div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-        <button onclick="saveSettingsMonth()" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
-        <button onclick="closeSettingsMonth()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
-        <button onclick="exportConfigMonth()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
-        <button onclick="importConfigMonth()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
-        <button onclick="clearTrashMonth()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC DANH SÁCH 🗑️</button>
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">📊 CHỈ SỐ SKST</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="showDT" checked> DT</label>
+        <label><input type="checkbox" id="showBK" checked> BK</label>
+        <label><input type="checkbox" id="showTG" checked> TG</label>
+        <label><input type="checkbox" id="showBTM" checked> BTM</label>
     </div>
 </div>
-<input type="file" id="importFileMonth" style="display:none" onchange="processFileMonth(this)">
 
-<!-- ========================================== -->
-<!-- POPUP THIẾT LẬP NGÀY (ĐÃ NÂNG CẤP NÚT & CHỌN TẤT CẢ) -->
-<!-- ========================================== -->
-<div class="overlay" id="setOverlayDay" onclick="closeSettingsDay()"></div>
-<div class="settings-panel" id="settingsPanelDay">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT TARGET NGÀY</h3>
-        <span style="cursor:pointer; font-size:22px;" onclick="closeSettingsDay()">✖</span>
+<div style="border: 2px solid #eee; border-radius: 8px; padding: 15px 10px 10px 10px; margin-bottom: 20px; position: relative; background: #fafafa;">
+    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -12px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 GIAO DIỆN</div>
+    <div style="display: flex; justify-content: space-around;">
+        <label><input type="checkbox" id="darkMode" onchange="toggleDarkMode(this.checked)"> 🌙</label>
+        <label><input type="checkbox" id="natureMode" onchange="toggleNatureMode(this.checked)"> 🌿</label>
+        <label><input type="checkbox" id="racingMode" onchange="toggleRacingMode(this.checked)"> 🏎️</label>
+        <label><input type="checkbox" id="cyberMode" onchange="toggleCyberMode(this.checked)"> 🤖</label>
     </div>
-    
-    <div class="setting-row">
-        <label style="display:block; font-weight:950; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
-        <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
+</div>
+
+    <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="🔍 TÌM NHÓM HÀNG..." class="search-box">
+
+    <div id="stkTrayBox" style="display:none; border:2px solid orange; border-radius:8px; background:#fffaf5; margin-bottom:10px;"><div id="stkTrayContent"></div></div>
+
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('groups')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="groupList"></tbody></table>
     </div>
 
-    <!-- Thanh công cụ chọn nhanh mới thêm cho ông Thông -->
-    <div class="title-row" style="margin-top: 5px; margin-bottom: 5px;">
-        <span style="font-size:13px; font-weight:950; color:#004a99;">📦 NHÓM HÀNG </span>
-        <button type="button" class="toggle-all-btn" onclick="toggleAllGroupsDay()">Chọn/Bỏ Tất Cả 🔄</button>
+    <input type="text" id="staffSearch" onkeyup="filterStaff()" placeholder="👤 TÌM TÊN NV..." class="search-box">
+    <div class="title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-size:13px; font-weight:950; color:#004a99;">👤 NHÂN VIÊN</span>
+        <button class="toggle-all-btn" onclick="toggleSelection('staffs')">Chọn/Bỏ</button>
+    </div>
+    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
+        <table style="width:100%"><tbody id="staffList"></tbody></table>
     </div>
 
-    <div id="groupChecklist"></div>
-
-    <!-- Cụm nút Lưu và Đóng trực quan -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-        <button onclick="saveSettingsDay()" style="width:100%; background:var(--success); color:#006100; border:2px solid #006100; padding:12px; border-radius:8px; font-weight: 950; cursor:pointer; text-transform:uppercase;">LƯU NGÀY ✅</button>
-        <button onclick="closeSettingsDay()" style="width:100%; background:#6c757d; color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; cursor:pointer; text-transform:uppercase;">ĐÓNG ❌</button>
+        <button onclick="saveSettings(false)" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">LƯU ✅</button>
+        <button onclick="closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">ĐÓNG ❌</button>
+        <button onclick="exportConfig()" style="padding:10px; background:#1e3799; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">SAO LƯU 📤</button>
+        <button onclick="importConfig()" style="padding:10px; background:#f39c12; color:#fff; border:none; border-radius:6px; font-weight:950; cursor:pointer;">NẠP FILE 📥</button>
+        <button onclick="clearTrash()" style="padding:10px; background:#d63031; color:#fff; border:none; border-radius:6px; font-weight:950; grid-column: span 2; cursor:pointer;">DỌN RÁC 🗑️</button>
     </div>
+    <div style="display:none;"><input id="boostDT" value="1"><input id="boostNH" value="1"></div>
 </div>
 
-<!-- POPUP CHI TIẾT SỨC KHỎE NHÂN VIÊN -->
-<div class="overlay" onclick="closeDetailMonth()" id="ovDetailMonth"></div>
-<div class="detail-panel" id="dpDetailMonth">
-    <div id="captureAreaMonth">
-        <h2 id="stNameMonth" class="detail-title">TÊN NHÂN VIÊN</h2>
-        <div id="stHeaderMonth" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
+<input type="file" id="importFile" style="display:none" onchange="processFile(this)">
+
+<!-- ĐÂY LÀ PHẦN HIỂN THỊ CHI TIẾT NHÂN VIÊN - PHẢI NẰM RIÊNG BIỆT RA NGOÀI -->
+<div class="overlay" onclick="closeDetail()" id="ovDetail"></div>
+<div class="detail-panel" id="dpDetail">
+    <div id="captureArea">
+        <h2 id="stName" class="detail-title">TÊN NHÂN VIÊN</h2>
+        <div id="stHeader" class="detail-subtitle">SỨC KHỎE NGÀY...</div>
         <div class="grid-info">
-            <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1Month" class="info-val">0 / 0</div><div id="box1subMonth" class="info-sub">Dự kiến đạt: 0%</div></div>
-            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2Month" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2subMonth" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
-            <div class="info-box" style="grid-column: span 2;"></div>
+            <div class="info-box"><div class="info-label">DOANH THU</div><div id="box1" class="info-val">0 / 0</div><div id="box1sub" class="info-sub">Dự kiến đạt: 0%</div></div>
+            <div class="info-box"><div class="info-label">CÒN LẠI</div><div id="box2" class="info-val" style="color: #d63031 !important;">0tr</div><div id="box2sub" class="info-sub">Mỗi ngày chạy: 0tr</div></div>
+            <div class="info-box" style="grid-column: span 2;">
+                <!-- Phần này JS của ông sẽ tự đổ dữ liệu vào -->
+            </div>
+            <div class="info-box" style="display:none;"><div class="info-label">NHÓM HÀNG</div><div id="box4" class="info-val">Đạt: 0/0</div></div>
         </div>
-        <table class="detail-table"></table>
+        <table class="detail-table">
+            <!-- JS sẽ tự đổ thead và tbody vào đây -->
+        </table>
     </div>
     <div class="btn-group" style="margin-top:10px;">
-        <button class="btn" style="background:#28a745" onclick="captureStaffDetailMonth()">CHỤP ẢNH 📷</button>
-        <button class="btn" style="background:#6c757d" onclick="closeDetailMonth()">ĐÓNG ❌</button>
+        <button class="btn" style="background:#28a745" onclick="captureStaffDetail()">CHỤP ẢNH 📷</button>
+        <button class="btn" style="background:#6c757d" onclick="closeDetail()">ĐÓNG ❌</button>
     </div>
 </div>
+        `;
+        document.body.appendChild(overlay);
 
-<!-- JAVASCRIPT LOGIC CHÍNH -->
-<script>
-    // --- BỘ ĐỊNH TUYẾN CHUYỂN TAB ---
-    function switchTab(tab) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        if (tab === 'month') {
-            document.getElementById('tabMonth').classList.add('active');
-            document.getElementById('tabBtnMonth').classList.add('active');
-        } else {
-            document.getElementById('tabDay').classList.add('active');
-            document.getElementById('tabBtnDay').classList.add('active');
-            autoTimeDay();
+        // Khởi tạo các nút Load
+        if (window.config && window.config.activeMode) {
+            document.getElementById('tamhoa-super-overlay').classList.add(window.config.activeMode);
         }
     }
 
-    // --- TIỆN ÍCH CHUNG & LOGIC LÀM TRÒN ĐẶC THÙ TAM HÒA ---
-    const STICKERS_GLOBAL = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
-    function getRemainingDays() { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
-    function getPassedDays() { return new Date().getDate(); }
-    function getTotalDays() { return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); }
 
-    function roundTamHoa(val) {
-        if (typeof val !== 'number' || isNaN(val)) return 0;
-        let floorPart = Math.floor(val);
-        let decimalPart = val - floorPart;
-        return decimalPart >= 0.5 ? floorPart + 1 : floorPart;
+    // =========================================================================
+    // KHÚC 2: NHÚNG TOÀN BỘ JAVASCRIPT GỐC CỦA ÔNG VÀO HỆ THỐNG
+    // (Đã tích hợp luật làm tròn và chặn tên Việt Bí)
+    // =========================================================================
+    window.processedData = null; window.curGKey = null;
+    window.config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
+    window.STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
+
+    // LUẬT LÀM TRÒN SỐ CỦA ÔNG THÔNG: < 1.5 ép về 1.
+    window.tamHoaRound = function(val) {
+        let n = parseFloat(val);
+        if (isNaN(n)) return 0;
+        if (n < 1.5 && n > 0) return 1;
+        return Math.round(n);
     }
 
-    // --- QUẢN LÝ DỮ LIỆU THÁNG ---
-    let processedDataMonth = null, curGKeyMonth = null;
-    let configMonth = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
+    window.getRemainingDays = () => { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
+    window.getPassedDays = () => { return new Date().getDate(); }
+    window.getTotalDays = () => { return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); }
+    window.getDN = (id, useBigStk = true) => { const item = window.config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
+    window.getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
 
-    const getDNMonth = (id, useBigStk = true) => { 
-        const item = configMonth.groups[id]; 
-        const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); 
-        if (!item) return base; 
-        const stk = item.stk || "📦"; 
-        const alias = item.alias || base; 
-        return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; 
-    };
-    
-    const getShortMonth = (f) => { 
-        let p = f.split(" - ")[0].trim().split(" "); 
-        return p[p.length-1]; 
-    };
-
-    function getRankColorMonth(v, a, isNH = false, rev = false) {
+    window.getRankColor = (v, a, isNH = false, rev = false) => {
         if (v === 0 && !rev) return "bg-zero";
         if (isNH) { if (v >= 100) return "bg-good"; if (v >= 80) return "bg-mid"; return "bg-bad"; }
         if (!a || a.length < 2) return "";
@@ -361,12 +418,11 @@
         return r <= 0.35 ? "bg-good" : r <= 0.65 ? "bg-mid" : "bg-bad";
     }
 
-    function masterProcessMonth() {
+    window.masterProcess = function() {
         const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
         if(!raw[0] || !raw[2]) return;
         let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
         const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
-        
         l1.forEach((l, i) => {
             if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
             if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
@@ -379,130 +435,101 @@
                     if(!l1[j]) break;
                     if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
                     if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j].includes("% HT Dự Kiến")) { pV = parseFloat(l1[j+1]?.replace(/%/g,'')) || 0; break; }
+
+                    if(l1[j].includes("% HT Dự Kiến")) {
+                        // ƯU TIÊN BỐC SỐ LÀM TRÒN (SỐ THỨ 2 NẾU CÓ)
+                        let pText = l1[j+1] || "";
+                        let nums = pText.match(/\d+(\.\d+)?/g);
+                        if (nums && nums.length >= 2) { pV = parseFloat(nums[1]); }
+                        else { pV = parseFloat(pText.replace(/%/g,'')) || 0; }
+                        break;
+                    }
                 }
                 if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
             }
         });
-
         const l3 = raw[2].split('\n').map(l => l.trim());
-        let gNames = []; 
-        let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
-        if(hIdx !== -1) { 
-            for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); 
-        }
-        
-        let sData = []; 
-        let isC = false;
+        let gNames = []; let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
+        if(hIdx !== -1) { for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); }
+        let sData = []; let isC = false;
         l3.forEach(l => {
             const p = l.split(/\t|\s{2,}/);
             if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
             if(isC && p[0].includes("-")) {
-                let id = p[0]; 
-                let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
-                gNames.forEach((g, idx) => {
-                    let rawVal = p[idx+1];
-                    let parsedVal = parseFloat(rawVal?.replace(/,/g,'')) || 0;
-                    s.data.push(parsedVal);
-                });
-                sData.push(s);
+                // ĐÃ CHẶN TÊN VIỆT BÍ THEO LỆNH CỦA ÔNG
+                const excl = ["Thông", "Nhung", "One", "Ca", "Long", "Việt Bí"];
+                if (!excl.some(a => p[0].includes(a))) {
+                    let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
+                    gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
+                    sData.push(s);
+                }
             }
             if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
         });
+        const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
+        const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) { let nums = p[5]?.match(/\d+(\.\d+)?/g); s.bk = nums && nums.length >= 2 ? parseFloat(nums[1]) : parseFloat(p[5]) || 0; } });
+        const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) { let tText = p[p.length-1]; let nums = tText?.match(/\d+(\.\d+)?/g); s.tg = nums && nums.length >= 2 ? parseFloat(nums[1]) : parseFloat(tText) || 0; } });
 
-        const l2 = raw[1].split('\n'); 
-        l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
-        const l4 = raw[3].split('\n'); 
-        l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.bk = parseFloat(p[5]) || 0; });
-        const l5 = raw[4].split('\n'); 
-        l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) s.tg = parseFloat(p[p.length-1]) || 0; });
+        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = window.config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
+        window.config.groups = activeG;
+        let activeS = {}; sData.forEach(s => { activeS[s.id] = window.config.staffs[s.id] || { show: true, alias: "" }; });
+        window.config.staffs = activeS;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config));
 
-        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = configMonth.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
-        configMonth.groups = activeG;
-        let activeS = {}; sData.forEach(s => { activeS[s.id] = configMonth.staffs[s.id] || { show: true, alias: "" }; });
-        configMonth.staffs = activeS;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(configMonth));
-
-        processedDataMonth = { storeInfo, sData, gNames }; 
-        renderAllMonth();
+        window.processedData = { storeInfo, sData, gNames }; window.renderAll();
     }
 
-    function renderAllMonth() {
-        if(!processedDataMonth) return;
-        const { storeInfo, sData, gNames } = processedDataMonth;
-        const bDT = parseFloat(configMonth.boostDT) || 1.0;
-        const bNH = parseFloat(configMonth.boostNH) || 1.0;
-        
+    window.renderAll = function() {
+        if(!window.processedData) return;
+        const { storeInfo, sData, gNames } = window.processedData;
+        const bDT = parseFloat(window.config.boostDT) || 1.0;
+        const bNH = parseFloat(window.config.boostNH) || 1.0;
         storeInfo.t_boost = storeInfo.t_goc * bDT;
-        storeInfo.p_boost = (bDT === 1.0) ? storeInfo.p_goc : ((storeInfo.dt / getPassedDays()) * getTotalDays() / storeInfo.t_boost) * 100;
-        
-        const actG = storeInfo.groups.filter(g => configMonth.groups[g.n]?.show).map(g => {
+        storeInfo.p_boost = (bDT === 1.0) ? storeInfo.p_goc : ((storeInfo.dt / window.getPassedDays()) * window.getTotalDays() / storeInfo.t_boost) * 100;
+        const actG = storeInfo.groups.filter(g => window.config.groups[g.n]?.show).map(g => {
             let tb = g.t * bNH;
-            let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+            let pb = (bNH === 1.0) ? g.p : ((g.r / window.getPassedDays()) * window.getTotalDays() / tb) * 100;
             return { ...g, tb, pb };
         }).sort((a,b) => b.pb - a.pb);
 
-        document.getElementById('skStoreMonth').innerHTML = `
-<div class="sk-card"><div class="sk-label">LŨY KẾ/TARGET</div><div class="sk-value">${roundTamHoa(storeInfo.dt)}/${roundTamHoa(storeInfo.t_boost)}</div></div>
-<div class="sk-card"><div class="sk-label">DỰ KIẾN</div><div class="sk-value">${roundTamHoa(storeInfo.p_boost)}%</div></div>
-<div class="sk-card"><div class="sk-label" style="color:red;">CÒN ${getRemainingDays()} NGÀY, MỖI NGÀY</div><div class="sk-value" style="color:red;">${roundTamHoa(Math.max(0, storeInfo.t_boost-storeInfo.dt)/getRemainingDays())}tr</div></div>
-<div class="sk-card"><div class="sk-label">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
-<div class="sk-card"><div class="sk-label">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
-        
+        // SỬ DỤNG HÀM LÀM TRÒN CHUẨN CỦA ÔNG
+        document.getElementById('skStore').innerHTML = `
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">LŨY KẾ/TARGET</div><div class="sk-value">${window.tamHoaRound(storeInfo.dt)}/${window.tamHoaRound(storeInfo.t_boost)}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">DỰ KIẾN</div><div class="sk-value">${window.tamHoaRound(storeInfo.p_boost)}%</div></div>
+<div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${window.getRemainingDays()} NGÀY,MỖI NGÀY</div><div class="sk-value" style="color:red;">${window.tamHoaRound(Math.max(0, storeInfo.t_boost-storeInfo.dt)/window.getRemainingDays())}tr</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
+
         let gh = '', gb = '<tr>';
-        actG.forEach(g => { 
-            gh += `<th>${getDNMonth(g.n)}</th>`; 
-            gb += `<td class="${getRankColorMonth(g.pb, [], true)}"><span class="main-percent">${roundTamHoa(g.pb)}%</span><span class="sub-info">${roundTamHoa(g.r)}/${roundTamHoa(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+roundTamHoa(g.tb-g.r):'🏁'}</span></td>`; 
-        });
-        document.getElementById('ghMonth').innerHTML = gh; document.getElementById('gbMonth').innerHTML = gb + '</tr>';
-        
-        const visS = sData.filter(s => configMonth.staffs[s.id]?.show); 
-        const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
+        actG.forEach(g => { gh += `<th>${window.getDN(g.n)}</th>`; gb += `<td class="${window.getRankColor(g.pb, [], true)}"><span class="main-percent">${window.tamHoaRound(g.pb)}%</span><span class="sub-info">${window.tamHoaRound(g.r)}/${window.tamHoaRound(g.tb)}</span><span class="remain-info">${g.tb-g.r>0?'C:'+window.tamHoaRound(g.tb-g.r):'🏁'}</span></td>`; });
+        document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
+
+        const visS = sData.filter(s => window.config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
         let mh = `<th class="sticky-col">TÊN NV</th>`;
-        if(configMonth.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
-        if(configMonth.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
-        if(configMonth.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
-        if(configMonth.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
-        visG.forEach(gn => mh += `<th>${getDNMonth(gn)}</th>`);
-        document.getElementById('mhMonth').innerHTML = mh; 
-        
-        const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0)); 
+        if(window.config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
+        if(window.config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
+        if(window.config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
+        if(window.config.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
+        visG.forEach(gn => mh += `<th>${window.getDN(gn)}</th>`);
+        document.getElementById('mh').innerHTML = mh;
+
+        const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
         const allBTM = [];
-        visS.forEach(s => { 
-            let b = 0; 
-            visG.forEach((gn, i) => { 
-                if(actG.some(ag => ag.n === gn)) { 
-                    let v = s.data[gNames.indexOf(gn)] || 0; 
-                    if(getRankColorMonth(v, gV[i]) === "bg-bad" || v === 0) b++; 
-                } 
-            }); 
-            allBTM.push(b); 
+        visS.forEach(s => { let b = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(window.getRankColor(v, gV[i]) === "bg-bad" || v === 0) b++; } }); allBTM.push(b); });
+
+        let mb = ''; visS.sort((a,b) => b.dt - a.dt).forEach((s) => {
+            let bc = 0; visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if(window.getRankColor(v, gV[i]) === "bg-bad" || v === 0) bc++; } });
+            let row = `<tr><td class="sticky-col" onclick="window.showStaffDetail('${s.id}')">${window.config.staffs[s.id]?.alias || window.getShort(s.id)}</td>`;
+            if(window.config.showCols.dt) row += `<td class="fixed-col ${window.getRankColor(s.dt, visS.map(x=>x.dt))}">${window.tamHoaRound(s.dt)}</td>`;
+            if(window.config.showCols.bk) row += `<td class="fixed-col ${window.getRankColor(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td>`;
+            if(window.config.showCols.tg) row += `<td class="fixed-col ${window.getRankColor(s.tg, visS.map(x=>x.tg))}">${window.tamHoaRound(s.tg)}%</td>`;
+            if(window.config.showCols.btm) row += `<td class="fixed-col ${window.getRankColor(bc, allBTM, false, true)}">${bc}</td>`;
+            visG.forEach((gn, i) => { let val = s.data[gNames.indexOf(gn)] || 0; row += `<td class="${window.getRankColor(val, gV[i])}">${window.tamHoaRound(val)}</td>`; }); mb += row + `</tr>`;
         });
-        
-        let mb = ''; 
-        visS.sort((a,b) => b.dt - a.dt).forEach((s) => {
-            let bc = 0; 
-            visG.forEach((gn, i) => { 
-                if(actG.some(ag => ag.n === gn)) { 
-                    let v = s.data[gNames.indexOf(gn)] || 0; 
-                    if(getRankColorMonth(v, gV[i]) === "bg-bad" || v === 0) bc++; 
-                } 
-            });
-            let row = `<tr><td class="sticky-col" onclick="showStaffDetailMonth('${s.id}')">${configMonth.staffs[s.id]?.alias || getShortMonth(s.id)}</td>`;
-            if(configMonth.showCols.dt) row += `<td class="fixed-col ${getRankColorMonth(s.dt, visS.map(x=>x.dt))}">${roundTamHoa(s.dt)}</td>`;
-            if(configMonth.showCols.bk) row += `<td class="fixed-col ${getRankColorMonth(s.bk, visS.map(x=>x.bk))}">${Math.floor(s.bk)}%</td>`;
-            if(configMonth.showCols.tg) row += `<td class="fixed-col ${getRankColorMonth(s.tg, visS.map(x=>x.tg))}">${roundTamHoa(s.tg)}%</td>`;
-            if(configMonth.showCols.btm) row += `<td class="fixed-col ${getRankColorMonth(bc, allBTM, false, true)}">${bc}</td>`;
-            visG.forEach((gn, i) => { 
-                let val = s.data[gNames.indexOf(gn)] || 0; 
-                row += `<td class="${getRankColorMonth(val, gV[i])}">${roundTamHoa(val)}</td>`; 
-            }); 
-            mb += row + `</tr>`;
-        });
-        document.getElementById('mbMonth').innerHTML = mb; 
-        document.getElementById('skStoreMonth').style.display = 'grid'; 
-        document.getElementById('skGroupsMonth').style.display = 'block'; 
-        document.getElementById('reportAreaMonth').style.display = 'block';
+        document.getElementById('mb').innerHTML = mb;
+        document.getElementById('skStore').style.display = 'grid';
+        document.getElementById('skGroups').style.display = 'block';
+        document.getElementById('reportArea').style.display = 'block';
 
         let rewardHtml = `<div class="reward-header">🏆 CHIẾN THẦN NHÓM HÀNG (ĐẠT 100%)</div>`;
         let hasReward = false;
@@ -510,444 +537,397 @@
             let gn = g.n, maxV = -1, winner = "";
             visS.forEach(s => {
                 let v = s.data[gNames.indexOf(gn)] || 0;
-                if(v > maxV) { maxV = v; winner = (configMonth.staffs[s.id]?.alias || getShortMonth(s.id)).toUpperCase(); }
-                else if(v === maxV && v > 0) { winner += " & " + (configMonth.staffs[s.id]?.alias || getShortMonth(s.id)).toUpperCase(); }
+                if(v > maxV) { maxV = v; winner = (window.config.staffs[s.id]?.alias || window.getShort(s.id)).toUpperCase(); }
+                else if(v === maxV && v > 0) { winner += " & " + (window.config.staffs[s.id]?.alias || window.getShort(s.id)).toUpperCase(); }
             });
             if(maxV > 0) {
                 hasReward = true;
-                rewardHtml += `<div class="reward-row"><span>🎯 ${getDNMonth(gn, false)} <small>(Đạt ${roundTamHoa(g.pb)}%)</small></span><span>🥇 <span class="reward-name">${winner}</span>: <span class="reward-value">${roundTamHoa(maxV)}</span></span></div>`;
+                rewardHtml += `<div class="reward-row"><span>🎯 ${window.getDN(gn, false)} <small>(Đạt ${window.tamHoaRound(g.pb)}%)</small></span><span>🥇 <span class="reward-name">${winner}</span>: <span class="reward-value">${window.tamHoaRound(maxV)}</span></span></div>`;
             }
         });
-        const rwDiv = document.getElementById('rewardOutputMonth');
-        if (hasReward) { rwDiv.innerHTML = rewardHtml; } 
-        else { rwDiv.innerHTML = `<div style="padding:15px; text-align:center; font-weight:900; color:#666;">Chưa nhóm nào đạt 100% kkk.</div>`; }
+        const rwDiv = document.getElementById('rewardOutput');
+        if (hasReward) { rwDiv.innerHTML = rewardHtml; } else { rwDiv.innerHTML = `<div style="padding:15px; text-align:center; font-weight:900; color:#666;">Chưa nhóm nào đạt 100% kkk.</div>`; }
     }
 
-    function toggleRewardMonth() {
-        const rw = document.getElementById('rewardOutputMonth');
-        if (window.getComputedStyle(rw).display === 'none') {
-            rw.style.setProperty('display', 'block', 'important');
-            rw.scrollIntoView({ behavior: 'smooth' });
-        } else { rw.style.setProperty('display', 'none', 'important'); }
+    // Các hàm phụ trợ bê nguyên si của ông Thông
+    window.toggleReward = () => { const rw = document.getElementById('rewardOutput'); if (window.getComputedStyle(rw).display === 'none') { rw.style.setProperty('display', 'block', 'important'); rw.scrollIntoView({ behavior: 'smooth' }); } else { rw.style.setProperty('display', 'none', 'important'); } }
+    window.closeSettings = () => { document.getElementById('settingsPanel').style.display = 'none'; document.getElementById('setOverlay').style.display = 'none'; if(document.getElementById('stkTrayBox')) document.getElementById('stkTrayBox').style.display = 'none'; }
+    window.closeDetail = () => { const d = document.getElementById('dpDetail'); const o = document.getElementById('ovDetail'); if(d && o) { d.style.display = 'none'; o.style.display = 'none'; } }
+    window.toggleSelection = (type) => { const keys = Object.keys(window.config[type]); const any = keys.some(k => window.config[type][k].show); keys.forEach(k => window.config[type][k].show = !any); window.openSettings(); }
+    window.filterGroups = () => { const q = document.getElementById('groupSearch').value.toLowerCase(); document.querySelectorAll('#groupList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    window.filterStaff = () => { const q = document.getElementById('staffSearch').value.toLowerCase(); document.querySelectorAll('#staffList tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
+    window.showStkTray = (gn) => { window.curGKey = gn; document.getElementById('stkTrayContent').innerHTML = window.STICKERS.map(s => `<div class="stk-item" onclick="window.applyStk('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBox').style.display = 'block'; }
+    window.applyStk = (s) => { if(window.curGKey) { window.config.groups[window.curGKey].stk = s; document.getElementById('stkTrayBox').style.display = 'none'; window.openSettings(); } }
+    window.clearTrash = () => { if(confirm("Ông Thông có chắc muốn dọn sạch danh sách cũ không?")) { window.config.groups = {}; window.config.staffs = {}; localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config)); location.reload(); } }
+    window.exportConfig = () => { const data = localStorage.getItem('tamHoaV31_28'); if (!data) return alert("Chưa có cài đặt nào để lưu hết ông ơi!"); const blob = new Blob([data], {type: 'application/json'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `CaiDat_TamHoa_${new Date().getDate()}_${new Date().getMonth()+1}.json`; link.click(); }
+    window.importConfig = () => { document.getElementById('importFile').click(); }
+    window.processFile = (input) => { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { try { const content = e.target.result; JSON.parse(content); localStorage.setItem('tamHoaV31_28', content); alert("Đã nạp cài đặt thành công! Hệ thống sẽ tự nạp lại."); location.reload(); } catch (err) { alert("Lỗi! File không đúng định dạng rồi ông."); } }; reader.readAsText(file); } }
+
+    // Gắn Theme
+    window.saveActiveMode = (className, modeId) => {
+        const modes = ['natureMode', 'racingMode', 'cyberMode', 'darkMode'];
+        const classes = ['nature-mode', 'racing-mode', 'cyber-mode', 'dark-mode'];
+        modes.forEach((id, index) => { if (id !== modeId) { const btn = document.getElementById(id); if(btn) btn.checked = false; document.getElementById('tamhoa-super-overlay').classList.remove(classes[index]); } });
+        if(typeof window.config !== 'undefined') { window.config.activeMode = className; window.config.activeModeId = modeId; localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config)); }
+    }
+    window.toggleNatureMode = (isNature) => { if(isNature) { document.getElementById('tamhoa-super-overlay').classList.add('nature-mode'); window.saveActiveMode('nature-mode', 'natureMode'); } else { document.getElementById('tamhoa-super-overlay').classList.remove('nature-mode'); window.saveActiveMode(null, null); } }
+    window.toggleRacingMode = (isRacing) => { if(isRacing) { document.getElementById('tamhoa-super-overlay').classList.add('racing-mode'); window.saveActiveMode('racing-mode', 'racingMode'); } else { document.getElementById('tamhoa-super-overlay').classList.remove('racing-mode'); window.saveActiveMode(null, null); } }
+    window.toggleCyberMode = (isCyber) => { if(isCyber) { document.getElementById('tamhoa-super-overlay').classList.add('cyber-mode'); window.saveActiveMode('cyber-mode', 'cyberMode'); } else { document.getElementById('tamhoa-super-overlay').classList.remove('cyber-mode'); window.saveActiveMode(null, null); } }
+    window.toggleDarkMode = (isDark) => { if(isDark) { document.getElementById('tamhoa-super-overlay').classList.add('dark-mode'); window.saveActiveMode('dark-mode', 'darkMode'); } else { document.getElementById('tamhoa-super-overlay').classList.remove('dark-mode'); window.saveActiveMode(null, null); } }
+
+    window.openSettings = function() {
+        const panel = document.getElementById('settingsPanel');
+        const overlay = document.getElementById('setOverlay');
+        if(panel && overlay) {
+            panel.style.display = 'block'; overlay.style.display = 'block';
+            document.getElementById('boostDT').value = window.config.boostDT || 1.0;
+            document.getElementById('boostNH').value = window.config.boostNH || 1.0;
+            const sc = window.config.showCols;
+            document.getElementById('showDT').checked = sc.dt; document.getElementById('showBK').checked = sc.bk; document.getElementById('showTG').checked = sc.tg; document.getElementById('showBTM').checked = sc.btm;
+            document.getElementById('groupList').innerHTML = Object.keys(window.config.groups).map(gn => `<tr><td><input type="checkbox" ${window.config.groups[gn].show?'checked':''} onchange="window.config.groups['${gn}'].show=this.checked"></td><td style="font-size:20px; cursor:pointer;" onclick="window.showStkTray('${gn}')">${window.config.groups[gn].stk || '📦'}</td><td style="font-size:10px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" style="width:60px" value="${window.config.groups[gn].alias||''}" onchange="window.config.groups['${gn}'].alias=this.value"></td></tr>`).join("");
+            document.getElementById('staffList').innerHTML = Object.keys(window.config.staffs).map(sid => `<tr><td><input type="checkbox" ${window.config.staffs[sid].show?'checked':''} onchange="window.config.staffs['${sid}'].show=this.checked"></td><td style="font-size:10px; text-align:left;">${window.getShort(sid)}</td><td><input type="text" class="alias-input" style="width:80px" value="${window.config.staffs[sid].alias||''}" onchange="window.config.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
+        }
     }
 
-    function showStaffDetailMonth(sid) {
-        if(!processedDataMonth) return;
-        const { storeInfo, sData, gNames } = processedDataMonth;
+    window.saveSettings = function() {
+        window.config.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
+        window.config.boostNH = parseFloat(document.getElementById('boostNH').value) || 1.0;
+        window.config.showCols.dt = document.getElementById('showDT').checked;
+        window.config.showCols.bk = document.getElementById('showBK').checked;
+        window.config.showCols.tg = document.getElementById('showTG').checked;
+        window.config.showCols.btm = document.getElementById('showBTM').checked;
+        localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config));
+        alert("Đã lưu thiết lập thành công! ✅");
+        window.closeSettings();
+        window.masterProcess();
+    }
+
+    window.showStaffDetail = function(sid) {
+        if(!window.processedData) return;
+        const { storeInfo, sData, gNames } = window.processedData;
         const s = sData.find(x => x.id === sid);
-        const slnv = sData.filter(x => configMonth.staffs[x.id]?.show).length || 1;
-        const bDT = parseFloat(configMonth.boostDT) || 1.0;
-        const bNH = parseFloat(configMonth.boostNH) || 1.0;
-        const daysLeft = getRemainingDays(), daysPassed = getPassedDays(), daysTotal = getTotalDays();
-        
+        const slnv = sData.filter(x => window.config.staffs[x.id]?.show).length || 1;
+        const bDT = parseFloat(window.config.boostDT) || 1.0;
+        const bNH = parseFloat(window.config.boostNH) || 1.0;
+        const daysLeft = window.getRemainingDays(), daysPassed = window.getPassedDays(), daysTotal = window.getTotalDays();
+
         const t_nv_boost = (storeInfo.t_goc * bDT) / slnv;
         const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
         const conLaiDT = Math.max(0, t_nv_boost - s.dt);
         const moiNgayDT = conLaiDT / daysLeft;
 
-        document.getElementById('stNameMonth').innerText = (configMonth.staffs[sid]?.alias || getShortMonth(sid)).toUpperCase();
-        document.getElementById('stHeaderMonth').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
-        
-        const boxes = document.querySelectorAll('#dpDetailMonth .grid-info .info-box');
+        document.getElementById('stName').innerText = (window.config.staffs[sid]?.alias || window.getShort(sid)).toUpperCase();
+        document.getElementById('stHeader').innerText = `SỨC KHỎE NGÀY ${daysPassed}/${new Date().getMonth()+1}`;
+
+        const boxes = document.querySelectorAll('.grid-info .info-box');
         [0, 1].forEach(i => {
             if(boxes[i]) {
-                boxes[i].style.minHeight = "75px";
-                boxes[i].style.display = "flex";
-                boxes[i].style.flexDirection = "column";
-                boxes[i].style.justifyContent = "center";
-                boxes[i].style.background = "#fff";
-                boxes[i].style.border = "2px solid #004a99";
-                boxes[i].style.borderRadius = "8px";
+                boxes[i].style.minHeight = "80px"; boxes[i].style.display = "flex"; boxes[i].style.flexDirection = "column";
+                boxes[i].style.justifyContent = "center"; boxes[i].style.background = "#fff"; boxes[i].style.border = "2px solid #004a99";
+                boxes[i].style.borderRadius = "8px"; boxes[i].style.padding = "5px";
             }
         });
 
-        document.getElementById('box1Month').innerText = `${roundTamHoa(s.dt)} / ${roundTamHoa(t_nv_boost)}`;
-        document.getElementById('box1subMonth').innerText = `Dự kiến: ${roundTamHoa(p_dk_boost)}%`;
-        document.getElementById('box2Month').innerText = `${roundTamHoa(conLaiDT)}tr`;
-        document.getElementById('box2subMonth').innerText = `Mỗi ngày: ${moiNgayDT.toFixed(1)}tr`;
+        document.getElementById('box1').innerText = `${window.tamHoaRound(s.dt)} / ${window.tamHoaRound(t_nv_boost)}`;
+        document.getElementById('box1').style.fontSize = "20px";
+        document.getElementById('box1sub').innerText = `Dự kiến: ${window.tamHoaRound(p_dk_boost)}%`;
+        document.getElementById('box1sub').style.fontWeight = "950";
+
+        document.getElementById('box2').innerText = `${window.tamHoaRound(conLaiDT)}tr`;
+        document.getElementById('box2').style.fontSize = "20px";
+        document.getElementById('box2sub').innerText = `Mỗi ngày: ${moiNgayDT.toFixed(1)}tr`;
+        document.getElementById('box2sub').style.fontWeight = "950";
 
         let itms = [];
-        storeInfo.groups.filter(g => configMonth.groups[g.n]?.show).forEach(g => {
+        storeInfo.groups.filter(g => window.config.groups[g.n]?.show).forEach(g => {
             let tb_g_nv = (g.t * bNH) / slnv;
             let r_g_nv = s.data[gNames.indexOf(g.n)] || 0;
             let pb_g_nv = ((r_g_nv / daysPassed) * daysTotal / tb_g_nv) * 100;
             itms.push({ n: g.n, t: tb_g_nv, r: r_g_nv, p: pb_g_nv });
         });
+
         const soNhomDat = itms.filter(x => x.p >= 100).length;
-        
+
         if(boxes[2]) {
+            boxes[2].style.gridColumn = "span 2"; boxes[2].style.minHeight = "85px"; boxes[2].style.display = "flex";
+            boxes[2].style.alignItems = "center"; boxes[2].style.background = "#f0f7ff"; boxes[2].style.border = "2px solid #004a99";
+            boxes[2].style.borderRadius = "8px"; boxes[2].style.marginTop = "8px";
             boxes[2].innerHTML = `
                 <div style="display: flex; justify-content: space-around; align-items: center; width: 100%; font-weight: 950;">
-                    <span style="display: flex; flex-direction: column; align-items: center;">
-                        <small style="font-size: 11px; color: #000; font-weight: 950; margin-bottom: 2px;">TRẢ GÓP</small>
-                        <span style="color: #2e7d32; font-size: 18px;">💰 ${roundTamHoa(s.tg)}%</span>
-                    </span>
-                    <span style="display: flex; flex-direction: column; align-items: center;">
-                        <small style="font-size: 11px; color: #000; font-weight: 950; margin-bottom: 2px;">BÁN KÈM</small>
-                        <span style="color: #ed6c02; font-size: 18px;">✨ ${Math.round(s.bk)}%</span>
-                    </span>
-                    <span style="display: flex; flex-direction: column; align-items: center;">
-                        <small style="font-size: 11px; color: #000; font-weight: 950; margin-bottom: 2px;">NHÓM ĐẠT</small>
-                        <span style="color: #d32f2f; font-size: 18px;">📦 ${soNhomDat}/${itms.length}</span>
-                    </span>
-                </div>`;
+                    <span style="display: flex; flex-direction: column; align-items: center;"><small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">TRẢ GÓP</small><span style="color: #2e7d32; font-size: 20px;">💰 ${window.tamHoaRound(s.tg)}%</span></span>
+                    <span style="display: flex; flex-direction: column; align-items: center;"><small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">BÁN KÈM</small><span style="color: #ed6c02; font-size: 20px;">✨ ${Math.floor(s.bk)}%</span></span>
+                    <span style="display: flex; flex-direction: column; align-items: center;"><small style="font-size: 12px; color: #000; font-weight: 950; margin-bottom: 5px;">NHÓM ĐẠT</small><span style="color: #d32f2f; font-size: 20px;">📦 ${soNhomDat}/${itms.length}</span></span>
+                </div>
+            `;
         }
+        if(boxes[3]) boxes[3].style.display = 'none';
 
         itms.sort((a,b) => b.p - a.p);
-        let tableHtml = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead><tbody>`;
+        let tableHtml = `<thead><tr><th>NHÓM HÀNG</th><th>TARGET</th><th>LŨY KẾ</th><th>DỰ KIẾN</th><th>CÒN LẠI</th><th>MỖI NGÀY</th></tr></thead><tbody id="detBody">`;
+        let body = '';
         itms.forEach(it => {
             const conG = Math.max(0, it.t - it.r);
             const moiNgayG = conG / daysLeft;
             const rowClass = it.p >= 100 ? 'bg-good' : (it.p >= 80 ? 'bg-mid' : 'bg-bad');
-            tableHtml += `<tr class="${rowClass}">
-                <td style="text-align:left; font-size:10px;">${getDNMonth(it.n, false)}</td>
-                <td>${roundTamHoa(it.t)}</td>
-                <td>${roundTamHoa(it.r)}</td>
-                <td>${roundTamHoa(it.p)}%</td>
-                <td style="color:red; font-weight:950;">${roundTamHoa(conG)}</td>
+            body += `<tr class="${rowClass}">
+                <td style="text-align:left; font-size:11px;">${window.getDN(it.n, false)}</td>
+                <td>${window.tamHoaRound(it.t)}</td>
+                <td>${window.tamHoaRound(it.r)}</td>
+                <td>${window.tamHoaRound(it.p)}%</td>
+                <td style="color:red; font-weight:950;">${window.tamHoaRound(conG)}</td>
                 <td style="background:#fffbe6; color:#000; font-weight:950;">${moiNgayG.toFixed(1)}</td>
             </tr>`;
         });
-        document.querySelector('#dpDetailMonth .detail-table').innerHTML = tableHtml + `</tbody>`;
-        document.getElementById('ovDetailMonth').style.display = 'block'; 
-        document.getElementById('dpDetailMonth').style.display = 'block';
+        document.querySelector('.detail-table').innerHTML = tableHtml + body + `</tbody>`;
+        document.getElementById('ovDetail').style.display = 'block';
+        document.getElementById('dpDetail').style.display = 'block';
     }
 
-    function closeDetailMonth() { document.getElementById('dpDetailMonth').style.display = 'none'; document.getElementById('ovDetailMonth').style.display = 'none'; }
+    window.captureReport = async function() {
+        const ngay = new Date().getDate(); const thang = new Date().getMonth() + 1;
+        const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true });
+        const link = document.createElement('a');
+        link.download = `SKST ${ngay}-${thang}.png`;
+        link.href = canvas.toDataURL(); link.click();
+    }
 
-    function generateFullReportMonth() {
-        if (!processedDataMonth) return;
-        const { storeInfo, sData, gNames } = processedDataMonth;
-        const days = getRemainingDays();
-        const bNH = parseFloat(configMonth.boostNH) || 1.0;
-        const toStkNum = (n) => String(roundTamHoa(n)).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
+    window.captureStaffDetail = async function() {
+        const tenNV = document.getElementById('stName').innerText || "NhanVien";
+        const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true });
+        const link = document.createElement('a');
+        link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`;
+        link.href = canvas.toDataURL(); link.click();
+    }
+
+    window.generateFullReport = function() {
+        if (!window.processedData) return;
+        const { storeInfo, sData, gNames } = window.processedData;
+        const days = window.getRemainingDays();
+        const bNH = parseFloat(window.config.boostNH) || 1.0;
+
+        const toStkNum = (n) => String(Math.round(n)).split('').map(d => ['0️⃣','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'][parseInt(d)] || d).join('');
         const cleanStk = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu, '').trim();
         const medals = ["🥇", "🥈", "🥉"];
 
-        let actG = storeInfo.groups.filter(g => configMonth.groups[g.n]?.show).map(g => {
-            let tb = g.t * bNH;
-            let pb = (bNH === 1.0) ? g.p : ((g.r / getPassedDays()) * getTotalDays() / tb) * 100;
+        let actG = storeInfo.groups.filter(g => window.config.groups[g.n]?.show).map(g => {
+            let tb = g.t * bNH; let pb = (bNH === 1.0) ? g.p : ((g.r / window.getPassedDays()) * window.getTotalDays() / tb) * 100;
             return { ...g, tb, pb };
         });
 
-        const fmtG = (list) => list.map(g => { 
-            const item = configMonth.groups[g.n]; 
-            const stk = item.stk || "📦"; 
-            const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); 
-            return `${stk}${cleanStk(name)} ${roundTamHoa(g.pb)}%`; 
+        const fmtG = (list) => list.map(g => {
+            const item = window.config.groups[g.n]; const stk = item.stk || "📦";
+            const name = item.alias || g.n.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim();
+            return `${stk}${cleanStk(name)} ${window.tamHoaRound(g.pb)}%`;
         }).join(", ");
 
         let hoanThanh = fmtG(actG.filter(g => g.pb >= 100));
         let ganDat = fmtG(actG.filter(g => g.pb >= 80 && g.pb < 100));
         let canhBaoG = fmtG(actG.filter(g => g.pb < 80));
 
-        const visS = sData.filter(s => configMonth.staffs[s.id]?.show); 
-        const visG = gNames.filter(gn => actG.some(ag => ag.n === gn)); 
+        const visS = sData.filter(s => window.config.staffs[s.id]?.show);
+        const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
         const gV = visG.map(gn => visS.map(s => s.data[gNames.indexOf(gn)] || 0));
 
-        let st = visS.map(s => { 
-            let btm = 0; 
-            visG.forEach((gn, i) => { if(actG.some(ag => ag.n === gn)) { let v = s.data[gNames.indexOf(gn)] || 0; if (getRankColorMonth(v, gV[i]) === "bg-bad" || v === 0) btm++; } }); 
-            return { name: configMonth.staffs[s.id]?.alias || getShortMonth(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm }; 
+        let st = visS.map(s => {
+            let btm = 0;
+            visG.forEach((gn, i) => {
+                if(actG.some(ag => ag.n === gn)) {
+                    let v = s.data[gNames.indexOf(gn)] || 0;
+                    if (window.getRankColor(v, gV[i]) === "bg-bad" || v === 0) btm++;
+                }
+            });
+            return { name: window.config.staffs[s.id]?.alias || window.getShort(s.id), dt: s.dt, bk: s.bk, tg: s.tg, btm: btm };
         });
 
         const getTop = (arr, key, n=3, rev=false) => [...arr].sort((a,b) => rev ? a[key]-b[key] : b[key]-a[key]).slice(0, n);
-        const dtHienTai = storeInfo.dt;
-        const targetMoi = storeInfo.t_boost;
-        const phanTramMoi = storeInfo.p_boost;
+        const dtHienTai = storeInfo.dt; const targetMoi = storeInfo.t_boost; const phanTramMoi = storeInfo.p_boost;
         const canBucPha = Math.max(0, (targetMoi - dtHienTai) / days);
 
-        let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n`;
-        r += `🏥 1. TÌNH HÌNH CHUNG\n`;
-        r += `🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${roundTamHoa(phanTramMoi)}%\n`;
-        r += `⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${roundTamHoa(canBucPha)}tr/ngày để về đích nhé! 🏁\n`;
-        r += `💸 Góp ST: ${storeInfo.tg}\n`;
-        r += `📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
-
+        let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${window.tamHoaRound(phanTramMoi)}%\n⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${window.tamHoaRound(canBucPha)}tr/ngày để về đích nhé! 🏁\n💸 Góp ST: ${storeInfo.tg}\n📦 Nhóm hàng: Đạt ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
         if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
         if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
         if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha!\n\n`;
 
-        r += `👤 2. TÌNH HÌNH CÁ NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${roundTamHoa(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " Push số gấp nhé team!\n\n";
+        r += `👤 2. TÌNH HÌNH CÁ cá NHÂN\n💰 Doanh thu cá nhân:\n` + getTop(st, 'dt').map((s,i) => `${medals[i]} ${s.name}: ${window.tamHoaRound(s.dt)}tr`).join("\n") + "\n🏃 Nỗ lực tăng tốc: " + getTop(st, 'dt', 3, true).map(s => `${s.name}`).join(", ") + " Push số gấp nhé team!\n\n";
         r += `✨ Bán kèm (BK):\n` + getTop(st, 'bk').map((s,i) => `${medals[i]} ${s.name}: ${Math.floor(s.bk)}%`).join("\n") + "\n🛡️ Cần cải thiện: " + st.filter(s => s.bk < 10).sort((a,b)=>a.bk-b.bk).map(s => `${s.name}`).join(", ") + " tập trung Bán Thêm Bán kèm !\n\n";
-        r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${roundTamHoa(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${roundTamHoa(s.tg)}%`).join(", ") + " Trả Góp Thấp các bạn chú ý hành động cải thiện số.\n\n";
-        r += `🎯 Nhóm hàng:\n🏅 Ghi Nhận: `;
-        
-        let sortBtm = [...st].sort((a,b) => a.btm - b.btm); 
-        r += sortBtm.slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
-        
-        const out = document.getElementById('reportOutputMonth'); 
-        out.innerText = r; out.style.display = 'block'; 
+        r += `💸 Trả góp (TG):\n` + getTop(st, 'tg').map((s,i) => `${medals[i]} Top ${i+1}: ${s.name} ${window.tamHoaRound(s.tg)}%`).join("\n") + "\n📉 Cần lưu ý: " + getTop(st, 'tg', 3, true).map(s => `${s.name} ${window.tamHoaRound(s.tg)}%`).join(", ") + " Trả Góp Thấp các bạn chú ý hành động cải thiện số.\n\n";
+        r += `🎯 Nhóm hàng:\n🏅 Ghi Nhận: ` + [...st].sort((a,b) => a.btm - b.btm).slice(0,3).map(s => `${s.name}`).join(", ") + " rất tốt!\n💥 Nhắc nhở: " + getTop(st, 'btm', 3).map(s => `${s.name}`).join(", ") + " nắm thông tin cải thiện số sớm nha.\n\n🌈 Chào ngày mới rực rỡ, tư vấn mỏi tay chốt đơn liên tục nhé team mình! 🔥🚀✨";
+
+        const out = document.getElementById('reportOutput'); out.innerText = r; out.style.display = 'block';
         const temp = document.createElement('textarea'); temp.value = r; document.body.appendChild(temp); temp.select();
-        try { document.execCommand('copy'); alert("Đã Copy Báo Cáo Tháng ✅"); } catch (err) { alert("Lỗi Tự Động Copy!"); }
+        try { document.execCommand('copy'); alert("Đã Copy Báo Cáo ✅"); } catch (err) { alert("Lỗi Copy!"); }
         document.body.removeChild(temp);
     }
 
-    function openSettingsMonth() {
-        document.getElementById('boostDT').value = configMonth.boostDT || 1.0; 
-        document.getElementById('boostNH').value = configMonth.boostNH || 1.0;
-        const sc = configMonth.showCols;
-        document.getElementById('showDT').checked = sc.dt;
-        document.getElementById('showBK').checked = sc.bk;
-        document.getElementById('showTG').checked = sc.tg;
-        document.getElementById('showBTM').checked = sc.btm;
+// =========================================================================
+    // KHÚC 3: BỘ MÁY ROBOT HÚT SỐ (GIỮ NGUYÊN ĐIỀU HƯỚNG - CHỈ SỬA COPY CHUẨN TAY)
+    // =========================================================================
+    const choDoi = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        document.getElementById('groupListMonth').innerHTML = Object.keys(configMonth.groups).map(gn => `<tr><td><input type="checkbox" ${configMonth.groups[gn].show?'checked':''} onchange="configMonth.groups['${gn}'].show=this.checked"></td><td style="font-size:20px; cursor:pointer;" onclick="showStkTrayMonth('${gn}')">${configMonth.groups[gn].stk || '📦'}</td><td style="font-size:10px; text-align:left;">${gn.substring(0,20)}</td><td><input type="text" class="alias-input" style="width:60px" value="${configMonth.groups[gn].alias||''}" onchange="configMonth.groups['${gn}'].alias=this.value"></td></tr>`).join("");
-        document.getElementById('staffListMonth').innerHTML = Object.keys(configMonth.staffs).map(sid => `<tr><td><input type="checkbox" ${configMonth.staffs[sid].show?'checked':''} onchange="configMonth.staffs['${sid}'].show=this.checked"></td><td style="font-size:10px; text-align:left;">${getShortMonth(sid)}</td><td><input type="text" class="alias-input" style="width:80px" value="${configMonth.staffs[sid].alias||''}" onchange="configMonth.staffs['${sid}'].alias=this.value"></td></tr>`).join("");
-        
-        document.getElementById('setOverlayMonth').style.display = 'block';
-        document.getElementById('settingsPanelMonth').style.display = 'block';
-    }
+    // 1. Hàm giả lập CLICK CHUỘT THẬT VÀO MENU (Thay vì dùng code ngầm)
+    async function chonMenuBangClickGiaLap(indexPha) {
+        let nutTongDropdown = document.querySelector('button[data-id="showdatacomprog"]');
+        if (!nutTongDropdown) return;
 
-    function saveSettingsMonth() {
-        configMonth.boostDT = parseFloat(document.getElementById('boostDT').value) || 1.0;
-        configMonth.boostNH = parseFloat(document.getElementById('boostNH').value) || 1.0;
-        configMonth.showCols.dt = document.getElementById('showDT').checked;
-        configMonth.showCols.bk = document.getElementById('showBK').checked;
-        configMonth.showCols.tg = document.getElementById('showTG').checked;
-        configMonth.showCols.btm = document.getElementById('showBTM').checked;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(configMonth));
-        alert("Đã lưu thiết lập Tháng thành công! ✅");
-        closeSettingsMonth(); masterProcessMonth();
-    }
-    function closeSettingsMonth() { document.getElementById('settingsPanelMonth').style.display = 'none'; document.getElementById('setOverlayMonth').style.display = 'none'; document.getElementById('stkTrayBoxMonth').style.display = 'none'; }
-    
-    async function captureReportMonth() {
-        const canvas = await html2canvas(document.getElementById('screenshotAreaMonth'), { scale: 10, useCORS: true }); 
-        const link = document.createElement('a'); link.download = `SKST_Thang_${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
-        link.href = canvas.toDataURL(); link.click(); 
-    }
-    async function captureStaffDetailMonth() { 
-        const tenNV = document.getElementById('stNameMonth').innerText || "NhanVien";
-        const canvas = await html2canvas(document.getElementById('captureAreaMonth'), { scale: 10, useCORS: true }); 
-        const link = document.createElement('a'); link.download = `SK_${tenNV}_Ngay_${new Date().getDate()}-${new Date().getMonth()+1}.png`; 
-        link.href = canvas.toDataURL(); link.click(); 
-    }
-    function toggleSelectionMonth(type) { const keys = Object.keys(configMonth[type]); const any = keys.some(k => configMonth[type][k].show); keys.forEach(k => configMonth[type][k].show = !any); openSettingsMonth(); }
-    function filterGroupsMonth() { const q = document.getElementById('groupSearchMonth').value.toLowerCase(); document.querySelectorAll('#groupListMonth tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
-    function filterStaffMonth() { const q = document.getElementById('staffSearchMonth').value.toLowerCase(); document.querySelectorAll('#staffListMonth tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'); }
-    function showStkTrayMonth(gn) { curGKeyMonth = gn; document.getElementById('stkTrayContentMonth').innerHTML = STICKERS_GLOBAL.map(s => `<div class="stk-item" style="font-size:22px; cursor:pointer; text-align:center; padding:5px; background:#eee; border-radius:4px;" onclick="applyStkMonth('${s}')">${s}</div>`).join(''); document.getElementById('stkTrayBoxMonth').style.display = 'block'; }
-    function applyStkMonth(s) { if(curGKeyMonth) { configMonth.groups[curGKeyMonth].stk = s; document.getElementById('stkTrayBoxMonth').style.display = 'none'; openSettingsMonth(); } }
-    function clearTrashMonth() { if(confirm("Ông Thông chắc chắn dọn dẹp danh sách cũ?")) { configMonth.groups = {}; configMonth.staffs = {}; localStorage.setItem('tamHoaV31_28', JSON.stringify(configMonth)); location.reload(); } }
-    function exportConfigMonth() { const data = localStorage.getItem('tamHoaV31_28'); if (!data) return alert("Chưa có cài đặt nào!"); const blob = new Blob([data], {type: 'application/json'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `CaiDat_TamHoaThang_${new Date().getDate()}.json`; link.click(); }
-    function importConfigMonth() { document.getElementById('importFileMonth').click(); }
-    function processFileMonth(input) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { try { const content = e.target.result; JSON.parse(content); localStorage.setItem('tamHoaV31_28', content); alert("Nạp thành công!"); location.reload(); } catch (err) { alert("File sai cấu trúc rồi ông!"); } }; reader.readAsText(file); } }
+        // Bấm búng chuột mở menu xổ xuống
+        nutTongDropdown.click();
+        await choDoi(1000); // Đợi 1 giây cho menu mở ra
 
-    // --- QUẢN LÝ DỮ LIỆU NGÀY ---
-    let currentModeDay = 'now', allParsedGroupsDay = []; 
-    let groupConfigsDay = JSON.parse(localStorage.getItem('tamHoaSlimConfigs')) || {};
-    let masterTargetDay = localStorage.getItem('tamHoaMasterTarget') || 500;
-    let activePickerBtnDay = null, activeGroupNameDay = "";
-
-    function setModeDay(mode) {
-        currentModeDay = mode;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
-    }
-    function autoTimeDay() { document.getElementById('inpTime').value = new Date().getHours() + "H" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes(); }
-
-    function captureReportDay() {
-        const area = document.getElementById('finalReportAreaDay'), btn = document.getElementById('btnCapDay');
-        btn.innerText = "⏳ ĐANG CHỤP..."; window.scrollTo(0,0);
-        setTimeout(() => {
-            html2canvas(area, { scale: 10, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
-                const link = document.createElement('a'); link.download = `TamHoa_Ngay_${document.getElementById('outFooterTimeDay').innerText}.png`;
-                link.href = canvas.toDataURL("image/png"); link.click();
-                btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
-            });
-        }, 300);
-    }
-
-    function trimNameDay(name) {
-        return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
-                   .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship").replace("Pin sạc dự phòng", "Sạc dự phòng")
-                   .replace("Tai nghe Bluetooth", "Tai nghe").replace("Phụ kiện - Đồng hồ", "Phụ kiện")
-                   .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
-    }
-
-// --- HÀM CHỌN / BỎ CHỌN TẤT CẢ NHÓM HÀNG TAB NGÀY ---
-function toggleAllGroupsDay() {
-    const checkboxes = document.querySelectorAll('#groupChecklist .g-vis');
-    if (checkboxes.length === 0) return;
-    
-    // Kiểm tra xem có ông nào đang được tích không
-    const anyChecked = Array.from(checkboxes).some(chk => chk.checked);
-    
-    // Nếu có ít nhất 1 cái được tích -> Bỏ tích tất cả. Ngược lại -> Tích chọn tất cả.
-    checkboxes.forEach(chk => {
-        chk.checked = !anyChecked;
-    });
-}
-
-    function openSettingsDay() {
-        document.getElementById('setTargetDay').value = masterTargetDay;
-        const list = document.getElementById('groupChecklist'); list.innerHTML = "";
-        let filteredG = allParsedGroupsDay.filter(g => g.name.length < 50 && !g.name.includes("QUẠT ĐIỀU HÒAQUẠT GIÓ"));
-        let sortedG = filteredG.sort((a,b) => (b.t > 0) - (a.t > 0) || a.name.localeCompare(b.name));
-        sortedG.forEach(g => {
-            const conf = groupConfigsDay[g.name] || { visible: true, sticker: "📦", nickname: "" };
-            list.innerHTML += `
-                <div class="chk-item">
-                    <div class="chk-top">
-                        <div class="chk-left">
-                            <span class="st-picker-btn" onclick="showStickerPopupDay(event, this, '${g.name}')">${conf.sticker}</span>
-                            <span class="chk-name-text">${g.name}</span>
-                        </div>
-                        <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
-                    </div>
-                    <input type="text" class="nickname-input" placeholder="Biệt danh..." value="${conf.nickname || ''}">
-                </div>`;
-        });
-        document.getElementById('setOverlayDay').style.display = 'block';
-        document.getElementById('settingsPanelDay').style.display = 'flex';
-    }
-
-    function showStickerPopupDay(event, btn, gName) {
-        event.stopPropagation(); activePickerBtnDay = btn; activeGroupNameDay = gName;
-        const grid = document.getElementById('stickerGridDay');
-        grid.innerHTML = STICKERS_GLOBAL.map(s => `<div class="st-opt" onclick="selectStickerDay('${s}')">${s}</div>`).join('');
-        document.getElementById('stickerPopupDay').style.display = 'flex';
-    }
-    function selectStickerDay(st) {
-        if(activePickerBtnDay) activePickerBtnDay.innerText = st;
-        if(!groupConfigsDay[activeGroupNameDay]) groupConfigsDay[activeGroupNameDay] = { visible: true, sticker: "📦", nickname: "" };
-        groupConfigsDay[activeGroupNameDay].sticker = st;
-        document.getElementById('stickerPopupDay').style.display = 'none';
-    }
-    function closeSettingsDay() { document.getElementById('setOverlayDay').style.display = 'none'; document.getElementById('settingsPanelDay').style.display = 'none'; }
-
-    function saveSettingsDay() {
-        masterTargetDay = parseFloat(document.getElementById('setTargetDay').value) || 500;
-        localStorage.setItem('tamHoaMasterTarget', masterTargetDay);
-        document.querySelectorAll('#groupChecklist .chk-item').forEach(item => {
-            const chk = item.querySelector('.g-vis'); const name = chk.getAttribute('data-name');
-            const st = item.querySelector('.st-picker-btn').innerText; const nick = item.querySelector('.nickname-input').value.trim();
-            groupConfigsDay[name] = { visible: chk.checked, sticker: st, nickname: nick };
-        });
-        localStorage.setItem('tamHoaSlimConfigs', JSON.stringify(groupConfigsDay));
-        closeSettingsDay(); renderDailyDay();
-    }
-
-    function renderDailyDay() {
-        // Đồng bộ chính xác ID đuôi Day theo đúng file HTML gốc của ông
-        const raw = document.getElementById('inpRawDay').value, 
-              dt = parseFloat(document.getElementById('inpDT').value) || 0, 
-              tg = parseFloat(document.getElementById('inpTG').value) || 0, 
-              time = document.getElementById('inpTime').value;
-        
-        if(!raw) return;
-        
-        const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== "");
-        
-        // Sửa lỗi lệch giỏ: Khai báo chuẩn biến allParsedGroupsDay đồng bộ với lệnh push ở dưới
-        allParsedGroupsDay = []; 
-        let groupIndices = [];
-        
-        // 1. Quét tìm vị trí các đầu nhóm hàng
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith("Thi đua ") && !lines[i].includes("BC Thi đua") && lines[i].length < 60) {
-                groupIndices.push(i);
+        // Tìm các dòng tùy chọn bên trong và nhấp chuột vào đúng dòng
+        let parentDiv = nutTongDropdown.parentElement;
+        if (parentDiv) {
+            let cacTheLinks = parentDiv.querySelectorAll('.dropdown-menu a.dropdown-item');
+            if (cacTheLinks && cacTheLinks[indexPha - 1]) {
+                cacTheLinks[indexPha - 1].click(); // Bấm trực tiếp vào thẻ a
             }
         }
-                
-        // 2. Chạy bộ chế hòa khí trích xuất thông số chuẩn BI
-        for (let k = 0; k < groupIndices.length; k++) {
-            let startIdx = groupIndices[k], endIdx = (k < groupIndices.length - 1) ? groupIndices[k+1] : lines.length;
-            let name = trimNameDay(lines[startIdx]), r = 0, t = 0, p = 0;
-            
-            for (let j = startIdx + 1; j < endIdx; j++) {
-                if (!lines[j]) continue;
-                
-                // Hút chuẩn Lũy kế thực đạt từ dòng dưới chữ Realtime
-                if (lines[j].includes("Realtime")) {
-                    r = parseFloat(lines[j+1]?.replace(/,/g,'')) || 0;
-                }
-                
-                // Hút chuẩn Target Ngày từ dòng dưới chữ Target Ngày
-                if (lines[j].includes("Target Ngày") && !lines[j].includes("% HT")) {
-                    t = parseFloat(lines[j+1]?.replace(/,/g,'')) || 0;
-                }
-                
-                // Hút chuẩn phần trăm thứ hai (nhảy cóc qua số % đầu, bốc trúng dòng j+2)
-                if (lines[j].includes("% HT Target Ngày")) {
-                    let valStr = lines[j+2] ? lines[j+2].trim() : (lines[j+1] ? lines[j+1].trim() : "0%");
-                    p = parseFloat(valStr.replace('%','')) || 0;
-                }
-            }
-            
-            // Bỏ hàng vào đúng giỏ lưu trữ của Tab Ngày
-            allParsedGroupsDay.push({ name, r, t, p });
-        }
-        document.getElementById('outDTStrDay').innerText = roundTamHoa(dt) + "/" + roundTamHoa(masterTargetDay);
-        const pDT = ((dt / masterTargetDay) * 100).toFixed(1);
-        document.getElementById('outDTPctDay').innerText = roundTamHoa(parseFloat(pDT)) + "%";
-        document.getElementById('outDTPctDay').style.color = pDT >= 100 ? '#28a745' : '#dc3545';
-        document.getElementById('outTGValDay').innerText = roundTamHoa(tg) + "%";
-        document.getElementById('outFooterTimeDay').innerText = time;
-        
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=10.9574&longitude=106.8427&current=temperature_2m,weather_code&timezone=Asia%2FBangkok`)
-            .then(res => res.json()).then(data => {
-                const temp = roundTamHoa(data.current.temperature_2m); const code = data.current.weather_code; let status = "🌤️ Trời Đẹp";
-                if (code === 0) status = "☀️ Trời Quang"; else if (code >= 1 && code <= 3) status = "🌤️ Nhiều Mây"; else if (code >= 61 && code <= 65) status = "🌧️ Mưa Giông";
-                document.getElementById('outWeatherDay').innerText = `${status} (${temp}°C)`;
-            }).catch(() => { document.getElementById('outWeatherDay').innerText = "🌤️ Nắng Đẹp (32°C)"; });
 
-        let displayList = allParsedGroupsDay.filter(g => groupConfigsDay[g.name]?.visible !== false);
-        displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
-        let gridHtml = ""; let datCount = 0;
-        displayList.forEach(g => {
-            if(g.t > 0 && g.p >= 100) datCount++;
-            let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
-            let finalName = groupConfigsDay[g.name]?.nickname || g.name;
-            gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${groupConfigsDay[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${roundTamHoa(g.r)}${g.t>0 ? '/'+roundTamHoa(g.t) : ''}</div><div class="group-pct ${pCl}">${roundTamHoa(g.p)}%</div></div></div>`;
-        });
-        document.getElementById('outGridDay').innerHTML = gridHtml;
-        const totalGroups = displayList.filter(x=>x.t>0).length;
-        document.getElementById('outDatCountDay').innerText = `${datCount}/${totalGroups}`;
+        // Đứng chờ hẳn 5 giây để web báo cáo xoay vòng load bảng mới
+        await choDoi(5000);
+    }
 
-        const toSticker = (num) => num.toString().split('').map(d => ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"][parseInt(d)] || d).join('');
-        let prefix = "", mainStatus = "", footer = "";
-        if (currentModeDay === 'now') {
-            prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
-            mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Về đích rực rỡ với ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%). 🚀` : `📉 Hiện tại đạt: ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%)\n👉 Còn thiếu: ${toSticker(roundTamHoa(Math.abs(masterTargetDay-dt)))}TR`;
-            footer = "\n🚀 Team mình nhận thông tin PUSH SỐ GẤP 💪🔥";
-        } else if (currentModeDay === 'morning') {
-            prefix = `☀️ KẾT THÚC CA SÁNG: `;
-            mainStatus = pDT >= 100 ? `🎊 Ca sáng quá tốt! Đạt ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%). 🚀` : `⚠️ Kết ca sáng: ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%)\n👉 Thiếu: ${toSticker(roundTamHoa(Math.abs(masterTargetDay-dt)))}TR`;
-            footer = "\n🚀 Team ca chiều nhận thông tin PUSH SỐ GẤP! 🔥";
+    // 2. Hàm bấm nút cộng và COPY MÔ PHỎNG BÔI ĐEN CHUỘT (CTRL + A)
+    async function bamNutVaCopyAll(btnId) {
+        let btn = document.getElementById(btnId);
+
+        // Nếu thấy nút cộng thì bấm cho nó xổ ra
+        if (btn && btn.classList.contains('fa-plus')) {
+            btn.click();
+            await choDoi(2500); // Chờ 2.5s để bảng con trượt ra hết
         } else {
-            prefix = `🏁 TỔNG KẾT NGÀY: `;
-            mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%). 🏆` : `📉 Hôm nay về: ${toSticker(roundTamHoa(dt))}/${toSticker(roundTamHoa(masterTargetDay))}TR (${toSticker(roundTamHoa(parseFloat(pDT)))}%)\n👉 Thiếu: ${toSticker(roundTamHoa(Math.abs(masterTargetDay-dt)))}TR`;
-            footer = "\nCám ơn team, chúc cả nhà ngủ ngon! 😴";
+            await choDoi(1000); // Nút đã xổ hoặc không có, chờ an toàn 1s
         }
-        let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${toSticker(roundTamHoa(tg))}%\n🎯 SỐ NHÓM ĐẠT: ${toSticker(datCount)}/${toSticker(totalGroups)}\n\n`;
-        const highG = displayList.filter(g => g.t > 0 && g.p >= 100); const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
-        if(highG.length > 0) { txt += `✅ NHÓM ĐÃ ĐẠT:\n`; highG.forEach(g => { txt += `${groupConfigsDay[g.name]?.sticker || "📦"} ${groupConfigsDay[g.name]?.nickname || g.name}: ${toSticker(roundTamHoa(g.p))}%\n`; }); txt += `\n`; }
-        if(lowG.length > 0) { txt += `🔥 NHÓM CHƯA ĐẠT:\n`; lowG.forEach(g => { txt += `${groupConfigsDay[g.name]?.sticker || "📦"} ${groupConfigsDay[g.name]?.nickname || g.name}: ${toSticker(roundTamHoa(g.p))}%\n`; }); }
-        document.getElementById('lienText').value = txt + footer; document.getElementById('outputAreaDay').style.display = "block";
+
+        // Tạm ẩn cái giao diện ngầm của mình đi để khỏi dính rác
+        let overlay = document.getElementById('tamhoa-super-overlay');
+        if (overlay) overlay.style.display = 'none';
+
+        // =====================================================================
+        // TINH CHỈNH NHỎ: MÔ PHỎNG BÔI ĐEN CHUỘT Y HỆT COPY TAY CHO PHA 2, 3, 4
+        // =====================================================================
+        let selection = window.getSelection();
+        let range = document.createRange();
+        range.selectNodeContents(document.body); // Quét bôi đen toàn bộ trang web
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        let rawText = selection.toString(); // Hút chữ (Nó sẽ dồn cục lại y như copy tay)
+
+        selection.removeAllRanges(); // Nhả chuột ra
+        // =====================================================================
+
+        // Hiện lại giao diện bảng của mình
+        if (overlay) overlay.style.display = 'block';
+
+        return rawText;
     }
 
-    function copyToLienDay() {
-        const box = document.getElementById('lienText'); box.select(); document.execCommand('copy');
-        const btn = document.getElementById('btnCopyDay'); btn.innerText = "✅ ĐÃ COPY!"; setTimeout(() => { btn.innerText = "📋 COPY CHỮ"; }, 1500);
+    // 3. Gắn nút Robot lên giao diện
+    let daTaoNutRobot = false;
+    function khoiTaoNutRobot() {
+        if (daTaoNutRobot || document.getElementById('btn-tamhoa-power')) return;
+        if (typeof injectUserHTML === 'function') injectUserHTML();
+
+        let btnPwr = document.createElement('button');
+        btnPwr.id = "btn-tamhoa-power";
+        btnPwr.innerHTML = "⚡ XUẤT DỮ LIỆU ⚡";
+        btnPwr.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 10px 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: #fff; font-weight: bold; border: 2px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: sans-serif;`;
+
+        btnPwr.onclick = async function() {
+            btnPwr.style.display = 'none';
+            let overlay = document.getElementById('tamhoa-super-overlay');
+            if (overlay) overlay.style.display = 'block';
+
+            [1,2,3,4,5].forEach(n => {
+                let el = document.getElementById('i'+n);
+                if (el) el.value = "🤖 Robot đang chạy...";
+            });
+
+            try {
+                // =========================================================================
+                // PHA 1: Sức Khỏe Tổng
+                // =========================================================================
+                await choDoi(1000);
+                let txtPha1 = Array.from(document.querySelectorAll('.card, .cum-thi-dua, .card-tg-tong')).map(el => el.innerText).join('\n');
+                let input1 = document.getElementById('i1');
+                if(input1) input1.value = txtPha1;
+
+                // BƯỚC ĐỆM QUAN TRỌNG: BẤM CHUYỂN SANG TAB NHÂN VIÊN TRƯỚC
+                let tabNV = document.getElementById('tab-bcnv') ||
+                            document.getElementById('tab-bcdtnv') ||
+                            Array.from(document.querySelectorAll('a, button, .nav-link')).find(el => el.innerText.includes('BC Doanh thu theo nhân viên'));
+                if (tabNV) {
+                    tabNV.click();
+                    await choDoi(3000); // Đợi tab Nhân Viên hiện ra
+                }
+
+                // =========================================================================
+                // PHA 2: Ngành hàng chính (Mô phỏng Copy All)
+                // =========================================================================
+                let textPha2 = await bamNutVaCopyAll('tbl-bcdtnv-data-3');
+                let input2 = document.getElementById('i2');
+                if(input2) input2.value = textPha2;
+
+                // =========================================================================
+                // PHA 3: Chương trình thi đua (Đổi Menu + Mô phỏng Copy All)
+                // =========================================================================
+                await chonMenuBangClickGiaLap(2);
+                let textPha3 = await bamNutVaCopyAll('tblmxst-2-tbl-bcdtnv-4');
+                let input3 = document.getElementById('i3');
+                if(input3) input3.value = textPha3;
+
+                // =========================================================================
+                // PHA 4: Hiệu quả bán kèm (Đổi Menu + Mô phỏng Copy All)
+                // =========================================================================
+                await chonMenuBangClickGiaLap(3);
+                let textPha4 = await bamNutVaCopyAll('tbl-bcdtnv-data-3-2');
+                let input4 = document.getElementById('i4');
+                if(input4) input4.value = textPha4;
+
+                // =========================================================================
+                // PHA 5: Trả Góp NV (GIỮ NGUYÊN NHƯ CŨ)
+                // =========================================================================
+                let tabTG = document.getElementById('tab-bctg');
+                if (tabTG) {
+                    tabTG.click();
+                    await choDoi(1000);
+                    let menuTraCham = document.getElementById('mode-view-bctg');
+                    if (menuTraCham) {
+                        menuTraCham.value = "1";
+                        menuTraCham.dispatchEvent(new Event('change'));
+                        await choDoi(4000);
+                        let bangTG = document.querySelector('#pane-bctg');
+                        let input5 = document.getElementById('i5');
+                        if (bangTG && input5) input5.value = bangTG.innerText;
+                    }
+                }
+
+                // Xuất dữ liệu ra bảng
+                if (typeof window.masterProcess === 'function') window.masterProcess();
+            } catch (err) {
+                alert("Lỗi hút số: " + err);
+                btnPwr.style.display = 'block';
+            }
+        };
+        document.body.appendChild(btnPwr);
+        daTaoNutRobot = true;
     }
 
-    // Tự động load giờ, nạp Target vào bộ não và ép máy chạy tính toán chuẩn xác từ đầu
-    window.addEventListener('load', () => {
-        autoTimeDay();
-        
-        // 1. Bốc số từ bộ nhớ, ép về kiểu số chuẩn (nếu chưa có thì lấy 500)
-        masterTargetDay = parseFloat(localStorage.getItem('tamHoaMasterTarget')) || 500;
-        
-        // 2. Điền số vào ô nhập trong bảng cài đặt cho ông thấy
-        let setTargetInp = document.getElementById('setTargetDay');
-        if(setTargetInp) setTargetInp.value = masterTargetDay;
-        
-        // 3. Kích hoạt bộ não tính toán chạy luôn với số Target vừa nạp
-        if (typeof renderDailyDay === "function") {
-            renderDailyDay();
+    function tuDongVaoTiem() {
+        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a =>
+            a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)')
+        );
+        if (linkTamHoa) {
+            console.log("Đang vặn ga vào tiệm Tam Hòa...");
+            linkTamHoa.click();
         }
-    });
-</script>
-</body>
-</html>
+    }
+
+    // Khởi động: Lái vào tiệm trước, đợi 2s cho tiệm load xong rồi mới hiện dàn nút
+    setTimeout(() => {
+        tuDongVaoTiem();
+        setTimeout(khoiTaoNutRobot, 2000);
+    }, 500);
+
+    document.addEventListener('click', khoiTaoNutRobot);
+})();
