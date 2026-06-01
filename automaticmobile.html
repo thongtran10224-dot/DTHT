@@ -14,6 +14,13 @@
     // KHÚC 1: DỰNG GIAO DIỆN "CON CƯNG" CỦA ÔNG THÔNG LÊN OVERLAY
     // =========================================================================
     function injectUserHTML() {
+        // THÊM ĐOẠN NÀY ĐỂ ĐIỆN THOẠI ZOOM ĐƯỢC
+        if(!document.querySelector('meta[name="viewport"]')) {
+            let meta = document.createElement('meta');
+            meta.name = "viewport";
+            meta.content = "width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes";
+            document.head.appendChild(meta);
+        }
         if(document.getElementById('tamhoa-super-overlay')) return;
 
         // Bơm thư viện chụp ảnh
@@ -190,11 +197,13 @@ body.nature-mode {
 .sk-value { font-size: 26px; font-weight: 950; color: var(--primary); }
         .sk-groups-wrapper, .excel-table-wrapper {
     background: white;
-    border-radius: 12px;        /* 1. Bo tròn góc hộp */
-    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
-    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    border-radius: 12px;
+    overflow-x: auto; /* DÒNG QUAN TRỌNG: Cho phép trượt ngang */
+    -webkit-overflow-scrolling: touch; /* Giúp lướt mượt trên iPhone/Android */
+    border: 2px solid #004a99;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin-bottom: 4px;
+    width: 100%;
 }
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
@@ -764,10 +773,28 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 
     window.captureStaffDetail = async function() {
         const tenNV = document.getElementById('stName').innerText || "NhanVien";
-        const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true });
+        const area = document.getElementById('captureArea');
+
+        // --- CHIÊU BẮT HÌNH: ÉP KHUNG NỞ RA ---
+        // Lưu lại độ rộng cũ
+        const oldWidth = area.style.width;
+        // Ép nó rộng bằng độ rộng thật của nội dung bên trong
+        area.style.width = area.scrollWidth + "px";
+
+        const canvas = await html2canvas(area, {
+            scale: 2,
+            useCORS: true,
+            width: area.scrollWidth, // Ép chụp đúng độ rộng đã nở ra
+            windowWidth: area.scrollWidth
+        });
+
+        // --- TRẢ LẠI HIỆN TRẠNG CŨ ---
+        area.style.width = oldWidth;
+
         const link = document.createElement('a');
         link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`;
-        link.href = canvas.toDataURL(); link.click();
+        link.href = canvas.toDataURL();
+        link.click();
     }
 
     window.generateFullReport = function() {
@@ -902,13 +929,45 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
         let btnPwr = document.createElement('button');
         btnPwr.id = "btn-tamhoa-power";
         btnPwr.innerHTML = "⚡ XUẤT DỮ LIỆU ⚡";
-        btnPwr.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 10px 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: #fff; font-weight: bold; border: 2px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: sans-serif;`;
+        btnPwr.style.cssText = `position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 12px 24px; background: linear-gradient(90deg, #f1c40f, #e67e22); color: #000; font-weight: 950; border: 3px solid #fff; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px rgba(241, 196, 15, 0.6); font-family: sans-serif; text-transform: uppercase;`;
+btnPwr.onclick = async function() {
+            // Dựng màn hình tên lửa kèm bầu trời sao
+            let rocket = document.createElement('div');
+            rocket.id = "rocket-loader";
+            // Thêm các đốm sao lấp lánh bằng CSS
+            rocket.innerHTML = `
+                <div id="stars"></div>
+                <div style="font-size:80px; animation: race 0.5s infinite linear; position:relative; z-index:2;">🏎️💨</div>
+                <div style="font-size:20px; color:white; margin-top:20px; font-weight:bold; font-family:sans-serif; text-transform:uppercase; position:relative; z-index:2;">LOADING- - - - - - - - - -</div>
+            `;
+            rocket.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom, #1b2735 0%, #090a0f 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999999; overflow:hidden;`;
+            document.body.appendChild(rocket);
 
-        btnPwr.onclick = async function() {
+            // Thêm hiệu ứng xe chạy và sao lấp lánh
+            let style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes race { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+                @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+                #stars { position: absolute; width: 100%; height: 100%; background: transparent; }
+                .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 1.5s infinite; }
+            `;
+            document.head.appendChild(style);
+
+            // Rải 50 ngôi sao ngẫu nhiên
+            for(let i = 0; i < 50; i++) {
+                let s = document.createElement('div');
+                s.className = 'star';
+                s.style.width = Math.random() * 3 + 'px';
+                s.style.height = s.style.width;
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.animationDelay = Math.random() * 2 + 's';
+                document.getElementById('stars').appendChild(s);
+            }
+
             btnPwr.style.display = 'none';
             let overlay = document.getElementById('tamhoa-super-overlay');
             if (overlay) overlay.style.display = 'block';
-
             [1,2,3,4,5].forEach(n => {
                 let el = document.getElementById('i'+n);
                 if (el) el.value = "🤖 Robot đang chạy...";
@@ -973,9 +1032,18 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
                     }
                 }
 
-                // Xuất dữ liệu ra bảng
+               // Xuất dữ liệu ra bảng
                 if (typeof window.masterProcess === 'function') window.masterProcess();
+
+                // Tên lửa đã tới đích, xóa màn hình vũ trụ
+                let rocket = document.getElementById('rocket-loader');
+                if (rocket) rocket.remove();
+
             } catch (err) {
+                // Nếu lỗi, vẫn phải xóa màn hình tên lửa để ông còn thấy lỗi mà sửa
+                let rocket = document.getElementById('rocket-loader');
+                if (rocket) rocket.remove();
+
                 alert("Lỗi hút số: " + err);
                 btnPwr.style.display = 'block';
             }
