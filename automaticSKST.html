@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Tam Hòa Master Siêu Tốc (Bản Hợp Thể V32)
+// @name         🚀 ĐỔ SỨC KHỎE SIÊU THỊ
 // @namespace    http://tampermonkey.net/
-// @version      32
+// @version      v55
 // @description  Hút số 5 pha tự động và đổ trực tiếp vào giao diện HTML gốc của Quản lý Thông!
 // @match        *://bi.thegioididong.com/*
 // @grant        none
@@ -14,6 +14,13 @@
     // KHÚC 1: DỰNG GIAO DIỆN "CON CƯNG" CỦA ÔNG THÔNG LÊN OVERLAY
     // =========================================================================
     function injectUserHTML() {
+        // THÊM ĐOẠN NÀY ĐỂ ĐIỆN THOẠI ZOOM ĐƯỢC
+        if(!document.querySelector('meta[name="viewport"]')) {
+            let meta = document.createElement('meta');
+            meta.name = "viewport";
+            meta.content = "width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes";
+            document.head.appendChild(meta);
+        }
         if(document.getElementById('tamhoa-super-overlay')) return;
 
         // Bơm thư viện chụp ảnh
@@ -187,28 +194,69 @@ body.nature-mode {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 .sk-label { font-size: 13px; font-weight: 950; color: #666; margin-bottom: 6px; }
-.sk-value { font-size: 26px; font-weight: 950; color: var(--primary); }
+.sk-value {
+    font-size: 38px !important; /* Tăng từ 26 lên 38 cho số to đùng */
+    font-weight: 950 !important;
+    color: var(--primary);
+    padding: 10px 0; /* Thêm khoảng trống cho thoáng */
+    line-height: 1.2;
+}
+.matrix td { font-size: 14px !important; font-weight: 900 !important; color: #000 !important; }
         .sk-groups-wrapper, .excel-table-wrapper {
     background: white;
-    border-radius: 12px;        /* 1. Bo tròn góc hộp */
-    overflow: hidden;           /* 2. Cắt bỏ góc nhọn của tờ giấy lòi ra */
-    border: 2px solid #004a99;  /* 3. Vẽ cái viền màu xanh cho cứng cáp */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 4. Thêm cái bóng cho nó 'ngầu' */
+    border-radius: 12px;
+    overflow-x: auto; /* DÒNG QUAN TRỌNG: Cho phép trượt ngang */
+    -webkit-overflow-scrolling: touch; /* Giúp lướt mượt trên iPhone/Android */
+    border: 2px solid #004a99;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     margin-bottom: 4px;
+    width: 100%;
 }
         table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
         th, td { border: 1px solid #aaa; padding: 6px 4px; font-weight: bold; font-size: 11px; white-space: nowrap; }
-        thead th { background: var(--primary); color: white; font-size: 9px; }
+       thead th {
+            background: var(--primary);
+            color: white;
+            font-size: 14px !important; /* Tên nhóm hàng to rõ */
+            font-weight: 950 !important;
+            padding: 12px 6px !important;
+        }
         .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; }
         .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
         .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .bg-good { background-color: var(--success) !important; color: #006100 !important; }
-        .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; }
-        .bg-bad { background-color: var(--bad) !important; color: var(--text-bad) !important; }
-        .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; }
-        .sk-groups-table td span.main-percent { display:block; font-size:12px; font-weight:900; }
-        .sk-groups-table td span.sub-info { display: block; font-size: 9px; font-weight: 900; color: #000 !important; margin: 1px 0; }
-        .sk-groups-table td span.remain-info { display:block; font-size:9px; font-weight:900; color:#d63031; }
+        /* Định nghĩa màu sắc và làm nét chữ */
+        .bg-good { background-color: var(--success) !important; color: #006100 !important; font-weight: 950 !important; }
+        .bg-mid { background-color: var(--mid) !important; color: #9c5700 !important; font-weight: 950 !important; }
+        .bg-bad { background-color: var(--bad) !important; color: #9c0006 !important; font-weight: 950 !important; }
+        .bg-zero { background-color: #ffc7ce !important; color: #9c0006 !important; font-weight: 950 !important; }
+
+        /* Tăng size và ép màu đen cho phần trăm chính */
+        .sk-groups-table td span.main-percent {
+            display: block;
+            font-size: 24px !important;
+            font-weight: 950 !important;
+            color: #000 !important;
+            padding: 5px 0;
+        }
+
+        /* Giúp toàn bộ chữ trong bảng trở nên đanh và sắc nét hơn */
+        table td {
+            text-shadow: 0px 0px 0.2px rgba(0,0,0,0.5);
+        }
+        .sk-groups-table td span.sub-info {
+    display: block;
+    font-size: 16px !important; /* Tăng từ 9 lên 16 cho nó "lớn" */
+    font-weight: 950 !important;
+    color: #000 !important;
+    margin-top: 4px;
+}
+
+.sk-groups-table td span.remain-info {
+    display: block;
+    font-size: 14px !important; /* Cho số còn lại cũng to hơn */
+    font-weight: 950 !important;
+    color: #d63031 !important;
+}
         .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9000; }
         .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:98%; max-width:500px; padding:12px; border-radius:10px; z-index:9001; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         #stkTrayContent { display: grid !important; grid-template-columns: repeat(8, 1fr) !important; gap: 5px; padding: 10px; }
@@ -392,7 +440,7 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
     // =========================================================================
     window.processedData = null; window.curGKey = null;
     window.config = JSON.parse(localStorage.getItem('tamHoaV31_28')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
-    window.STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
+    window.STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏧","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉","🔊"];
 
     // LUẬT LÀM TRÒN SỐ CỦA ÔNG THÔNG: < 1.5 ép về 1.
     window.tamHoaRound = function(val) {
@@ -419,65 +467,143 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
     }
 
     window.masterProcess = function() {
-        const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
-        if(!raw[0] || !raw[2]) return;
-        let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
-        const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
-        l1.forEach((l, i) => {
-            if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
-            if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
-            if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
-            if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
-                let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
-                let tV = 0, rV = 0, pV = 0;
-                for(let j=i+1; j<i+12; j++) {
-                    if(!l1[j]) break;
-                    if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
-                    if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+    const raw = [1,2,3,4,5].map(n => document.getElementById('i'+n).value.trim());
+    if(!raw[0] || !raw[2]) return;
+    let storeInfo = { dt:0, t_goc:0, p_goc: 0, tg:"0%", groups:[] };
 
-                    if(l1[j].includes("% HT Dự Kiến")) {
-                        // ƯU TIÊN BỐC SỐ LÀM TRÒN (SỐ THỨ 2 NẾU CÓ)
-                        let pText = l1[j+1] || "";
-                        let nums = pText.match(/\d+(\.\d+)?/g);
-                        if (nums && nums.length >= 2) { pV = parseFloat(nums[1]); }
-                        else { pV = parseFloat(pText.replace(/%/g,'')) || 0; }
-                        break;
-                    }
-                }
-                if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
-            }
-        });
-        const l3 = raw[2].split('\n').map(l => l.trim());
-        let gNames = []; let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
-        if(hIdx !== -1) { for(let j=hIdx+1; j<l3.length && !l3[j].includes("DTLK") && !l3[j].includes("BP "); j++) gNames.push(l3[j]); }
-        let sData = []; let isC = false;
-        l3.forEach(l => {
-            const p = l.split(/\t|\s{2,}/);
-            if(l.includes("BP All In One") && /\d+/.test(l)) isC = true;
-            if(isC && p[0].includes("-")) {
-                // ĐÃ CHẶN TÊN VIỆT BÍ THEO LỆNH CỦA ÔNG
-                const excl = ["Thông", "Nhung", "One", "Ca", "Long", "Việt Bí"];
-                if (!excl.some(a => p[0].includes(a))) {
-                    let id = p[0]; let s = { id, dt: 0, bk: 0, tg: 0, data: [] };
-                    gNames.forEach((g, idx) => s.data.push(parseFloat(p[idx+1]?.replace(/,/g,'')) || 0));
-                    sData.push(s);
+    // --- ỐNG XẢ 1: LẤY THÔNG TIN TARGET ---
+    const l1 = raw[0].split('\n').map(l => l.trim()).filter(l => l !== "");
+    l1.forEach((l, i) => {
+        if(l === "DTQĐ") storeInfo.dt = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+        if(l === "Target (QĐ)") storeInfo.t_goc = parseFloat(l1[i+1]?.replace(/,/g,'')) || 0;
+        if(l === "% HT Target Dự Kiến (QĐ)") storeInfo.p_goc = parseFloat(l1[i+1]?.replace(/%/g,'')) || 0;
+        if(l === "Tỷ Trọng Trả Chậm") storeInfo.tg = l1[i+1] || "0%";
+        if(l.includes("Thi đua") || l.includes("Ngành hàng")) {
+            let gN = l.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm /gi,"").trim();
+            let tV = 0, rV = 0, pV = 0;
+            for(let j=i+1; j<i+12; j++) {
+                if(!l1[j]) break;
+                if(l1[j] === "Target") tV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+                if(l1[j] === "DTLK" || l1[j] === "SLLK") rV = parseFloat(l1[j+1]?.replace(/,/g,'')) || 0;
+
+                if(l1[j].includes("% HT Dự Kiến")) {
+                    let pText = l1[j+1] || "";
+                    let nums = pText.match(/\d+(\.\d+)?/g);
+                    if (nums && nums.length >= 2) { pV = parseFloat(nums[1]); }
+                    else { pV = parseFloat(pText.replace(/%/g,'')) || 0; }
+                    break;
                 }
             }
-            if(isC && (l.includes("BP Trưởng Ca") || l.includes("Cộng khoản"))) isC = false;
-        });
-        const l2 = raw[1].split('\n'); l2.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) s.dt = parseFloat(p[2]?.replace(/,/g,'')) || 0; });
-        const l4 = raw[3].split('\n'); l4.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id === p[0]); if(s) { let nums = p[5]?.match(/\d+(\.\d+)?/g); s.bk = nums && nums.length >= 2 ? parseFloat(nums[1]) : parseFloat(p[5]) || 0; } });
-        const l5 = raw[4].split('\n'); l5.forEach(l => { const p = l.trim().split(/\t|\s{2,}/); let s = sData.find(x => x.id.includes(p[0])); if(s) { let tText = p[p.length-1]; let nums = tText?.match(/\d+(\.\d+)?/g); s.tg = nums && nums.length >= 2 ? parseFloat(nums[1]) : parseFloat(tText) || 0; } });
+            if(tV > 0) storeInfo.groups.push({ n: gN, t: tV, r: rV, p: pV });
+        }
+    });
 
-        let activeG = {}; storeInfo.groups.forEach(g => { activeG[g.n] = window.config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
-        window.config.groups = activeG;
-        let activeS = {}; sData.forEach(s => { activeS[s.id] = window.config.staffs[s.id] || { show: true, alias: "" }; });
-        window.config.staffs = activeS;
-        localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config));
+    // --- ỐNG XẢ 3 (TÂM ĐIỂM): BỘ LỌC DOANH THU ĐIỆN THOẠI ---
+// ĐÃ ĐỘ LẠI: Tự quét tên nhóm hàng và hốt số (Kết hợp luật làm tròn ông Thông)
+const l3 = raw[2].split('\n').map(l => l.trim());
+let gNames = [];
+let hIdx = l3.findIndex(l => l.includes("Phòng ban"));
+let dtlkIdx = l3.findIndex((l, idx) => idx > hIdx && (l.includes("DTLK") || l.includes("SLLK")));
 
-        window.processedData = { storeInfo, sData, gNames }; window.renderAll();
+if(hIdx !== -1 && dtlkIdx !== -1) {
+    for(let j=hIdx+1; j<dtlkIdx; j++) {
+        if(l3[j] !== "") gNames.push(l3[j]);
     }
+}
+
+let sData = [];
+for(let j=dtlkIdx+1; j<l3.length; j++) {
+    let l = l3[j];
+    if(!l || l.includes("Tổng") || l.includes("BP ")) continue;
+
+    if(l.includes("-")) {
+        let prefix = l.split("-")[0];
+        if (/[a-zA-ZÀ-ỹ]/.test(prefix)) {
+            // Danh sách chém không thương tiếc
+            const excl = ["Thông", "Nhung", "One", "Ca", "Long", "LOADING-"];
+            if (!excl.some(a => l.includes(a))) {
+                let parts = l.split(/\t|\s{2,}/).filter(x => x !== ""); // Loại khoảng trắng thừa để không bị rỗng
+                let fullId = parts[0].trim();
+
+                let s = { id: fullId, dt: 0, bk: 0, tg: 0, data: [] };
+                // Hốt các con số từ cột 1 trở đi
+                let nums = parts.slice(1).map(x => parseFloat(x.replace(/,/g, '')) || 0);
+
+                // Ép làm tròn số Nhóm Hàng theo luật: < 1.5 về 1, >= 1.5 làm tròn chuẩn
+                s.data = nums.slice(0, gNames.length).map(v => {
+                    if (v > 0 && v < 1.5) return 1;
+                    return Math.round(v);
+                });
+                sData.push(s);
+            }
+        }
+    }
+}
+
+// --- HÀM GPS THẾ HỆ MỚI: DÙNG ĐẾM CỘT (Không sợ bị thay đổi từ khóa) ---
+function getValByGPS(rawData, colIndex) {
+    let lines = rawData.split('\n');
+    let res = [];
+
+    for(let j = 0; j < lines.length; j++) {
+        let p = lines[j].trim().split(/\t|\s{2,}/).filter(x => x !== "");
+        // Điều kiện: Dòng phải có chứa dấu gạch nối (tên nhân viên) và đủ độ dài
+        if(p[0] && p[0].includes("-") && p.length > colIndex) {
+            let valText = p[colIndex];
+            // Lấy số (bao gồm cả số âm, số thập phân, phần trăm)
+            let nums = valText.match(/-?\d+(,\d+)*(\.\d+)?/g);
+            let val = nums && nums.length >= 2 ? parseFloat(nums[1]) : parseFloat(valText.replace(/,/g,'')) || 0;
+            res.push({ id: p[0].split('-')[0].trim(), val: val });
+        }
+    }
+    return res;
+}
+
+// --- ỐNG XẢ 2: DOANH THU (LẤY CỘT DTQĐ) ---
+// Tôi chỉnh cột từ 1 thành 2 (để lấy đúng cột DTQĐ)
+let dtData = getValByGPS(raw[1], 2);
+dtData.forEach(item => {
+    let s = sData.find(x => x.id.includes(item.id));
+    if(s) s.dt = item.val;
+});
+
+// --- ỐNG XẢ 4: BÁN KÈM ---
+// Đếm xem cột "%Bill bán kèm" là cột số mấy trong cái bảng đó
+let bkData = getValByGPS(raw[3], 5);
+bkData.forEach(item => {
+    let s = sData.find(x => x.id.includes(item.id));
+    if(s) s.bk = item.val;
+});
+
+// --- ỐNG XẢ 5: TRẢ GÓP (Móc con số cuối cùng của hàng) ---
+const l5 = raw[4].split('\n');
+l5.forEach(l => {
+    let p = l.trim().split(/\t|\s{2,}/).filter(x => x !== "");
+    if(p[0] && /[a-zA-ZÀ-ỹ]/.test(p[0]) && !p[0].includes("Tổng")) {
+        let ten = p[0].split('-')[0].trim(); // Tên NV trong bảng này hay viết thiếu mã NV
+        let s = sData.find(x => x.id.includes(ten));
+        if(s) {
+            // Móc con số nằm ở tận cùng bên phải của dãy
+            let tText = p[p.length-1];
+            s.tg = parseFloat(tText.replace(/,/g,'')) || 0;
+        }
+    }
+});
+
+    // --- CÔNG TẮC KHỞI ĐỘNG (Phần ông lỡ tay xóa) ---
+    let activeG = {};
+    storeInfo.groups.forEach(g => { activeG[g.n] = window.config.groups[g.n] || { show: true, stk: "📦", alias: "" }; });
+    window.config.groups = activeG;
+
+    let activeS = {};
+    sData.forEach(s => { activeS[s.id] = window.config.staffs[s.id] || { show: true, alias: "" }; });
+    window.config.staffs = activeS;
+
+    localStorage.setItem('tamHoaV31_28', JSON.stringify(window.config));
+
+    window.processedData = { storeInfo, sData, gNames };
+    window.renderAll(); // Cú chốt để vẽ nút và giao diện
+}
 
     window.renderAll = function() {
         if(!window.processedData) return;
@@ -505,7 +631,7 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
         document.getElementById('gh').innerHTML = gh; document.getElementById('gb').innerHTML = gb + '</tr>';
 
         const visS = sData.filter(s => window.config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
-        let mh = `<th class="sticky-col">TÊN NV</th>`;
+        let mh = `<th class="sticky-col">TÊN</th>`;
         if(window.config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
         if(window.config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
         if(window.config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
@@ -685,18 +811,54 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
 
     window.captureReport = async function() {
         const ngay = new Date().getDate(); const thang = new Date().getMonth() + 1;
-        const canvas = await html2canvas(document.getElementById('screenshotArea'), { scale: 5, useCORS: true });
+        const area = document.getElementById('screenshotArea');
+
+        // Ép vùng chụp nở ra để lấy hết bảng
+        const oldWidth = area.style.width;
+        area.style.width = area.scrollWidth + "px";
+
+        // Tăng scale lên 5 cho nét căng, ép nền trắng
+        const canvas = await html2canvas(area, {
+            scale: 5,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
+
+        area.style.width = oldWidth;
         const link = document.createElement('a');
-        link.download = `SKST ${ngay}-${thang}.png`;
-        link.href = canvas.toDataURL(); link.click();
+        link.download = `SKST_${ngay}-${thang}.png`;
+        link.href = canvas.toDataURL("image/png", 1.0);
+        link.click();
     }
 
     window.captureStaffDetail = async function() {
         const tenNV = document.getElementById('stName').innerText || "NhanVien";
-        const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 5, useCORS: true });
+        const area = document.getElementById('captureArea');
+
+        // Lưu lại độ rộng cũ để tí trả về như cũ
+        const oldWidth = area.style.width;
+
+        // --- CHIÊU BẮT HÌNH: ÉP KHUNG NỞ RA ---
+        // Ép vùng chụp rộng ra để lấy hết bảng, không bị mất góc
+        area.style.width = area.scrollWidth + "px";
+
+        // TĂNG SCALE LÊN 3 ĐỂ ẢNH NÉT NHƯ IN, ĐỂ BỊ BÓP VẪN RÕ
+        const canvas = await html2canvas(area, {
+            scale: 10,
+            useCORS: true,
+            width: area.scrollWidth,
+            windowWidth: area.scrollWidth,
+            backgroundColor: "#ffffff" // Ép nền trắng để app không bóp sai màu
+        });
+
+        // --- TRẢ LẠI HIỆN TRẠNG CŨ ---
+        area.style.width = oldWidth;
+
         const link = document.createElement('a');
-        link.download = `SK ${tenNV} Ngày ${new Date().getDate()}-${new Date().getMonth()+1}.png`;
-        link.href = canvas.toDataURL(); link.click();
+        link.download = `SK_${tenNV}_${new Date().getDate()}-${new Date().getMonth()+1}.png`;
+        // XUẤT ẢNH PNG CHẤT LƯỢNG CAO NHẤT (1.0)
+        link.href = canvas.toDataURL("image/png", 1.0);
+        link.click();
     }
 
     window.generateFullReport = function() {
@@ -760,69 +922,29 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
     }
 
 // =========================================================================
-    // KHÚC 3: BỘ MÁY ROBOT HÚT SỐ (GIỮ NGUYÊN ĐIỀU HƯỚNG - CHỈ SỬA COPY CHUẨN TAY)
+    // KHÚC 3: BỘ MÁY ROBOT HÚT SỐ (GIỮ ĐIỀU HƯỚNG CŨ + MẮT THẦN TÌM DẤU CỘNG)
     // =========================================================================
     const choDoi = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    // 1. Hàm giả lập CLICK CHUỘT THẬT VÀO MENU (Thay vì dùng code ngầm)
+    // 1. Hàm giả lập CLICK CHUỘT VÀO MENU (Giữ nguyên y xì code cũ của ông)
     async function chonMenuBangClickGiaLap(indexPha) {
         let nutTongDropdown = document.querySelector('button[data-id="showdatacomprog"]');
         if (!nutTongDropdown) return;
 
-        // Bấm búng chuột mở menu xổ xuống
         nutTongDropdown.click();
-        await choDoi(1000); // Đợi 1 giây cho menu mở ra
+        await choDoi(1000);
 
-        // Tìm các dòng tùy chọn bên trong và nhấp chuột vào đúng dòng
         let parentDiv = nutTongDropdown.parentElement;
         if (parentDiv) {
             let cacTheLinks = parentDiv.querySelectorAll('.dropdown-menu a.dropdown-item');
             if (cacTheLinks && cacTheLinks[indexPha - 1]) {
-                cacTheLinks[indexPha - 1].click(); // Bấm trực tiếp vào thẻ a
+                cacTheLinks[indexPha - 1].click();
             }
         }
-
-        // Đứng chờ hẳn 5 giây để web báo cáo xoay vòng load bảng mới
         await choDoi(5000);
     }
 
-    // 2. Hàm bấm nút cộng và COPY MÔ PHỎNG BÔI ĐEN CHUỘT (CTRL + A)
-    async function bamNutVaCopyAll(btnId) {
-        let btn = document.getElementById(btnId);
-
-        // Nếu thấy nút cộng thì bấm cho nó xổ ra
-        if (btn && btn.classList.contains('fa-plus')) {
-            btn.click();
-            await choDoi(2500); // Chờ 2.5s để bảng con trượt ra hết
-        } else {
-            await choDoi(1000); // Nút đã xổ hoặc không có, chờ an toàn 1s
-        }
-
-        // Tạm ẩn cái giao diện ngầm của mình đi để khỏi dính rác
-        let overlay = document.getElementById('tamhoa-super-overlay');
-        if (overlay) overlay.style.display = 'none';
-
-        // =====================================================================
-        // TINH CHỈNH NHỎ: MÔ PHỎNG BÔI ĐEN CHUỘT Y HỆT COPY TAY CHO PHA 2, 3, 4
-        // =====================================================================
-        let selection = window.getSelection();
-        let range = document.createRange();
-        range.selectNodeContents(document.body); // Quét bôi đen toàn bộ trang web
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        let rawText = selection.toString(); // Hút chữ (Nó sẽ dồn cục lại y như copy tay)
-
-        selection.removeAllRanges(); // Nhả chuột ra
-        // =====================================================================
-
-        // Hiện lại giao diện bảng của mình
-        if (overlay) overlay.style.display = 'block';
-
-        return rawText;
-    }
-
-    // 3. Gắn nút Robot lên giao diện
+    // 2. Gắn nút Robot lên giao diện
     let daTaoNutRobot = false;
     function khoiTaoNutRobot() {
         if (daTaoNutRobot || document.getElementById('btn-tamhoa-power')) return;
@@ -831,19 +953,79 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
         let btnPwr = document.createElement('button');
         btnPwr.id = "btn-tamhoa-power";
         btnPwr.innerHTML = "⚡ XUẤT DỮ LIỆU ⚡";
-        btnPwr.style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 10px 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: #fff; font-weight: bold; border: 2px solid #fff; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: sans-serif;`;
+        btnPwr.style.cssText = `position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 12px 24px; background: linear-gradient(90deg, #f1c40f, #e67e22); color: #000; font-weight: 950; border: 3px solid #fff; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px rgba(241, 196, 15, 0.6); font-family: sans-serif; text-transform: uppercase;`;
 
         btnPwr.onclick = async function() {
+            // Hiệu ứng Rocket
+            let rocket = document.createElement('div');
+            rocket.id = "rocket-loader";
+            rocket.innerHTML = `
+                <div id="stars"></div>
+                <div style="font-size:80px; animation: race 0.5s infinite linear; position:relative; z-index:2;">🏎️💨</div>
+                <div style="font-size:20px; color:white; margin-top:20px; font-weight:bold; font-family:sans-serif; text-transform:uppercase; position:relative; z-index:2;">LOADING- - - - - - - - - -</div>
+            `;
+            rocket.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom, #1b2735 0%, #090a0f 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999999; overflow:hidden;`;
+            document.body.appendChild(rocket);
+
+            let style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes race { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+                @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+                #stars { position: absolute; width: 100%; height: 100%; background: transparent; }
+                .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 1.5s infinite; }
+            `;
+            document.head.appendChild(style);
+
+            for(let i = 0; i < 50; i++) {
+                let s = document.createElement('div');
+                s.className = 'star';
+                s.style.width = Math.random() * 3 + 'px';
+                s.style.height = s.style.width;
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.animationDelay = Math.random() * 2 + 's';
+                document.getElementById('stars').appendChild(s);
+            }
+
             btnPwr.style.display = 'none';
             let overlay = document.getElementById('tamhoa-super-overlay');
             if (overlay) overlay.style.display = 'block';
-
             [1,2,3,4,5].forEach(n => {
                 let el = document.getElementById('i'+n);
                 if (el) el.value = "🤖 Robot đang chạy...";
             });
 
             try {
+                // =========================================================================
+                // HÀM TRỢ THỦ: TÌM CHỮ "BP All In One" RỒI BẤM NÚT CỘNG (MẮT THẦN)
+                // =========================================================================
+                async function hutSoThongMinh() {
+                    let theChuaChu = Array.from(document.querySelectorAll('td')).find(el => el.innerText && el.innerText.includes("BP All In One"));
+                    if (theChuaChu) {
+                        let hangNgang = theChuaChu.closest('tr');
+                        if (hangNgang) {
+                            let nutCong = hangNgang.querySelector('.fa-plus') || hangNgang.querySelector('i[class*="fa-plus"]');
+                            if (nutCong) {
+                                nutCong.click();
+                                await choDoi(2500);
+                            }
+                        }
+                    } else {
+                        await choDoi(1000);
+                    }
+
+                    if (overlay) overlay.style.display = 'none';
+                    let selection = window.getSelection();
+                    let range = document.createRange();
+                    range.selectNodeContents(document.body);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    let rawText = selection.toString();
+                    selection.removeAllRanges();
+                    if (overlay) overlay.style.display = 'block';
+                    return rawText;
+                }
+
                 // =========================================================================
                 // PHA 1: Sức Khỏe Tổng
                 // =========================================================================
@@ -852,40 +1034,37 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
                 let input1 = document.getElementById('i1');
                 if(input1) input1.value = txtPha1;
 
-                // BƯỚC ĐỆM QUAN TRỌNG: BẤM CHUYỂN SANG TAB NHÂN VIÊN TRƯỚC
-                let tabNV = document.getElementById('tab-bcnv') ||
-                            document.getElementById('tab-bcdtnv') ||
-                            Array.from(document.querySelectorAll('a, button, .nav-link')).find(el => el.innerText.includes('BC Doanh thu theo nhân viên'));
+                let tabNV = document.getElementById('tab-bcnv') || document.getElementById('tab-bcdtnv') || Array.from(document.querySelectorAll('a, button, .nav-link')).find(el => el.innerText.includes('BC Doanh thu theo nhân viên'));
                 if (tabNV) {
                     tabNV.click();
-                    await choDoi(3000); // Đợi tab Nhân Viên hiện ra
+                    await choDoi(3000);
                 }
 
                 // =========================================================================
-                // PHA 2: Ngành hàng chính (Mô phỏng Copy All)
+                // PHA 2: Ngành hàng chính
                 // =========================================================================
-                let textPha2 = await bamNutVaCopyAll('tbl-bcdtnv-data-3');
+                let textPha2 = await hutSoThongMinh();
                 let input2 = document.getElementById('i2');
                 if(input2) input2.value = textPha2;
 
                 // =========================================================================
-                // PHA 3: Chương trình thi đua (Đổi Menu + Mô phỏng Copy All)
+                // PHA 3: Chương trình thi đua
                 // =========================================================================
                 await chonMenuBangClickGiaLap(2);
-                let textPha3 = await bamNutVaCopyAll('tblmxst-2-tbl-bcdtnv-4');
+                let textPha3 = await hutSoThongMinh();
                 let input3 = document.getElementById('i3');
                 if(input3) input3.value = textPha3;
 
                 // =========================================================================
-                // PHA 4: Hiệu quả bán kèm (Đổi Menu + Mô phỏng Copy All)
+                // PHA 4: Hiệu quả bán kèm
                 // =========================================================================
                 await chonMenuBangClickGiaLap(3);
-                let textPha4 = await bamNutVaCopyAll('tbl-bcdtnv-data-3-2');
+                let textPha4 = await hutSoThongMinh();
                 let input4 = document.getElementById('i4');
                 if(input4) input4.value = textPha4;
 
                 // =========================================================================
-                // PHA 5: Trả Góp NV (GIỮ NGUYÊN NHƯ CŨ)
+                // PHA 5: Trả Góp NV
                 // =========================================================================
                 let tabTG = document.getElementById('tab-bctg');
                 if (tabTG) {
@@ -902,28 +1081,30 @@ body.dark-mode { background-color: #121212 !important; color: #e0e0e0 !important
                     }
                 }
 
-                // Xuất dữ liệu ra bảng
                 if (typeof window.masterProcess === 'function') window.masterProcess();
+                let rocketOut = document.getElementById('rocket-loader');
+                if (rocketOut) rocketOut.remove();
+
             } catch (err) {
+                let rocketErr = document.getElementById('rocket-loader');
+                if (rocketErr) rocketErr.remove();
                 alert("Lỗi hút số: " + err);
                 btnPwr.style.display = 'block';
             }
         };
+        // CHỖ NÀY LÀ CÁI ĐUÔI ĐỂ HIỆN NÚT (Lúc nãy ông lỡ tay gọt mất)
         document.body.appendChild(btnPwr);
         daTaoNutRobot = true;
     }
 
     function tuDongVaoTiem() {
-        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a =>
-            a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)')
-        );
+        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
         if (linkTamHoa) {
             console.log("Đang vặn ga vào tiệm Tam Hòa...");
             linkTamHoa.click();
         }
     }
 
-    // Khởi động: Lái vào tiệm trước, đợi 2s cho tiệm load xong rồi mới hiện dàn nút
     setTimeout(() => {
         tuDongVaoTiem();
         setTimeout(khoiTaoNutRobot, 2000);
