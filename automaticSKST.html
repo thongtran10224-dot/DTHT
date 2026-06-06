@@ -623,7 +623,7 @@ l5.forEach(l => {
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">LŨY KẾ/TARGET</div><div class="sk-value">${window.tamHoaRound(storeInfo.dt)}/${window.tamHoaRound(storeInfo.t_boost)}</div></div>
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">DỰ KIẾN</div><div class="sk-value">${window.tamHoaRound(storeInfo.p_boost)}%</div></div>
 <div class="sk-card"><div class="sk-label" style="color:red; font-weight:950;">CÒN ${window.getRemainingDays()} NGÀY,MỖI NGÀY</div><div class="sk-value" style="color:red;">${window.tamHoaRound(Math.max(0, storeInfo.t_boost-storeInfo.dt)/window.getRemainingDays())}tr</div></div>
-<div class="sk-card"><div class="sk-label" style="font-weight:950;">TRẢ GÓP</div><div class="sk-value">${storeInfo.tg}</div></div>
+<div class="sk-card"><div class="sk-label" style="font-weight:950;">TRẢ GÓP</div><div class="sk-value">${window.tamHoaRound(parseFloat(storeInfo.tg.replace(/%/g, '')))}%</div></div>
 <div class="sk-card"><div class="sk-label" style="font-weight:950;">NHÓM ĐẠT</div><div class="sk-value">${actG.filter(g => g.pb >= 100).length}/${actG.length}</div></div>`;
 
         let gh = '', gb = '<tr>';
@@ -952,10 +952,13 @@ l5.forEach(l => {
 
         let btnPwr = document.createElement('button');
         btnPwr.id = "btn-tamhoa-power";
+        btnPwr.classList.add('nut-skst');
         btnPwr.innerHTML = "💪 SỨC KHỎE SIÊU THỊ 💪";
         btnPwr.style.cssText = `position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%); z-index: 999999; padding: 12px 24px; background: linear-gradient(90deg, #f1c40f, #e67e22); color: #000; font-weight: 950; border: 3px solid #fff; border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px rgba(241, 196, 15, 0.6); font-family: sans-serif; text-transform: uppercase;`;
 
         btnPwr.onclick = async function() {
+let nutDoanhThu = document.getElementById('btn-robot-tamhoa');
+if (nutDoanhThu) nutDoanhThu.style.display = 'none'; // Ẩn nút doanh thu khi chạy SKST
             // Hiệu ứng Rocket
             let rocket = document.createElement('div');
             rocket.id = "rocket-loader";
