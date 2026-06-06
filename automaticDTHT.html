@@ -1,15 +1,36 @@
 // ==UserScript==
-// @name        🚀 Báo Cáo Doanh Thu Hằng Ngày
-// @match        https://bi.thegioididong.com/*
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_deleteValue
-// @grant        unsafeWindow
+// @name        🚀 Báo Cáo Doanh Thu Hằng Ngày V1
+// @match       https://bi.thegioididong.com/*
+// @grant       GM_setValue
+// @grant       GM_getValue
+// @grant       GM_deleteValue
+// @grant       unsafeWindow
 // ==/UserScript==
 
 (function() {
     'use strict';
     const delay = ms => new Promise(r => setTimeout(r, ms));
+
+    // --- BỘ MÁY VŨ TRỤ ---
+    function hienThiLoading() {
+        if(document.getElementById('tamhoa-loading')) return;
+        const css = `
+            .sky-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%); z-index: 9999999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
+            .rocket { font-size: 80px; animation: fly 1.5s infinite ease-in-out; margin-bottom: 20px; }
+            @keyframes fly { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-30px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
+            .status-text { font-family: 'Montserrat', sans-serif; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; }
+        `;
+        let style = document.createElement('style'); style.innerHTML = css; document.head.appendChild(style);
+        let div = document.createElement('div');
+        div.id = 'tamhoa-loading'; div.className = 'sky-overlay';
+        div.innerHTML = `<div class="rocket">🚀</div><div class="status-text">ĐANG KHAI MỞ LƯỚI THẦN...</div>`;
+        document.body.appendChild(div);
+    }
+
+    function tatLoading() {
+        let load = document.getElementById('tamhoa-loading');
+        if(load) load.remove();
+    }
 
     // NHÚNG HTML2CANVAS ĐỂ CHỤP ẢNH
     if (!window.html2canvas) {
@@ -18,13 +39,19 @@
         document.head.appendChild(script);
     }
 
+    // LUẬT LÀM TRÒN TAM HÒA
+    const lamTronTamHoa = (num) => {
+        if (num < 1.5) return 1;
+        return Math.round(num);
+    };
+
     // 1. TẠO NÚT & LÍNH CANH
     setInterval(() => {
         if (!document.getElementById('btn-robot-tamhoa')) {
             const btn = document.createElement('button');
             btn.id = "btn-robot-tamhoa";
-            btn.innerHTML = "⚡ ĐỔ SỐ HẰNG NGÀY";
-            btn.style.cssText = "position:fixed; top:80px; right:20px; z-index:2147483647; padding:15px; background:blue; color:white; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+            btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡";
+           btn.style.cssText = "position:fixed; bottom:120px; left:50%; transform:translateX(-50%); z-index:2147483647; padding:15px; background:blue; color:white; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
             btn.onclick = () => {
                 GM_deleteValue('robot_state');
                 xuLyTrang1();
@@ -32,62 +59,85 @@
             document.body.appendChild(btn);
         }
 
-        // TỰ ĐỘNG CHẠY Ở TRANG 2
+        // TỰ ĐỘNG CHẠY Ở TRANG 2 (Chỉ chạy khi đã sang trang THI-ĐUA)
         if (GM_getValue('robot_state') === 'WAITING_FOR_PAGE_2' && window.location.href.includes("thi-dua")) {
             GM_setValue('robot_state', 'PROCESSING_PAGE_2');
             setTimeout(xuLyTrang2, 3500);
         }
     }, 1000);
 
-    // --- BƯỚC 1: XỬ LÝ TRANG 1 ---
+    // --- BƯỚC 1: XỬ LÝ TRANG 1 (SIÊU THỊ CON) ---
     async function xuLyTrang1() {
+        hienThiLoading();
         let btn = document.getElementById('btn-robot-tamhoa');
         if (btn) { btn.innerHTML = "⏳ ĐANG LẤY SỐ TỔNG..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
-        if(!window.location.href.includes("khoi-ban-hang-sub")) {
-            alert("Ông phải đứng ở trang 'Khối kinh doanh' để bắt đầu nhé!");
-            if (btn) { btn.innerHTML = "⚡ ĐỔ SỐ HẰNG NGÀY"; btn.style.background = "blue"; btn.style.color = "white"; }
+        // 1. BẤM TAB BC DOANH THU NGÀNH HÀNG
+        let tab = null;
+        for(let i = 0; i < 10; i++) {
+            tab = document.querySelector('#tab-bcdtnh');
+            if(tab) break;
+            await delay(1000);
+        }
+
+        if(tab) {
+            tab.click();
+            await delay(3000);
+        } else {
+            alert("Robot mù đường! Không tìm thấy tab 'BC Doanh thu ngành hàng'.");
+            tatLoading();
+            if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
             return;
         }
 
-        let tab = document.querySelector('#tab-bcdtnh');
-        if(tab) tab.click();
-        await delay(3000);
-
-        // CHỌN REALTIME
-        let menu = document.querySelector('[data-id="time-type-bcdtnh"]');
-        if(menu) {
-            menu.click();
-            await delay(1000);
-            let options = document.querySelectorAll('a.dropdown-item, li[role="option"]');
-            let daChon = false;
-
-            options.forEach(opt => {
-                if(opt.innerText.trim() === 'Realtime') {
-                    opt.click();
-                    daChon = true;
-                }
-            });
-
-            if(daChon) {
-                await delay(4000);
-            } else {
-                alert("Lỗi: Không tìm thấy thẻ Realtime để bấm!");
-                if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
-                return;
+        // 2. TÌM VÀ CHỌN REALTIME (Dựa vào thông tin ông cung cấp)
+        let filterDivs = document.querySelectorAll('.filter-option-inner-inner');
+        let dropdownBtn = null;
+        for (let div of filterDivs) {
+            if (div.innerText.trim() === 'Lũy kế Tháng' || div.innerText.trim() === 'Realtime') {
+                dropdownBtn = div.closest('button');
+                break;
             }
         }
 
-        // Cắm cọc chờ bảng
+        if (dropdownBtn) {
+            if (!dropdownBtn.innerText.includes('Realtime')) {
+                dropdownBtn.click(); // Mở menu
+                await delay(1000);
+
+                // Tìm chữ Realtime để bấm
+                let options = document.querySelectorAll('a.dropdown-item span.text, li a');
+                let daChon = false;
+                for (let opt of options) {
+                    if (opt.innerText.trim() === 'Realtime') {
+                        opt.click();
+                        daChon = true;
+                        break;
+                    }
+                }
+
+                if (daChon) {
+                    await delay(4000); // Đợi bảng số liệu load xong
+                } else {
+                    alert("Lỗi: Đã mở được menu nhưng không thấy chữ 'Realtime'!");
+                    tatLoading();
+                    if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; }
+                    return;
+                }
+            }
+        }
+
+        // 3. HÍT SỐ BẢNG TỔNG (Dùng cột 3, 4, 5, 7 như ông đã test)
         let dataTong = null;
         for(let lanThu = 0; lanThu < 15; lanThu++) {
             await delay(1000);
-            let rows = document.querySelectorAll('#tbl-bcdtnh-data tr');
+            let rows = document.querySelectorAll('tr');
             for (let i = 0; i < rows.length; i++) {
                 let text = rows[i].textContent.trim();
+                // Tìm dòng có chữ "Tổng" và có dấu "%"
                 if (text.includes("Tổng") && text.includes("%")) {
                     let cells = rows[i].querySelectorAll('td');
-                    if (cells.length >= 7) {
+                    if (cells.length >= 8) { // Cấu trúc ông gửi có 8 cột (từ 0 đến 7)
                         dataTong = {
                             dt: cells[3].textContent.trim(),
                             target: cells[4].textContent.trim(),
@@ -103,28 +153,30 @@
 
         if (!dataTong || dataTong.dt === "") {
             alert("Mạng chậm quá! Chưa lấy được số Tổng. Ông F5 trang rồi thử lại nhé.");
+            tatLoading();
             if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
             return;
         }
 
-        // CẤT VÀO KÉT SẮT
+        // 4. CẤT VÀO KÉT SẮT VÀ ĐÁ SANG URL 2 (TRANG THI-ĐUA)
         GM_setValue('data_trang1', JSON.stringify(dataTong));
         GM_setValue('robot_state', 'WAITING_FOR_PAGE_2');
+        // Phục hồi lại đường link trang 2 gốc để hít nhóm hàng chi tiết
         window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
 
-    // --- BƯỚC 2: XỬ LÝ TRANG 2 (ĐÃ SỬA LỖI ĐỨNG HÌNH) ---
+    // --- BƯỚC 2: XỬ LÝ TRANG 2 (SAU KHI ĐÃ NHẢY SANG TRANG THI-ĐUA) ---
     async function xuLyTrang2() {
         let btn = document.getElementById('btn-robot-tamhoa');
         if (btn) { btn.innerHTML = "⏳ ĐANG LÊN DÀN ÁO..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
-        await delay(4000); // Đợi web load xong
+        await delay(4000); // Đợi web thi-dua load xong
 
-        // 1. Mở két sắt lấy số Tổng ở trang 1
+        // Mở két sắt lấy số Tổng ở trang 1
         let data1_str = GM_getValue('data_trang1');
         let data1 = data1_str ? JSON.parse(data1_str) : { dt: "0", target: "500", pct: "0", tracham: "0" };
 
-        // 2. Gom và dọn rác chữ ở trang 2
+        // Gom và dọn rác chữ ở trang 2 (Lấy chi tiết Thi Đua)
         let rawText = document.body.innerText;
         let lines = rawText.split('\n');
         let cleanText = "";
@@ -134,13 +186,12 @@
             cleanText += line + "\n";
         }
 
-        // 3. TUNG CHIÊU: Gọi thợ dựng bảng và đưa dữ liệu vào
         hienThiSieuPham(data1, cleanText);
+        tatLoading();
 
-        // 4. Dọn dẹp chiến trường
         GM_deleteValue('robot_state');
         if (btn) { btn.innerHTML = "⚡ XONG RỒI ĐÓ!"; btn.style.background = "green"; btn.style.color = "white"; }
-        setTimeout(() => { if (btn) { btn.innerHTML = "⚡ ĐỔ SỐ HẰNG NGÀY"; btn.style.background = "blue"; btn.style.color = "white"; } }, 2000);
+        setTimeout(() => { if (btn) { btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡"; btn.style.background = "blue"; btn.style.color = "white"; } }, 2000);
     }
 
     // --- BƯỚC 3: LÊN DÀN ÁO COMMANDER ---
@@ -240,8 +291,8 @@
                 </div>
 
                 <div style="display:flex; justify-content:space-between; margin-bottom: 10px; display:none;">
-     <button onclick="openSettings()" style="...">⚙️ CÀI ĐẶT LƯỚI</button>
-</div>
+                    <button onclick="openSettings()">⚙️ CÀI ĐẶT LƯỚI</button>
+                </div>
 
                 <div id="outputArea">
                     <div id="finalReportArea">
@@ -273,7 +324,7 @@
                 </div>
             </div>
 
-           <div class="overlay" id="overlay" onclick="closeSettings()"></div>
+            <div class="overlay" id="overlay" onclick="closeSettings()"></div>
             <div class="settings-panel" id="settingsPanel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT</h3>
@@ -315,20 +366,16 @@
         document.getElementById('inpRaw').value = chiTiet;
         document.getElementById('inpTime').value = new Date().getHours() + "H" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
 
-        const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉"];
+        const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉","📢"];
         unsafeWindow.activePickerBtn = null;
         unsafeWindow.activeGroupName = "";
 
         unsafeWindow.setMode = function(mode) {
             unsafeWindow.currentMode = mode;
-
-            // 1. Cập nhật giao diện nút cho ông thấy đã chuyển ca
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             if(mode === 'now') document.getElementById('btnNow').classList.add('active');
             if(mode === 'morning') document.getElementById('btnMorning').classList.add('active');
             if(mode === 'end') document.getElementById('btnEnd').classList.add('active');
-
-            // 2. Gọi lệnh vẽ lại bảng và cập nhật nhận xét
             unsafeWindow.renderDaily();
         }
 
@@ -347,6 +394,24 @@
                 });
             }, 300);
         }
+
+        unsafeWindow.copyToLien = function() {
+            const textarea = document.getElementById('lienText');
+            const btnCopy = document.getElementById('btnCopy');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                btnCopy.innerText = "✅ ĐÃ COPY!";
+                btnCopy.style.background = "#28a745";
+                setTimeout(() => {
+                    btnCopy.innerText = "📋 COPY CHỮ";
+                    btnCopy.style.background = "var(--black)";
+                }, 2000);
+            } catch (err) {
+                alert("Lỗi rồi, không copy được!");
+            }
+        };
 
         unsafeWindow.trimName = function(name) {
             return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
@@ -414,12 +479,11 @@
         }
 
        unsafeWindow.renderDaily = function() {
-            // 1. Lấy dữ liệu mới nhất từ các ô nhập liệu
             const raw = document.getElementById('inpRaw').value;
             const dt = parseFloat(document.getElementById('inpDT').value) || 0;
             const tg = parseFloat(document.getElementById('inpTG').value) || 0;
             const time = document.getElementById('inpTime').value;
-            const mode = unsafeWindow.currentMode; // Lấy mode hiện tại từ lồng kính
+            const mode = unsafeWindow.currentMode;
             const masterTarget = unsafeWindow.masterTarget;
 
             if(!raw) { alert("Dán dữ liệu vào ô trước đã ông ơi!"); return; }
@@ -428,7 +492,6 @@
             unsafeWindow.allParsedGroups = [];
             let groupIndices = [];
 
-            // Tìm mốc các nhóm hàng
             for (let i = 0; i < lines.length; i++) {
                 if ((lines[i].includes("Thi đua") || lines[i].includes("Nhóm hàng")) && lines[i].length < 100) {
                     groupIndices.push(i);
@@ -465,7 +528,6 @@
                 }
             }
 
-            // Vẽ lưới
             let displayList = unsafeWindow.allParsedGroups.filter(g => unsafeWindow.groupConfigs[g.name]?.visible !== false);
             displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
             let gridHtml = "", datCount = 0;
@@ -473,22 +535,22 @@
                 if(g.t > 0 && g.p >= 100) datCount++;
                 let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let finalName = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${Math.round(g.r)}${g.t>0 ? '/'+Math.round(g.t) : ''}</div><div class="group-pct ${pCl}">${Math.round(g.p)}%</div></div></div>`;
+                // ĐÃ SỬA: DÙNG LAMTRONTAMHOA
+                gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${lamTronTamHoa(g.r)}${g.t>0 ? '/'+lamTronTamHoa(g.t) : ''}</div><div class="group-pct ${pCl}">${lamTronTamHoa(g.p)}%</div></div></div>`;
             });
 
             document.getElementById('outGrid').innerHTML = gridHtml;
             const totalGroups = displayList.filter(x=>x.t>0).length;
             document.getElementById('outDatCount').innerText = `${datCount}/${totalGroups}`;
 
-            // Cập nhật thông số bảng
-            document.getElementById('outDTStr').innerText = dt + "/" + masterTarget;
-            const pDT = ((dt / masterTarget) * 100).toFixed(1);
-            document.getElementById('outDTPct').innerText = Math.round(pDT) + "%";
+            // ĐÃ SỬA: DÙNG LAMTRONTAMHOA
+            document.getElementById('outDTStr').innerText = lamTronTamHoa(dt) + "/" + lamTronTamHoa(masterTarget);
+            const pDT = ((dt / masterTarget) * 100);
+            document.getElementById('outDTPct').innerText = lamTronTamHoa(pDT) + "%";
             document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
-            document.getElementById('outTGVal').innerText = tg + "%";
+            document.getElementById('outTGVal').innerText = lamTronTamHoa(tg) + "%";
             document.getElementById('outFooterTime').innerText = time;
 
-            // Xử lý logic báo cáo (Copy Chữ)
             const toSticker = (num) => {
                 const stickers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
                 return num.toString().split('').map(d => stickers[parseInt(d)] || d).join('');
