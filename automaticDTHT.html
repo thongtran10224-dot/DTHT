@@ -535,9 +535,13 @@
                 if(g.t > 0 && g.p >= 100) datCount++;
                 let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let finalName = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                // ĐÃ SỬA: DÙNG LAMTRONTAMHOA
-                gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${lamTronTamHoa(g.r)}${g.t>0 ? '/'+lamTronTamHoa(g.t) : ''}</div><div class="group-pct ${pCl}">${lamTronTamHoa(g.p)}%</div></div></div>`;
-            });
+
+// ĐOẠN ĐỘ LẠI: Chặn số 0 không cho làm tròn
+let rDisplay = g.r === 0 ? "0" : lamTronTamHoa(g.r);
+let tDisplay = g.t === 0 ? "" : "/" + lamTronTamHoa(g.t);
+
+gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${rDisplay}${tDisplay}</div><div class="group-pct ${pCl}">${lamTronTamHoa(g.p)}%</div></div></div>`;
+});
 
             document.getElementById('outGrid').innerHTML = gridHtml;
             const totalGroups = displayList.filter(x=>x.t>0).length;
