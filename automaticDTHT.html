@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        🚀 Báo Cáo Doanh Thu Hằng Ngày V1
+// @name        🚀 Báo Cáo Doanh Thu Tam Hòa V1 (Full Option)
 // @match       https://bi.thegioididong.com/*
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -51,7 +51,7 @@
             const btn = document.createElement('button');
             btn.id = "btn-robot-tamhoa";
             btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡";
-           btn.style.cssText = "position:fixed; bottom:120px; left:50%; transform:translateX(-50%); z-index:2147483647; padding:15px; background:blue; color:white; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+            btn.style.cssText = "position:fixed; bottom:120px; left:50%; transform:translateX(-50%); z-index:2147483647; padding:15px; background:blue; color:white; border-radius:8px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
             btn.onclick = () => {
                 GM_deleteValue('robot_state');
                 xuLyTrang1();
@@ -59,20 +59,18 @@
             document.body.appendChild(btn);
         }
 
-        // TỰ ĐỘNG CHẠY Ở TRANG 2 (Chỉ chạy khi đã sang trang THI-ĐUA)
         if (GM_getValue('robot_state') === 'WAITING_FOR_PAGE_2' && window.location.href.includes("thi-dua")) {
             GM_setValue('robot_state', 'PROCESSING_PAGE_2');
             setTimeout(xuLyTrang2, 3500);
         }
     }, 1000);
 
-    // --- BƯỚC 1: XỬ LÝ TRANG 1 (SIÊU THỊ CON) ---
+    // --- BƯỚC 1: XỬ LÝ TRANG 1 ---
     async function xuLyTrang1() {
         hienThiLoading();
         let btn = document.getElementById('btn-robot-tamhoa');
         if (btn) { btn.innerHTML = "⏳ ĐANG LẤY SỐ TỔNG..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
-        // 1. BẤM TAB BC DOANH THU NGÀNH HÀNG
         let tab = null;
         for(let i = 0; i < 10; i++) {
             tab = document.querySelector('#tab-bcdtnh');
@@ -90,7 +88,6 @@
             return;
         }
 
-        // 2. TÌM VÀ CHỌN REALTIME (Dựa vào thông tin ông cung cấp)
         let filterDivs = document.querySelectorAll('.filter-option-inner-inner');
         let dropdownBtn = null;
         for (let div of filterDivs) {
@@ -102,10 +99,9 @@
 
         if (dropdownBtn) {
             if (!dropdownBtn.innerText.includes('Realtime')) {
-                dropdownBtn.click(); // Mở menu
+                dropdownBtn.click();
                 await delay(1000);
 
-                // Tìm chữ Realtime để bấm
                 let options = document.querySelectorAll('a.dropdown-item span.text, li a');
                 let daChon = false;
                 for (let opt of options) {
@@ -117,7 +113,7 @@
                 }
 
                 if (daChon) {
-                    await delay(4000); // Đợi bảng số liệu load xong
+                    await delay(4000);
                 } else {
                     alert("Lỗi: Đã mở được menu nhưng không thấy chữ 'Realtime'!");
                     tatLoading();
@@ -127,17 +123,15 @@
             }
         }
 
-        // 3. HÍT SỐ BẢNG TỔNG (Dùng cột 3, 4, 5, 7 như ông đã test)
         let dataTong = null;
         for(let lanThu = 0; lanThu < 15; lanThu++) {
             await delay(1000);
             let rows = document.querySelectorAll('tr');
             for (let i = 0; i < rows.length; i++) {
                 let text = rows[i].textContent.trim();
-                // Tìm dòng có chữ "Tổng" và có dấu "%"
                 if (text.includes("Tổng") && text.includes("%")) {
                     let cells = rows[i].querySelectorAll('td');
-                    if (cells.length >= 8) { // Cấu trúc ông gửi có 8 cột (từ 0 đến 7)
+                    if (cells.length >= 8) {
                         dataTong = {
                             dt: cells[3].textContent.trim(),
                             target: cells[4].textContent.trim(),
@@ -158,25 +152,21 @@
             return;
         }
 
-        // 4. CẤT VÀO KÉT SẮT VÀ ĐÁ SANG URL 2 (TRANG THI-ĐUA)
         GM_setValue('data_trang1', JSON.stringify(dataTong));
         GM_setValue('robot_state', 'WAITING_FOR_PAGE_2');
-        // Phục hồi lại đường link trang 2 gốc để hít nhóm hàng chi tiết
         window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
 
-    // --- BƯỚC 2: XỬ LÝ TRANG 2 (SAU KHI ĐÃ NHẢY SANG TRANG THI-ĐUA) ---
+    // --- BƯỚC 2: XỬ LÝ TRANG 2 ---
     async function xuLyTrang2() {
         let btn = document.getElementById('btn-robot-tamhoa');
-        if (btn) { btn.innerHTML = "⏳ ĐANG LÊN DÀN ÁO..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
+        if (btn) { btn.innerHTML = "⏳ CHUẨN BỊ LÊN BẢNG..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
-        await delay(4000); // Đợi web thi-dua load xong
+        await delay(4000);
 
-        // Mở két sắt lấy số Tổng ở trang 1
         let data1_str = GM_getValue('data_trang1');
         let data1 = data1_str ? JSON.parse(data1_str) : { dt: "0", target: "500", pct: "0", tracham: "0" };
 
-        // Gom và dọn rác chữ ở trang 2 (Lấy chi tiết Thi Đua)
         let rawText = document.body.innerText;
         let lines = rawText.split('\n');
         let cleanText = "";
@@ -205,11 +195,11 @@
 
         const cssGoc = `
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
-            .th-container { padding: 5px; width: 100%; max-width: 600px; margin: 20px auto; position:relative; }
+            .th-container { padding: 5px; width: 100%; max-width: 600px; margin: 10px auto; position:relative; }
             :root { --primary: #004a99; --accent: #ffc107; --bg: #f0f2f5; --success: #28a745; --danger: #dc3545; --black: #000; }
             * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; }
             .input-card { background: white; padding: 10px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-            .main-title { font-size: 18px; font-weight: 950; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+            .main-title { font-size: 18px; font-weight: 950; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
             input, textarea { border: 2px solid #ddd; border-radius: 8px; padding: 8px; font-size: 15px; font-weight: 950; width: 100%; margin-bottom: 4px; }
             .mode-group { display: flex; gap: 4px; margin-bottom: 6px; }
             .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 950; font-size: 10px; text-transform: uppercase; }
@@ -223,7 +213,7 @@
             .skst-value { font-size: 20px; font-weight: 950; color: var(--primary); margin: 0; white-space: nowrap; }
             .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
             .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; width: 100%; }
-            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 8px 6px; border-radius: 8px; border-bottom: 3px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
+            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 8px 6px; border-radius: 8px; border-bottom: none; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
             .group-name { font-size: 11px; font-weight: 950; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; margin-bottom: 6px; text-transform: uppercase; min-height: 2.6em; line-height: 1.2; display: flex; align-items: center; gap: 8px; word-break: break-word; }
             .group-sticker { font-size: 24px; flex-shrink: 0; }
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
@@ -250,32 +240,37 @@
             .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
             .setting-row { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
             .th-container.racing-mode .capture-frame { background: linear-gradient(145deg, #26262b, #1a1a1f) !important; border: 3px solid #ff4757 !important; }
-            .th-container.racing-mode .group-card { background: #2a2a32 !important; border: 1px solid #ff4757 !important; border-bottom: 4px solid #ea2027 !important; }
+            .th-container.racing-mode .group-card { background: #2a2a32 !important; border: 1px solid #ff4757 !important; border-bottom: none !important; }
             .th-container.racing-mode .group-name { color: #fff !important; }
             .th-container.racing-mode .group-num { color: #00ffcc !important; }
             .th-container.racing-mode .skst-row { background: linear-gradient(145deg, #2f3542, #1e2229) !important; border: 3px solid #ff4757 !important; position: relative !important; margin-top: 35px !important; border-left: 6px solid #ff4757 !important; padding: 12px 8px !important; }
             .th-container.racing-mode .m-label { color: #dae1e7 !important; }
             .th-container.racing-mode .skst-value { color: #ffcc00 !important; }
             .th-container.nature-mode .capture-frame { background: #ffffff !important; border: 2px solid #27ae60 !important; }
-            .th-container.nature-mode .group-card { background: #ffffff !important; border-color: #e0eadd !important; }
+            .th-container.nature-mode .group-card { background: #ffffff !important; border-color: #e0eadd !important; border-bottom: none !important; }
             .th-container.nature-mode .group-name { color: #27ae60 !important; }
             .th-container.dark-mode .capture-frame, .th-container.dark-mode .skst-row, .th-container.dark-mode .settings-panel { background-color: #1e1e1e !important; border-color: #004a99 !important; }
-            .th-container.dark-mode .group-card { background-color: #252525 !important; border-color: #333 !important; }
+            .th-container.dark-mode .group-card { background-color: #252525 !important; border-color: #333 !important; border-bottom: none !important; }
             .th-container.dark-mode .group-name { color: #ffffff !important; border-bottom-color: #444 !important; }
             .th-container.dark-mode .skst-value { color: #ffeb9c !important; }
             .th-container.cyber-mode .capture-frame, .th-container.cyber-mode .skst-row { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; background: rgba(0,0,0,0.8) !important; }
-            .th-container.cyber-mode .group-card { border: 1px solid #ff00ff !important; background: rgba(255,0,255,0.05) !important; }
+            .th-container.cyber-mode .group-card { border: 1px solid #ff00ff !important; background: rgba(255,0,255,0.05) !important; border-bottom: none !important; }
             .th-container.cyber-mode .group-name { color: #33ff00 !important; }
             .th-container.cyber-mode .skst-value { color: #ff00ff !important; }
+            .bg-high { background-color: #28a745; }
+            .bg-mid { background-color: #ffc107; }
+            .bg-low { background-color: #dc3545; }
         `;
 
         div.innerHTML = `
             <style>${cssGoc}</style>
             <div class="th-container" id="thMainContainer">
-                <button onclick="document.getElementById('tamhoa-commander-overlay').remove();" style="position:absolute; top:-35px; right:5px; background:red; color:white; border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">❌ ĐÓNG</button>
-
                 <div class="input-card" style="display:block;">
-                    <div class="main-title"><span>🔥 SOI DOANH THU</span><span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span></div>
+                    <div class="main-title">
+                        <span style="cursor:pointer; background:#ff3b30; color:white; padding:4px 8px; border-radius:6px; font-size:12px;" onclick="document.getElementById('tamhoa-commander-overlay').remove();">❌ ĐÓNG</span>
+                        <span>🔥 SOI DOANH THU</span>
+                        <span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span>
+                    </div>
                     <div class="mode-group">
                         <button class="mode-btn active" id="btnNow" onclick="setMode('now')">🔥 HIỆN TẠI</button>
                         <button class="mode-btn" id="btnMorning" onclick="setMode('morning')">☀️ CA SÁNG</button>
@@ -290,11 +285,7 @@
                     <button class="btn-main" onclick="renderDaily()">🚀 XUẤT CHIẾN SOI NGÀY</button>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; margin-bottom: 10px; display:none;">
-                    <button onclick="openSettings()">⚙️ CÀI ĐẶT LƯỚI</button>
-                </div>
-
-                <div id="outputArea">
+                <div id="outputArea" style="display:none;">
                     <div id="finalReportArea">
                         <div class="skst-row">
                             <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStr" class="skst-value">0/0</div></div>
@@ -478,7 +469,7 @@
             unsafeWindow.renderDaily();
         }
 
-       unsafeWindow.renderDaily = function() {
+        unsafeWindow.renderDaily = function() {
             const raw = document.getElementById('inpRaw').value;
             const dt = parseFloat(document.getElementById('inpDT').value) || 0;
             const tg = parseFloat(document.getElementById('inpTG').value) || 0;
@@ -530,24 +521,34 @@
 
             let displayList = unsafeWindow.allParsedGroups.filter(g => unsafeWindow.groupConfigs[g.name]?.visible !== false);
             displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
+
             let gridHtml = "", datCount = 0;
             displayList.forEach(g => {
                 if(g.t > 0 && g.p >= 100) datCount++;
-                let pCl = g.t === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
+
+                let pDisplay = g.r === 0 ? 0 : Math.round(g.p);
+                let pCl = g.r === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let finalName = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
 
-// ĐOẠN ĐỘ LẠI: Chặn số 0 không cho làm tròn
-let rDisplay = g.r === 0 ? "0" : lamTronTamHoa(g.r);
-let tDisplay = g.t === 0 ? "" : "/" + lamTronTamHoa(g.t);
-
-gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}</div><div class="group-stats"><div class="group-num">${rDisplay}${tDisplay}</div><div class="group-pct ${pCl}">${lamTronTamHoa(g.p)}%</div></div></div>`;
-});
+                gridHtml += `
+                    <div class="group-card">
+                        <div class="group-name">
+                            <span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}
+                        </div>
+                        <div class="group-stats">
+                            <div class="group-num">${g.r}${g.t>0 ? '/'+g.t : ''}</div>
+                            <div class="group-pct ${pCl}">${pDisplay}%</div>
+                        </div>
+                        <div style="width:100%; height:4px; background:#eee; border-radius:2px; margin-top:6px; overflow:hidden; border:none;">
+                            <div style="width:${g.r === 0 ? 0 : Math.min(100, g.p)}%; height:100%;" class="${pCl.replace('pct-', 'bg-')}"></div>
+                        </div>
+                    </div>`;
+            });
 
             document.getElementById('outGrid').innerHTML = gridHtml;
             const totalGroups = displayList.filter(x=>x.t>0).length;
             document.getElementById('outDatCount').innerText = `${datCount}/${totalGroups}`;
 
-            // ĐÃ SỬA: DÙNG LAMTRONTAMHOA
             document.getElementById('outDTStr').innerText = lamTronTamHoa(dt) + "/" + lamTronTamHoa(masterTarget);
             const pDT = ((dt / masterTarget) * 100);
             document.getElementById('outDTPct').innerText = lamTronTamHoa(pDT) + "%";
@@ -560,7 +561,6 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
                 return num.toString().split('').map(d => stickers[parseInt(d)] || d).join('');
             };
 
-            // --- ĐOẠN ĐÃ ĐỘ LẠI: LÀM TRÒN THEO LUẬT TAM HÒA ---
             let dtTron = lamTronTamHoa(dt);
             let targetTron = lamTronTamHoa(masterTarget);
             let pDTTron = lamTronTamHoa(pDT);
@@ -587,12 +587,12 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
             const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
             const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
 
-           // Nhận xét nhóm hàng
             if(highG.length > 0) {
                 txt += `✅ NHÓM ĐÃ ĐẠT:\n`;
                 highG.forEach(g => {
                     let n = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(lamTronTamHoa(g.p))}%\n`;
+                    let pDisplayTxt = g.r === 0 ? 0 : Math.round(g.p);
+                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplayTxt)}%\n`;
                 });
                 txt += `\n`;
             }
@@ -600,9 +600,8 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
                 txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
                 lowG.forEach(g => {
                     let n = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                    // FIX: Nếu doanh thu là 0 thì hiển thị là 0, không làm tròn lên 1 trong nhận xét
-                    let pDisplay = g.r === 0 ? "0" : lamTronTamHoa(g.p);
-                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplay)}%\n`;
+                    let pDisplayTxt = g.r === 0 ? 0 : Math.round(g.p);
+                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplayTxt)}%\n`;
                 });
             }
             document.getElementById('lienText').value = txt + footer;
@@ -611,7 +610,8 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
 
         unsafeWindow.renderDaily();
     }
-function tuDongVaoTiem() {
+
+    function tuDongVaoTiem() {
         const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
         if (linkTamHoa) {
             console.log("Đang vặn ga vào tiệm Tam Hòa...");
@@ -621,8 +621,6 @@ function tuDongVaoTiem() {
 
     setTimeout(() => {
         tuDongVaoTiem();
-        setTimeout(khoiTaoNutRobot, 2000);
     }, 500);
 
-    document.addEventListener('click', khoiTaoNutRobot);
 })();
