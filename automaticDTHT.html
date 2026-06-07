@@ -587,6 +587,7 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
             const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
             const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
 
+           // Nhận xét nhóm hàng
             if(highG.length > 0) {
                 txt += `✅ NHÓM ĐÃ ĐẠT:\n`;
                 highG.forEach(g => {
@@ -599,7 +600,9 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
                 txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
                 lowG.forEach(g => {
                     let n = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(lamTronTamHoa(g.p))}%\n`;
+                    // FIX: Nếu doanh thu là 0 thì hiển thị là 0, không làm tròn lên 1 trong nhận xét
+                    let pDisplay = g.r === 0 ? "0" : lamTronTamHoa(g.p);
+                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplay)}%\n`;
                 });
             }
             document.getElementById('lienText').value = txt + footer;
@@ -608,4 +611,18 @@ gridHtml += `<div class="group-card"><div class="group-name"><span class="group-
 
         unsafeWindow.renderDaily();
     }
+function tuDongVaoTiem() {
+        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
+        if (linkTamHoa) {
+            console.log("Đang vặn ga vào tiệm Tam Hòa...");
+            linkTamHoa.click();
+        }
+    }
+
+    setTimeout(() => {
+        tuDongVaoTiem();
+        setTimeout(khoiTaoNutRobot, 2000);
+    }, 500);
+
+    document.addEventListener('click', khoiTaoNutRobot);
 })();
