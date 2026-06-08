@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        🚀 Báo Cáo Doanh Thu Tam Hòa V1 (Full Option)
+// @name        🚀 DTHT V2 Pro
 // @match       https://bi.thegioididong.com/*
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -267,10 +267,13 @@
             <div class="th-container" id="thMainContainer">
                 <div class="input-card" style="display:block;">
                     <div class="main-title">
-                        <span style="cursor:pointer; background:#ff3b30; color:white; padding:4px 8px; border-radius:6px; font-size:12px;" onclick="document.getElementById('tamhoa-commander-overlay').remove();">❌ ĐÓNG</span>
-                        <span>🔥 SOI DOANH THU</span>
-                        <span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span>
-                    </div>
+    <span style="cursor:pointer; background:#ff3b30; color:white; padding:4px 8px; border-radius:6px; font-size:12px;" onclick="document.getElementById('tamhoa-commander-overlay').remove();">❌ ĐÓNG</span>
+    <span>🔥 SOI DOANH THU</span>
+    <div>
+        <span style="cursor:pointer; font-size: 20px; margin-right: 10px;" onclick="lamMoiTatCa()">🔄</span>
+        <span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span>
+    </div>
+</div>
                     <div class="mode-group">
                         <button class="mode-btn active" id="btnNow" onclick="setMode('now')">🔥 HIỆN TẠI</button>
                         <button class="mode-btn" id="btnMorning" onclick="setMode('morning')">☀️ CA SÁNG</button>
@@ -307,9 +310,9 @@
                     </div>
 
                     <div class="btn-grid">
-                        <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="copyToLien()">📋 COPY CHỮ</button>
-                        <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="captureReport()">📸 CHỤP ẢNH</button>
-                    </div>
+    <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="copyToLien()">📋 COPY CHỮ</button>
+    <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="captureReport()">📸 CHỤP ẢNH</button>
+</div>
 
                     <textarea id="lienText" readonly></textarea>
                 </div>
@@ -468,6 +471,11 @@
             unsafeWindow.closeSettings();
             unsafeWindow.renderDaily();
         }
+unsafeWindow.lamMoiTatCa = function() {
+    GM_setValue('robot_state', 'AUTO_RUN_START'); // PHẢI LÀ LỆNH NÀY: Bỏ giấy nhắn vào túi
+    GM_deleteValue('data_trang1');
+    window.location.href = "https://bi.thegioididong.com/";
+};
 
         unsafeWindow.renderDaily = function() {
             const raw = document.getElementById('inpRaw').value;
@@ -611,16 +619,40 @@
         unsafeWindow.renderDaily();
     }
 
-    function tuDongVaoTiem() {
-        const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
-        if (linkTamHoa) {
-            console.log("Đang vặn ga vào tiệm Tam Hòa...");
-            linkTamHoa.click();
-        }
+ function tuDongVaoTiem() {
+        if (window.radarTamHoa) clearInterval(window.radarTamHoa);
+
+        window.radarTamHoa = setInterval(() => {
+            const isTamHoaPage = window.location.href.includes("bi.thegioididong.com/thi-dua");
+            const giayNhan = GM_getValue('robot_state'); // Móc túi xem có lệnh không
+
+            if (isTamHoaPage) {
+                // ĐÃ VÀO TRONG TIỆM
+                if (giayNhan === 'AUTO_RUN_START') {
+                    // Nếu có giấy nhắn Làm Mới, đợi đến khi thấy nút là bấm ngay!
+                    const btn = document.getElementById('btn-robot-tamhoa');
+                    if (btn) {
+                        btn.click(); // BẤM NÚT ĐỔ SỐ
+                        GM_deleteValue('robot_state'); // Xóa giấy nhắn
+                        clearInterval(window.radarTamHoa); // Tắt radar cho nhẹ máy
+                        console.log("Đã kích nổ nút làm mới tự động!");
+                    }
+                } else {
+                    // Nếu vào tiệm bình thường (ông tự F5), không có giấy -> Tắt radar
+                    clearInterval(window.radarTamHoa);
+                }
+            } else {
+                // ĐANG Ở TRANG CHỦ
+                const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
+                if (linkTamHoa && !window.daBamVaoTiem) {
+                    window.daBamVaoTiem = true; // Chốt an toàn: Đánh dấu đã vặn ga để không bấm 2 lần
+                    linkTamHoa.click();
+                }
+            }
+        }, 500); // Quét 0.5s/lần
     }
 
-    setTimeout(() => {
-        tuDongVaoTiem();
-    }, 500);
-
+    // Reset chốt an toàn khi mở trang
+    window.daBamVaoTiem = false;
+    tuDongVaoTiem();
 })();
