@@ -9,6 +9,9 @@
 
 (function() {
     'use strict';
+if (localStorage.getItem('tamhoa_loading_active') === 'true') {
+    hienThiLoading();
+}
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
     // --- BỘ MÁY VŨ TRỤ ---
@@ -203,8 +206,9 @@ function hienThiLoading() {
         }
 
         GM_setValue('data_trang1', JSON.stringify(dataTong));
-        GM_setValue('robot_state', 'WAITING_FOR_PAGE_2');
-        window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
+        localStorage.setItem('tamhoa_loading_active', 'true');
+GM_setValue('robot_state', 'WAITING_FOR_PAGE_2');
+window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
 
     // --- BƯỚC 2: XỬ LÝ TRANG 2 ---
@@ -227,7 +231,8 @@ function hienThiLoading() {
         }
 
         hienThiSieuPham(data1, cleanText);
-        tatLoading();
+tatLoading();
+localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
 
         GM_deleteValue('robot_state');
         if (btn) { btn.innerHTML = "⚡ XONG RỒI ĐÓ!"; btn.style.background = "green"; btn.style.color = "white"; }
