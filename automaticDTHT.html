@@ -112,12 +112,15 @@ function hienThiLoading() {
         }
     }, 1000);
 
-    // --- BƯỚC 1: XỬ LÝ TRANG 1 ---
     async function xuLyTrang1() {
+        // Kích hoạt màn hình chờ trước tiên
         hienThiLoading();
-        let btn = document.getElementById('btn-robot-tamhoa');
-        if (btn) { btn.innerHTML = "⏳ ĐANG LẤY SỐ TỔNG..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
+        // Ẩn nút bấm để giao diện trông sạch sẽ, không cần đổi màu nữa
+        let btn = document.getElementById('btn-robot-tamhoa');
+        if (btn) { btn.style.display = "none"; }
+
+        // Tiếp tục logic tìm tab bình thường
         let tab = null;
         for(let i = 0; i < 10; i++) {
             tab = document.querySelector('#tab-bcdtnh');
