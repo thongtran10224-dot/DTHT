@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        🚀 DTHT V2
+// @name        🚀 DTHT V5
 // @match       https://bi.thegioididong.com/*
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -33,7 +33,18 @@ function hienThiLoading() {
             }
             @keyframes pulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.8); } }
 
-            .status-text { margin-top: 80px; font-family: 'Montserrat', sans-serif; font-size: 20px; letter-spacing: 4px; color: #ffeb3b; text-shadow: 0 0 15px #ffeb3b; z-index: 1; }
+            .status-text {
+    margin-top: 80px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: 900;
+    z-index: 1;
+    /* Hiệu ứng Neon phát sáng siêu nổi bật */
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff, 0 0 40px #00d2ff, 0 0 80px #00d2ff;
+}
         `;
         let style = document.createElement('style'); style.innerHTML = css; document.head.appendChild(style);
 
@@ -48,7 +59,7 @@ function hienThiLoading() {
         }
         bgStars += '</div>';
 
-        div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🚀<div id="stars"></div></div><div class="status-text">KHAI MỞ LƯỚI THẦN...</div>`;
+        div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🚀<div id="stars"></div></div><div class="status-text">LOADING...</div>`;
         document.body.appendChild(div);
 
         // Tạo 12 ngôi sao to rõ xung quanh tên lửa
