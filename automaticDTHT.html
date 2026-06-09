@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        🚀 DTHT V2 Pro
+// @name        🚀 DTHT V2
 // @match       https://bi.thegioididong.com/*
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -266,12 +266,17 @@
             <style>${cssGoc}</style>
             <div class="th-container" id="thMainContainer">
                 <div class="input-card" style="display:block;">
-                    <div class="main-title">
-    <span style="cursor:pointer; background:#ff3b30; color:white; padding:4px 8px; border-radius:6px; font-size:12px;" onclick="document.getElementById('tamhoa-commander-overlay').remove();">❌ ĐÓNG</span>
-    <span>🔥 SOI DOANH THU</span>
-    <div>
-        <span style="cursor:pointer; font-size: 20px; margin-right: 10px;" onclick="lamMoiTatCa()">🔄</span>
-        <span style="cursor:pointer; font-size: 24px;" onclick="openSettings()">⚙️</span>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 12px;">
+    <div style="cursor:pointer; background:#ff3b30; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="document.getElementById('tamhoa-commander-overlay').remove();">
+        <span style="font-size:14px;">❌</span> ĐÓNG
+    </div>
+
+    <div style="cursor:pointer; background:#007bff; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="lamMoiTatCa()">
+        <span style="font-size:14px;">🔄</span> LÀM MỚI
+    </div>
+
+    <div style="cursor:pointer; background:#6c757d; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openSettings()">
+        <span style="font-size:14px;">⚙️</span> CÀI ĐẶT
     </div>
 </div>
                     <div class="mode-group">
@@ -303,8 +308,8 @@
                             </div>
                             <div class="group-grid" id="outGrid"></div>
                             <div style="text-align:center; padding:8px; color:#555; font-size:11px; font-weight:950; background:#fdfdfd; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:10px;">
-                                <span>🏁 DTHT - <span id="outFooterTime"></span></span>
-                                <span style="color: #004a99; font-weight: 950;" id="outWeather">🏠CHÚC CẢ NHÀ MUA MAY BÁN ĐẮT!🏠</span>
+                                <span>⏰️ <span id="outFooterTime"></span></span>
+                                <span style="color: #004a99; font-weight: 950;" id="outWeather">🥰MUA MAY BÁN ĐẮT🥰</span>
                             </div>
                         </div>
                     </div>
