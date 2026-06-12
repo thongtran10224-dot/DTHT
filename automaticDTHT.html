@@ -330,7 +330,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
         <span style="font-size:14px;">🔄</span> LÀM MỚI
     </div>
 
-    <div style="cursor:pointer; background:#6c757d; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openSettings()">
+    <div style="cursor:pointer; background:#6c757d; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="dtht_openSettings()">
         <span style="font-size:14px;">⚙️</span> CÀI ĐẶT
     </div>
 </div>
@@ -378,11 +378,11 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                 </div>
             </div>
 
-            <div class="overlay" id="overlay" onclick="closeSettings()"></div>
-            <div class="settings-panel" id="settingsPanel">
+            <div class="overlay" id="dtht_overlay" onclick="dtht_closeSettings()"></div>
+            <div class="settings-panel" id="dtht_settingsPanel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT</h3>
-                    <span style="cursor:pointer; font-size:22px;" onclick="closeSettings()">✖</span>
+                    <span style="cursor:pointer; font-size:22px;" onclick="dtht_closeSettings()">✖</span>
                 </div>
                 <div class="setting-row">
                     <label style="display:block; font-weight:950; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
@@ -398,12 +398,12 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                         <label style="font-weight:950; font-size:12px; cursor:pointer;"><input type="checkbox" id="cyberMode" onchange="toggleTheme(this.checked ? 'cyber' : 'none')"> 🤖 CYBER</label>
                     </div>
                 </div>
-                <button onclick="saveSettings()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 10px;">LƯU LẠI</button>
+                <button onclick="dtht_saveSettings()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 10px;">LƯU LẠI</button>
             </div>
 
-            <div id="stickerPopup" class="sticker-popup">
+            <div id="dtht_stickerPopup" class="sticker-popup">
                 <div class="sticker-grid" id="stickerGrid"></div>
-                <div class="st-close" onclick="document.getElementById('stickerPopup').style.display='none'">ĐÓNG</div>
+                <div class="st-close" onclick="document.getElementById('dtht_stickerPopup').style.display='none'">ĐÓNG</div>
             </div>
         `;
         document.body.appendChild(div);
@@ -411,7 +411,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
         // --- NHÚNG LOGIC JAVASCRIPT CỦA COMMANDER ---
         unsafeWindow.currentMode = 'now';
         unsafeWindow.allParsedGroups = [];
-        unsafeWindow.groupConfigs = JSON.parse(localStorage.getItem('tamHoaSlimConfigs')) || {};
+        unsafeWindow.groupConfigs = JSON.parse(localStorage.getItem('dtht_tamHoaSlimConfigs')) || {};
 
         document.getElementById('inpDT').value = tong.dt.replace(/,/g, '');
         document.getElementById('inpTG').value = tong.tracham.replace(/%/g, '').trim();
@@ -474,7 +474,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                        .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
         }
 
-        unsafeWindow.openSettings = function() {
+        unsafeWindow.dtht_openSettings = function() {
             document.getElementById('setTargetDay').value = unsafeWindow.masterTarget;
             const list = document.getElementById('groupChecklist'); list.innerHTML = "";
             let filteredGroups = unsafeWindow.allParsedGroups.filter(g => g.name.length < 50 && !g.name.includes("QUẠT ĐIỀU HÒAQUẠT GIÓ"));
@@ -485,7 +485,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                     <div class="chk-item">
                         <div class="chk-top">
                             <div class="chk-left">
-                                <span class="st-picker-btn" onclick="showStickerPopup(event, this, '${g.name}')">${conf.sticker}</span>
+                                <span class="st-picker-btn" onclick="dtht_showStickerPopup(event, this, '${g.name}')">${conf.sticker}</span>
                                 <span class="chk-name-text">${g.name}</span>
                             </div>
                             <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
@@ -493,32 +493,32 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                         <input type="text" class="nickname-input" placeholder="Đặt biệt danh..." value="${conf.nickname || ''}">
                     </div>`;
             });
-            document.getElementById('overlay').style.display = 'block';
-            document.getElementById('settingsPanel').style.display = 'flex';
+            document.getElementById('dtht_overlay').style.display = 'block';
+            document.getElementById('dtht_settingsPanel').style.display = 'flex';
         }
 
-        unsafeWindow.showStickerPopup = function(event, btn, gName) {
+        unsafeWindow.dtht_showStickerPopup = function(event, btn, gName) {
             event.stopPropagation();
             unsafeWindow.activePickerBtn = btn;
             unsafeWindow.activeGroupName = gName;
             const grid = document.getElementById('stickerGrid');
-            grid.innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="selectSticker('${s}')">${s}</div>`).join('');
-            document.getElementById('stickerPopup').style.display = 'flex';
+            grid.innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="dtht_selectSticker('${s}')">${s}</div>`).join('');
+            document.getElementById('dtht_stickerPopup').style.display = 'flex';
         }
 
-        unsafeWindow.selectSticker = function(st) {
+        unsafeWindow.dtht_selectSticker = function(st) {
             if(unsafeWindow.activePickerBtn) unsafeWindow.activePickerBtn.innerText = st;
             if(!unsafeWindow.groupConfigs[unsafeWindow.activeGroupName]) unsafeWindow.groupConfigs[unsafeWindow.activeGroupName] = { visible: true, sticker: "📦", nickname: "" };
             unsafeWindow.groupConfigs[unsafeWindow.activeGroupName].sticker = st;
-            document.getElementById('stickerPopup').style.display = 'none';
+            document.getElementById('dtht_stickerPopup').style.display = 'none';
         }
 
-        unsafeWindow.closeSettings = function() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('settingsPanel').style.display = 'none';
+        unsafeWindow.dtht_closeSettings = function() {
+            document.getElementById('dtht_overlay').style.display = 'none';
+            document.getElementById('dtht_settingsPanel').style.display = 'none';
         }
 
-        unsafeWindow.saveSettings = function() {
+        unsafeWindow.dtht_saveSettings = function() {
             unsafeWindow.masterTarget = parseFloat(document.getElementById('setTargetDay').value) || 500;
             document.querySelectorAll('.chk-item').forEach(item => {
                 const chk = item.querySelector('.g-vis');
@@ -527,8 +527,8 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                 const nick = item.querySelector('.nickname-input').value.trim();
                 unsafeWindow.groupConfigs[name] = { visible: chk.checked, sticker: st, nickname: nick };
             });
-            localStorage.setItem('tamHoaSlimConfigs', JSON.stringify(unsafeWindow.groupConfigs));
-            unsafeWindow.closeSettings();
+            localStorage.setItem('dtht_tamHoaSlimConfigs', JSON.stringify(unsafeWindow.groupConfigs));
+            unsafeWindow.dtht_closeSettings();
             unsafeWindow.renderDaily();
         }
 unsafeWindow.lamMoiTatCa = function() {
