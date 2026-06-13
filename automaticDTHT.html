@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        🚀 DTHT V5
+// @name        🚀 DTHT V5 - IMMORTAL EDITION
 // @match       https://bi.thegioididong.com/*
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -9,55 +9,58 @@
 
 (function() {
     'use strict';
-if (localStorage.getItem('tamhoa_loading_active') === 'true') {
-    hienThiLoading();
-}
+
+   if (localStorage.getItem('dtht_loading_active') === 'true') {
+        hienThiLoading();
+    }
+
+    // --- CÔNG CỤ QUAN SÁT & CHỜ ĐỢI (THAY THẾ DELAY) ---
+    function waitForElement(selector, timeout = 15000) {
+        return new Promise((resolve, reject) => {
+            const el = document.querySelector(selector);
+            if (el) return resolve(el);
+
+            const observer = new MutationObserver((mutations) => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    observer.disconnect();
+                    resolve(el);
+                }
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            setTimeout(() => {
+                observer.disconnect();
+                reject(new Error(`Timeout: Không tìm thấy ${selector}`));
+            }, timeout);
+        });
+    }
+
     const delay = ms => new Promise(r => setTimeout(r, ms));
 
     // --- BỘ MÁY VŨ TRỤ ---
-function hienThiLoading() {
-        if(document.getElementById('tamhoa-loading')) return;
+    function hienThiLoading() {
+        if(document.getElementById('dtht-loading')) return;
         const css = `
-            .sky-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 9999999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; }
-
-            /* Lớp nền sao phủ toàn màn hình - Sao nền to hơn một chút */
+            .dtht-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 9999999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; }
             .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
             .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
             @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
             .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
             @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-
-            /* Sao hào quang xung quanh tên lửa - Tăng size, tăng sáng */
-            .star-sparkle {
-                position: absolute; width: 12px; height: 12px; background: #fff;
-                border-radius: 50%; box-shadow: 0 0 20px #fff, 0 0 30px #00d2ff;
-                animation: pulse 1.5s infinite alternate;
-            }
+            .star-sparkle { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff, 0 0 30px #00d2ff; animation: pulse 1.5s infinite alternate; }
             @keyframes pulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.8); } }
-
-            .status-text {
-    margin-top: 80px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 22px;
-    letter-spacing: 4px;
-    color: #fff;
-    text-transform: uppercase;
-    font-weight: 900;
-    z-index: 1;
-    /* Hiệu ứng Neon phát sáng siêu nổi bật */
-    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff, 0 0 40px #00d2ff, 0 0 80px #00d2ff;
-}
+            .status-text { margin-top: 80px; font-family: 'Montserrat', sans-serif; font-size: 22px; letter-spacing: 4px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff, 0 0 40px #00d2ff, 0 0 80px #00d2ff; }
         `;
         let style = document.createElement('style'); style.innerHTML = css; document.head.appendChild(style);
 
         let div = document.createElement('div');
-        div.id = 'tamhoa-loading'; div.className = 'sky-overlay';
+        div.id = 'dtht-loading'; div.className = 'dtht-overlay';
 
-        // Tạo dải sao nền (nhiều và to rõ hơn)
         let bgStars = '<div class="stars-bg">';
         for(let i=0; i<60; i++) {
-            let size = Math.random() * 3 + 2; // Sao nền tối thiểu 2px, tối đa 5px
+            let size = Math.random() * 3 + 2;
             bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
         }
         bgStars += '</div>';
@@ -65,7 +68,6 @@ function hienThiLoading() {
         div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🚀<div id="stars"></div></div><div class="status-text">LOADING...</div>`;
         document.body.appendChild(div);
 
-        // Tạo 12 ngôi sao to rõ xung quanh tên lửa
         const starContainer = document.getElementById('stars');
         for(let i=0; i<12; i++) {
             let star = document.createElement('div');
@@ -77,177 +79,164 @@ function hienThiLoading() {
             starContainer.appendChild(star);
         }
     }
+
     function tatLoading() {
-        let load = document.getElementById('tamhoa-loading');
+        let load = document.querySelector('.dtht-overlay');
         if(load) load.remove();
+        localStorage.removeItem('dtht_loading_active');
     }
 
-    // NHÚNG HTML2CANVAS ĐỂ CHỤP ẢNH
     if (!window.html2canvas) {
         let script = document.createElement('script');
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
         document.head.appendChild(script);
     }
 
-    // LUẬT LÀM TRÒN TAM HÒA
-    const lamTronTamHoa = (num) => {
-        if (num < 1.5) return 1;
+    // LUẬT LÀM TRÒN
+    const lamTronDtht = (num) => {
+        if (num < 1.5 && num > 0) return 1;
         return Math.round(num);
     };
 
     // 1. TẠO NÚT & LÍNH CANH
     setInterval(() => {
-        if (!document.getElementById('btn-robot-tamhoa')) {
+        if (!document.getElementById('btn-robot-dtht')) {
             const btn = document.createElement('button');
-            btn.id = "btn-robot-tamhoa";
+            btn.id = "btn-robot-dtht";
             btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡";
             btn.style.cssText = `position:fixed; bottom:120px; left:50%; transform:translateX(-50%); z-index:999; padding:15px; background:linear-gradient(90deg, #f1c40f, #e67e22); color:#000; font-weight:950; border:3px solid #fff; border-radius:50px; cursor:pointer; box-shadow:0 0 15px rgba(241, 196, 15, 0.6); font-family:sans-serif; text-transform:uppercase;`;
             btn.onclick = () => {
-                GM_deleteValue('robot_state');
+                GM_deleteValue('dtht_robot_state');
                 xuLyTrang1();
             };
             document.body.appendChild(btn);
         }
 
-        if (GM_getValue('robot_state') === 'WAITING_FOR_PAGE_2' && window.location.href.includes("thi-dua")) {
-            GM_setValue('robot_state', 'PROCESSING_PAGE_2');
-            setTimeout(xuLyTrang2, 3500);
+        if (GM_getValue('dtht_robot_state') === 'WAITING_FOR_PAGE_2' && window.location.href.includes("thi-dua")) {
+            GM_setValue('dtht_robot_state', 'PROCESSING_PAGE_2');
+            xuLyTrang2(); // Chạy ngay không cần set cứng delay
         }
     }, 1000);
 
     async function xuLyTrang1() {
-        // Kích hoạt màn hình chờ trước tiên
         hienThiLoading();
+        let btn = document.getElementById('btn-robot-dtht');
+        if (btn) btn.style.display = "none";
 
-        // Ẩn nút bấm để giao diện trông sạch sẽ, không cần đổi màu nữa
-        let btn = document.getElementById('btn-robot-tamhoa');
-        if (btn) { btn.style.display = "none"; }
-
-        // Tiếp tục logic tìm tab bình thường
-        let tab = null;
-        for(let i = 0; i < 10; i++) {
-            tab = document.querySelector('#tab-bcdtnh');
-            if(tab) break;
-            await delay(1000);
-        }
-
-        if(tab) {
+        try {
+            // Chờ tab Báo cáo doanh thu xuất hiện
+            let tab = await waitForElement('#tab-bcdtnh', 10000);
             tab.click();
-            await delay(3000);
-        } else {
-            alert("Robot mù đường! Không tìm thấy tab 'BC Doanh thu ngành hàng'.");
-            tatLoading();
-            if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
-            return;
-        }
 
-        let filterDivs = document.querySelectorAll('.filter-option-inner-inner');
-        let dropdownBtn = null;
-        for (let div of filterDivs) {
-            if (div.innerText.trim() === 'Lũy kế Tháng' || div.innerText.trim() === 'Realtime') {
-                dropdownBtn = div.closest('button');
-                break;
+            // Tìm và click Dropdown bộ lọc
+            let dropdownInner = await waitForElement('.filter-option-inner-inner', 10000);
+            let filterDivs = document.querySelectorAll('.filter-option-inner-inner');
+            let dropdownBtn = null;
+
+            for (let div of filterDivs) {
+                if (div.innerText.trim() === 'Lũy kế Tháng' || div.innerText.trim() === 'Realtime') {
+                    dropdownBtn = div.closest('button');
+                    break;
+                }
             }
-        }
 
-        if (dropdownBtn) {
-            if (!dropdownBtn.innerText.includes('Realtime')) {
+            if (dropdownBtn && !dropdownBtn.innerText.includes('Realtime')) {
                 dropdownBtn.click();
-                await delay(1000);
-
+                // Chờ menu xổ xuống và tìm thẻ Realtime
+                await delay(500);
                 let options = document.querySelectorAll('a.dropdown-item span.text, li a');
-                let daChon = false;
+                let found = false;
                 for (let opt of options) {
                     if (opt.innerText.trim() === 'Realtime') {
                         opt.click();
-                        daChon = true;
+                        found = true;
                         break;
                     }
                 }
-
-                if (daChon) {
-                    await delay(4000);
-                } else {
-                    alert("Lỗi: Đã mở được menu nhưng không thấy chữ 'Realtime'!");
-                    tatLoading();
-                    if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; }
-                    return;
-                }
+                if (!found) throw new Error("Không tìm thấy tùy chọn Realtime");
             }
-        }
 
-        let dataTong = null;
-        for(let lanThu = 0; lanThu < 15; lanThu++) {
-            await delay(1000);
-            let rows = document.querySelectorAll('tr');
-            for (let i = 0; i < rows.length; i++) {
-                let text = rows[i].textContent.trim();
-                if (text.includes("Tổng") && text.includes("%")) {
-                    let cells = rows[i].querySelectorAll('td');
-                    if (cells.length >= 8) {
-                        dataTong = {
-                            dt: cells[3].textContent.trim(),
-                            target: cells[4].textContent.trim(),
-                            pct: cells[5].textContent.trim(),
-                            tracham: cells[7].textContent.trim()
-                        };
-                        break;
+            // Mắt thần rà quét bảng dữ liệu liên tục cho đến khi thấy "Tổng"
+            let dataTong = null;
+            for(let scan = 0; scan < 20; scan++) {
+                await delay(1000); // Quét mỗi giây
+                let rows = document.querySelectorAll('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    let text = rows[i].textContent.trim();
+                    if (text.includes("Tổng") && text.includes("%")) {
+                        let cells = rows[i].querySelectorAll('td');
+                        if (cells.length >= 8) {
+                            dataTong = {
+                                dt: cells[3].textContent.trim(),
+                                target: cells[4].textContent.trim(),
+                                pct: cells[5].textContent.trim(),
+                                tracham: cells[7].textContent.trim()
+                            };
+                            break;
+                        }
                     }
                 }
+                if (dataTong && dataTong.dt !== "") break;
             }
-            if(dataTong && dataTong.dt !== "") break;
-        }
 
-        if (!dataTong || dataTong.dt === "") {
-            alert("Mạng chậm quá! Chưa lấy được số Tổng. Ông F5 trang rồi thử lại nhé.");
+            if (!dataTong || dataTong.dt === "") throw new Error("Chưa lấy được số Tổng.");
+
+            GM_setValue('dtht_data_trang1', JSON.stringify(dataTong));
+            localStorage.setItem('dtht_loading_active', 'true');
+            GM_setValue('dtht_robot_state', 'WAITING_FOR_PAGE_2');
+            window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
+
+        } catch (error) {
+            alert("Lỗi bộ máy: " + error.message);
             tatLoading();
-            if (btn) { btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
-            return;
+            if (btn) { btn.style.display = "block"; btn.innerHTML = "⚡ LỖI! BẤM LẠI"; btn.style.background = "red"; btn.style.color = "white"; }
         }
-
-        GM_setValue('data_trang1', JSON.stringify(dataTong));
-        localStorage.setItem('tamhoa_loading_active', 'true');
-GM_setValue('robot_state', 'WAITING_FOR_PAGE_2');
-window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
 
-    // --- BƯỚC 2: XỬ LÝ TRANG 2 ---
+    // --- BƯỚC 2: XỬ LÝ TRANG 2 (BẢN VÁ LỖI) ---
     async function xuLyTrang2() {
-        let btn = document.getElementById('btn-robot-tamhoa');
-        if (btn) { btn.innerHTML = "⏳ CHUẨN BỊ LÊN BẢNG..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
+        let btn = document.getElementById('btn-robot-dtht');
+        if (btn) { btn.style.display = "block"; btn.innerHTML = "⏳ ĐANG PHÂN TÍCH..."; btn.style.background = "#ffc107"; btn.style.color = "black"; }
 
-        await delay(4000);
+        try {
+            // Không đợi table nữa, chỉ cần đợi body load xong
+            await waitForElement('body', 15000);
+            await delay(2000); // Đợi thêm chút cho dữ liệu kịp render vào DOM
 
-        let data1_str = GM_getValue('data_trang1');
-        let data1 = data1_str ? JSON.parse(data1_str) : { dt: "0", target: "500", pct: "0", tracham: "0" };
+            let data1_str = GM_getValue('dtht_data_trang1');
+            let data1 = data1_str ? JSON.parse(data1_str) : { dt: "0", target: "500", pct: "0", tracham: "0" };
 
-        let rawText = document.body.innerText;
-        let lines = rawText.split('\n');
-        let cleanText = "";
-        for(let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-            if (line === "" || /^Cụm\s+\d+$/.test(line) || /^Trở lại$/.test(line)) continue;
-            cleanText += line + "\n";
+            let rawText = document.body.innerText;
+            let lines = rawText.split('\n');
+            let cleanText = "";
+            for(let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (line === "" || /^Cụm\s+\d+$/.test(line) || /^Trở lại$/.test(line) || line.includes("Việt Bí")) continue;
+                cleanText += line + "\n";
+            }
+
+            hienThiSieuPham(data1, cleanText);
+            tatLoading();
+
+            GM_deleteValue('dtht_robot_state');
+            if (btn) { btn.innerHTML = "⚡ XONG RỒI ĐÓ!"; btn.style.background = "green"; btn.style.color = "white"; }
+            setTimeout(() => { if (btn) { btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡"; btn.style.background = "linear-gradient(90deg, #f1c40f, #e67e22)"; btn.style.color = "#000"; } }, 2000);
+        } catch(err) {
+            tatLoading();
+            if (btn) { btn.innerHTML = "⚡ LỖI TRANG 2!"; btn.style.background = "red"; btn.style.color = "white"; }
+            GM_deleteValue('dtht_robot_state');
         }
-
-        hienThiSieuPham(data1, cleanText);
-tatLoading();
-localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
-
-        GM_deleteValue('robot_state');
-        if (btn) { btn.innerHTML = "⚡ XONG RỒI ĐÓ!"; btn.style.background = "green"; btn.style.color = "white"; }
-        setTimeout(() => { if (btn) { btn.innerHTML = "⚡ DOANH THU HIỆN TẠI ⚡"; btn.style.background = "blue"; btn.style.color = "white"; } }, 2000);
     }
-
-    // --- BƯỚC 3: LÊN DÀN ÁO COMMANDER ---
+    // --- BƯỚC 3: DÀN ÁO COMMANDER ---
     function hienThiSieuPham(tong, chiTiet) {
-        let oldOvl = document.getElementById('tamhoa-commander-overlay');
+        let oldOvl = document.getElementById('dtht-commander-overlay');
         if (oldOvl) oldOvl.remove();
 
         let div = document.createElement('div');
-        div.id = 'tamhoa-commander-overlay';
+        div.id = 'dtht-commander-overlay';
         div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483647; background:rgba(0,0,0,0.8); overflow-y:auto; font-family: 'Montserrat', sans-serif;";
 
+        // Rút gọn CSS giữ nguyên cấu trúc
         const cssGoc = `
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
             .th-container { padding: 5px; width: 100%; max-width: 600px; margin: 10px auto; position:relative; }
@@ -294,50 +283,22 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
             .pct-low { background: var(--danger); color: #fff; }
             .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
             .setting-row { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
-            .th-container.racing-mode .capture-frame { background: linear-gradient(145deg, #26262b, #1a1a1f) !important; border: 3px solid #ff4757 !important; }
-            .th-container.racing-mode .group-card { background: #2a2a32 !important; border: 1px solid #ff4757 !important; border-bottom: none !important; }
-            .th-container.racing-mode .group-name { color: #fff !important; }
-            .th-container.racing-mode .group-num { color: #00ffcc !important; }
-            .th-container.racing-mode .skst-row { background: linear-gradient(145deg, #2f3542, #1e2229) !important; border: 3px solid #ff4757 !important; position: relative !important; margin-top: 35px !important; border-left: 6px solid #ff4757 !important; padding: 12px 8px !important; }
-            .th-container.racing-mode .m-label { color: #dae1e7 !important; }
-            .th-container.racing-mode .skst-value { color: #ffcc00 !important; }
-            .th-container.nature-mode .capture-frame { background: #ffffff !important; border: 2px solid #27ae60 !important; }
-            .th-container.nature-mode .group-card { background: #ffffff !important; border-color: #e0eadd !important; border-bottom: none !important; }
-            .th-container.nature-mode .group-name { color: #27ae60 !important; }
-            .th-container.dark-mode .capture-frame, .th-container.dark-mode .skst-row, .th-container.dark-mode .settings-panel { background-color: #1e1e1e !important; border-color: #004a99 !important; }
-            .th-container.dark-mode .group-card { background-color: #252525 !important; border-color: #333 !important; border-bottom: none !important; }
-            .th-container.dark-mode .group-name { color: #ffffff !important; border-bottom-color: #444 !important; }
-            .th-container.dark-mode .skst-value { color: #ffeb9c !important; }
-            .th-container.cyber-mode .capture-frame, .th-container.cyber-mode .skst-row { border: 2px solid #00fbff !important; box-shadow: 0 0 20px #00fbff !important; background: rgba(0,0,0,0.8) !important; }
-            .th-container.cyber-mode .group-card { border: 1px solid #ff00ff !important; background: rgba(255,0,255,0.05) !important; border-bottom: none !important; }
-            .th-container.cyber-mode .group-name { color: #33ff00 !important; }
-            .th-container.cyber-mode .skst-value { color: #ff00ff !important; }
-            .bg-high { background-color: #28a745; }
-            .bg-mid { background-color: #ffc107; }
-            .bg-low { background-color: #dc3545; }
+            .bg-high { background-color: #28a745; } .bg-mid { background-color: #ffc107; } .bg-low { background-color: #dc3545; }
         `;
 
         div.innerHTML = `
             <style>${cssGoc}</style>
-            <div class="th-container" id="thMainContainer">
+            <div class="th-container" id="dthtMainContainer">
                 <div class="input-card" style="display:block;">
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 12px;">
-    <div style="cursor:pointer; background:#ff3b30; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="document.getElementById('tamhoa-commander-overlay').remove();">
-        <span style="font-size:14px;">❌</span> ĐÓNG
-    </div>
-
-    <div style="cursor:pointer; background:#007bff; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="lamMoiTatCa()">
-        <span style="font-size:14px;">🔄</span> LÀM MỚI
-    </div>
-
-    <div style="cursor:pointer; background:#6c757d; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="dtht_openSettings()">
-        <span style="font-size:14px;">⚙️</span> CÀI ĐẶT
-    </div>
-</div>
+                        <div style="cursor:pointer; background:#ff3b30; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="document.getElementById('dtht-commander-overlay').remove();">❌ ĐÓNG</div>
+                        <div style="cursor:pointer; background:#007bff; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="window.lamMoiTatCaDtht()">🔄 LÀM MỚI</div>
+                        <div style="cursor:pointer; background:#6c757d; color:white; border-radius:6px; font-size:11px; font-weight:950; padding:10px 0; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="window.openSettingsDtht()">⚙️ CÀI ĐẶT</div>
+                    </div>
                     <div class="mode-group">
-                        <button class="mode-btn active" id="btnNow" onclick="setMode('now')">🔥 HIỆN TẠI</button>
-                        <button class="mode-btn" id="btnMorning" onclick="setMode('morning')">☀️ CA SÁNG</button>
-                        <button class="mode-btn" id="btnEnd" onclick="setMode('end')">🏁 CUỐI NGÀY</button>
+                        <button class="mode-btn active" id="btnNow" onclick="window.setModeDtht('now')">🔥 HIỆN TẠI</button>
+                        <button class="mode-btn" id="btnMorning" onclick="window.setModeDtht('morning')">☀️ CA SÁNG</button>
+                        <button class="mode-btn" id="btnEnd" onclick="window.setModeDtht('end')">🏁 CUỐI NGÀY</button>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px;">
                         <input type="number" id="inpDT" placeholder="DT (Tr)" inputmode="numeric">
@@ -345,7 +306,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                         <input type="text" id="inpTime" placeholder="Giờ">
                     </div>
                     <textarea id="inpRaw" rows="3" placeholder="Dán dữ liệu BI vào đây..."></textarea>
-                    <button class="btn-main" onclick="renderDaily()">🚀 XUẤT CHIẾN SOI NGÀY</button>
+                    <button class="btn-main" onclick="window.renderDailyDtht()">🚀 XUẤT CHIẾN SOI NGÀY</button>
                 </div>
 
                 <div id="outputArea" style="display:none;">
@@ -355,7 +316,6 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                             <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPct" class="skst-value">0%</div></div>
                             <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGVal" class="skst-value">0%</div></div>
                         </div>
-
                         <div class="capture-frame">
                             <div style="background:var(--primary); color:white; padding:6px; display:flex; justify-content:space-between; align-items:center;">
                                 <h3 style="margin:0; font-weight:950; font-size:10px; text-transform:uppercase;">🔹 CHI TIẾT NHÓM HÀNG</h3>
@@ -364,43 +324,31 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                             <div class="group-grid" id="outGrid"></div>
                             <div style="text-align:center; padding:8px; color:#555; font-size:11px; font-weight:950; background:#fdfdfd; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:10px;">
                                 <span>⏰️ <span id="outFooterTime"></span></span>
-                                <span style="color: #004a99; font-weight: 950;" id="outWeather">🥰MUA MAY BÁN ĐẮT🥰</span>
+                                <span style="color: #004a99; font-weight: 950;">🥰MUA MAY BÁN ĐẮT🥰</span>
                             </div>
                         </div>
                     </div>
-
                     <div class="btn-grid">
-    <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="copyToLien()">📋 COPY CHỮ</button>
-    <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="captureReport()">📸 CHỤP ẢNH</button>
-</div>
-
+                        <button class="btn-main" id="btnCopy" style="background:var(--black); color:var(--accent);" onclick="window.copyToLienDtht()">📋 COPY CHỮ</button>
+                        <button class="btn-main" id="btnCap" style="background: #e67e22; color: white;" onclick="window.captureReportDtht()">📸 CHỤP ẢNH</button>
+                    </div>
                     <textarea id="lienText" readonly></textarea>
                 </div>
             </div>
 
-            <div class="overlay" id="dtht_overlay" onclick="dtht_closeSettings()"></div>
+            <div class="overlay" id="dtht_overlay" onclick="window.closeSettingsDtht()"></div>
             <div class="settings-panel" id="dtht_settingsPanel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h3 style="margin:0; color:var(--primary); font-weight:950; font-size:16px;">⚙️ CÀI ĐẶT</h3>
-                    <span style="cursor:pointer; font-size:22px;" onclick="dtht_closeSettings()">✖</span>
+                    <span style="cursor:pointer; font-size:22px;" onclick="window.closeSettingsDtht()">✖</span>
                 </div>
                 <div class="setting-row">
                     <label style="display:block; font-weight:950; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
                     <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
                 </div>
                 <div id="groupChecklist"></div>
-                <div style="border: 2px solid #eee; border-radius: 8px; padding: 12px 10px 8px 10px; margin-bottom: 10px; background: #fafafa; position: relative;">
-                    <div style="font-size: 11px; font-weight: 950; color: #004a99; background: #fff; padding: 0 8px; position: absolute; top: -10px; left: 12px; border: 1px solid #eee; border-radius: 4px;">🎨 CHỌN GIAO DIỆN</div>
-                    <div style="display: flex; justify-content: space-around; padding-top: 5px;">
-                        <label style="font-weight:950; font-size:12px; cursor:pointer;"><input type="checkbox" id="darkMode" onchange="toggleTheme(this.checked ? 'dark' : 'none')"> 🌙 ĐÊM</label>
-                        <label style="font-weight:950; font-size:12px; cursor:pointer;"><input type="checkbox" id="natureMode" onchange="toggleTheme(this.checked ? 'nature' : 'none')"> 🌿 LÁ</label>
-                        <label style="font-weight:950; font-size:12px; cursor:pointer;"><input type="checkbox" id="racingMode" onchange="toggleTheme(this.checked ? 'racing' : 'none')"> 🏎️ ĐUA</label>
-                        <label style="font-weight:950; font-size:12px; cursor:pointer;"><input type="checkbox" id="cyberMode" onchange="toggleTheme(this.checked ? 'cyber' : 'none')"> 🤖 CYBER</label>
-                    </div>
-                </div>
-                <button onclick="dtht_saveSettings()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 10px;">LƯU LẠI</button>
+                <button onclick="window.saveSettingsDtht()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 950; margin-top: 10px;">LƯU LẠI</button>
             </div>
-
             <div id="dtht_stickerPopup" class="sticker-popup">
                 <div class="sticker-grid" id="stickerGrid"></div>
                 <div class="st-close" onclick="document.getElementById('dtht_stickerPopup').style.display='none'">ĐÓNG</div>
@@ -408,39 +356,39 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
         `;
         document.body.appendChild(div);
 
-        // --- NHÚNG LOGIC JAVASCRIPT CỦA COMMANDER ---
-        unsafeWindow.currentMode = 'now';
-        unsafeWindow.allParsedGroups = [];
-        unsafeWindow.groupConfigs = JSON.parse(localStorage.getItem('dtht_tamHoaSlimConfigs')) || {};
+        // Kế thừa logic UI từ bản cũ (ĐÃ ĐỔI TÊN BIẾN GLOBAL ĐỂ CHỐNG XUNG ĐỘT)
+        unsafeWindow.currentModeDtht = 'now';
+        unsafeWindow.allParsedGroupsDtht = [];
+        unsafeWindow.groupConfigsDtht = JSON.parse(localStorage.getItem('dthtSlimConfigs')) || {};
 
         document.getElementById('inpDT').value = tong.dt.replace(/,/g, '');
         document.getElementById('inpTG').value = tong.tracham.replace(/%/g, '').trim();
-        unsafeWindow.masterTarget = parseFloat(tong.target.replace(/,/g, '')) || 500;
-        document.getElementById('setTargetDay').value = unsafeWindow.masterTarget;
+        unsafeWindow.masterTargetDtht = parseFloat(tong.target.replace(/,/g, '')) || 500;
+        document.getElementById('setTargetDay').value = unsafeWindow.masterTargetDtht;
         document.getElementById('inpRaw').value = chiTiet;
         document.getElementById('inpTime').value = new Date().getHours() + "H" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
 
         const STICKERS = ["📱","📲","💻","🖥️","🖱️","⌨️","🎧","🔋","⌚","📷","💵","💰","💸","🏦","💳","📝","🛡️","🌐","📶","🚩","📊","📉","📢"];
-        unsafeWindow.activePickerBtn = null;
-        unsafeWindow.activeGroupName = "";
+        unsafeWindow.activePickerBtnDtht = null;
+        unsafeWindow.activeGroupNameDtht = "";
 
-        unsafeWindow.setMode = function(mode) {
-            unsafeWindow.currentMode = mode;
+        unsafeWindow.setModeDtht = function(mode) {
+            unsafeWindow.currentModeDtht = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             if(mode === 'now') document.getElementById('btnNow').classList.add('active');
             if(mode === 'morning') document.getElementById('btnMorning').classList.add('active');
             if(mode === 'end') document.getElementById('btnEnd').classList.add('active');
-            unsafeWindow.renderDaily();
+            unsafeWindow.renderDailyDtht();
         }
 
-        unsafeWindow.captureReport = function() {
+        unsafeWindow.captureReportDtht = function() {
             const area = document.getElementById('finalReportArea'), btn = document.getElementById('btnCap');
             btn.innerText = "⏳ ĐANG CHỤP...";
-            document.getElementById('tamhoa-commander-overlay').scrollTo(0,0);
+            document.getElementById('dtht-commander-overlay').scrollTo(0,0);
             setTimeout(() => {
                 html2canvas(area, { scale: 3, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = `TamHoa_${document.getElementById('outFooterTime').innerText}.png`;
+                    link.download = `DTHT_${document.getElementById('outFooterTime').innerText}.png`;
                     link.href = canvas.toDataURL("image/png");
                     link.click();
                     btn.innerText = "✅ XONG!";
@@ -449,7 +397,7 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
             }, 300);
         }
 
-        unsafeWindow.copyToLien = function() {
+        unsafeWindow.copyToLienDtht = function() {
             const textarea = document.getElementById('lienText');
             const btnCopy = document.getElementById('btnCopy');
             textarea.select();
@@ -458,34 +406,31 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
                 document.execCommand('copy');
                 btnCopy.innerText = "✅ ĐÃ COPY!";
                 btnCopy.style.background = "#28a745";
-                setTimeout(() => {
-                    btnCopy.innerText = "📋 COPY CHỮ";
-                    btnCopy.style.background = "var(--black)";
-                }, 2000);
-            } catch (err) {
-                alert("Lỗi rồi, không copy được!");
-            }
+                setTimeout(() => { btnCopy.innerText = "📋 COPY CHỮ"; btnCopy.style.background = "var(--black)"; }, 2000);
+            } catch (err) { alert("Lỗi copy!"); }
         };
 
-        unsafeWindow.trimName = function(name) {
+        unsafeWindow.trimNameDtht = function(name) {
             return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
-                       .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship").replace("Pin sạc dự phòng", "Sạc dự phòng")
-                       .replace("Tai nghe Bluetooth", "Tai nghe").replace("Phụ kiện - Đồng hồ", "Phụ kiện")
-                       .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp (FE/SH/SS)").trim();
+                       .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship")
+                       .replace("Pin sạc dự phòng", "Sạc dự phòng")
+                       // Chỉnh chỗ này: Thay vì xóa hết, ta giữ lại các tên viết tắt của nhóm Góp
+                       .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp(FE/SH/SS)")
+                       .trim();
         }
 
-        unsafeWindow.dtht_openSettings = function() {
-            document.getElementById('setTargetDay').value = unsafeWindow.masterTarget;
+        unsafeWindow.openSettingsDtht = function() {
+            document.getElementById('setTargetDay').value = unsafeWindow.masterTargetDtht;
             const list = document.getElementById('groupChecklist'); list.innerHTML = "";
-            let filteredGroups = unsafeWindow.allParsedGroups.filter(g => g.name.length < 50 && !g.name.includes("QUẠT ĐIỀU HÒAQUẠT GIÓ"));
+            let filteredGroups = unsafeWindow.allParsedGroupsDtht.filter(g => g.name.length < 50);
             let sortedGroups = filteredGroups.sort((a,b) => (b.t > 0) - (a.t > 0) || a.name.localeCompare(b.name));
             sortedGroups.forEach(g => {
-                const conf = unsafeWindow.groupConfigs[g.name] || { visible: true, sticker: "📦", nickname: "" };
+                const conf = unsafeWindow.groupConfigsDtht[g.name] || { visible: true, sticker: "📦", nickname: "" };
                 list.innerHTML += `
                     <div class="chk-item">
                         <div class="chk-top">
                             <div class="chk-left">
-                                <span class="st-picker-btn" onclick="dtht_showStickerPopup(event, this, '${g.name}')">${conf.sticker}</span>
+                                <span class="st-picker-btn" onclick="window.showStickerPopupDtht(event, this, '${g.name}')">${conf.sticker}</span>
                                 <span class="chk-name-text">${g.name}</span>
                             </div>
                             <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
@@ -497,58 +442,56 @@ localStorage.removeItem('tamhoa_loading_active'); // Xóa giấy nhắn
             document.getElementById('dtht_settingsPanel').style.display = 'flex';
         }
 
-        unsafeWindow.dtht_showStickerPopup = function(event, btn, gName) {
+        unsafeWindow.showStickerPopupDtht = function(event, btn, gName) {
             event.stopPropagation();
-            unsafeWindow.activePickerBtn = btn;
-            unsafeWindow.activeGroupName = gName;
-            const grid = document.getElementById('stickerGrid');
-            grid.innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="dtht_selectSticker('${s}')">${s}</div>`).join('');
+            unsafeWindow.activePickerBtnDtht = btn;
+            unsafeWindow.activeGroupNameDtht = gName;
+            document.getElementById('stickerGrid').innerHTML = STICKERS.map(s => `<div class="st-opt" onclick="window.selectStickerDtht('${s}')">${s}</div>`).join('');
             document.getElementById('dtht_stickerPopup').style.display = 'flex';
         }
 
-        unsafeWindow.dtht_selectSticker = function(st) {
-            if(unsafeWindow.activePickerBtn) unsafeWindow.activePickerBtn.innerText = st;
-            if(!unsafeWindow.groupConfigs[unsafeWindow.activeGroupName]) unsafeWindow.groupConfigs[unsafeWindow.activeGroupName] = { visible: true, sticker: "📦", nickname: "" };
-            unsafeWindow.groupConfigs[unsafeWindow.activeGroupName].sticker = st;
+        unsafeWindow.selectStickerDtht = function(st) {
+            if(unsafeWindow.activePickerBtnDtht) unsafeWindow.activePickerBtnDtht.innerText = st;
+            if(!unsafeWindow.groupConfigsDtht[unsafeWindow.activeGroupNameDtht]) unsafeWindow.groupConfigsDtht[unsafeWindow.activeGroupNameDtht] = { visible: true, sticker: "📦", nickname: "" };
+            unsafeWindow.groupConfigsDtht[unsafeWindow.activeGroupNameDtht].sticker = st;
             document.getElementById('dtht_stickerPopup').style.display = 'none';
         }
 
-        unsafeWindow.dtht_closeSettings = function() {
+        unsafeWindow.closeSettingsDtht = function() {
             document.getElementById('dtht_overlay').style.display = 'none';
             document.getElementById('dtht_settingsPanel').style.display = 'none';
         }
 
-        unsafeWindow.dtht_saveSettings = function() {
-            unsafeWindow.masterTarget = parseFloat(document.getElementById('setTargetDay').value) || 500;
+        unsafeWindow.saveSettingsDtht = function() {
+            unsafeWindow.masterTargetDtht = parseFloat(document.getElementById('setTargetDay').value) || 500;
             document.querySelectorAll('.chk-item').forEach(item => {
-                const chk = item.querySelector('.g-vis');
-                const name = chk.getAttribute('data-name');
-                const st = item.querySelector('.st-picker-btn').innerText;
-                const nick = item.querySelector('.nickname-input').value.trim();
-                unsafeWindow.groupConfigs[name] = { visible: chk.checked, sticker: st, nickname: nick };
+                const chk = item.querySelector('.g-vis'), name = chk.getAttribute('data-name');
+                const st = item.querySelector('.st-picker-btn').innerText, nick = item.querySelector('.nickname-input').value.trim();
+                unsafeWindow.groupConfigsDtht[name] = { visible: chk.checked, sticker: st, nickname: nick };
             });
-            localStorage.setItem('dtht_tamHoaSlimConfigs', JSON.stringify(unsafeWindow.groupConfigs));
-            unsafeWindow.dtht_closeSettings();
-            unsafeWindow.renderDaily();
+            localStorage.setItem('dthtSlimConfigs', JSON.stringify(unsafeWindow.groupConfigsDtht));
+            unsafeWindow.closeSettingsDtht();
+            unsafeWindow.renderDailyDtht();
         }
-unsafeWindow.lamMoiTatCa = function() {
-    GM_setValue('robot_state', 'AUTO_RUN_START'); // PHẢI LÀ LỆNH NÀY: Bỏ giấy nhắn vào túi
-    GM_deleteValue('data_trang1');
-    window.location.href = "https://bi.thegioididong.com/";
-};
 
-        unsafeWindow.renderDaily = function() {
+        unsafeWindow.lamMoiTatCaDtht = function() {
+            GM_setValue('dtht_robot_state', 'AUTO_RUN_START');
+            GM_deleteValue('dtht_data_trang1');
+            window.location.href = "https://bi.thegioididong.com/";
+        };
+
+        unsafeWindow.renderDailyDtht = function() {
             const raw = document.getElementById('inpRaw').value;
             const dt = parseFloat(document.getElementById('inpDT').value) || 0;
             const tg = parseFloat(document.getElementById('inpTG').value) || 0;
             const time = document.getElementById('inpTime').value;
-            const mode = unsafeWindow.currentMode;
-            const masterTarget = unsafeWindow.masterTarget;
+            const mode = unsafeWindow.currentModeDtht;
+            const masterTarget = unsafeWindow.masterTargetDtht;
 
-            if(!raw) { alert("Dán dữ liệu vào ô trước đã ông ơi!"); return; }
+            if(!raw) { alert("Thiếu dữ liệu!"); return; }
 
             const lines = raw.split('\n').map(l => l.trim()).filter(l => l !== "");
-            unsafeWindow.allParsedGroups = [];
+            unsafeWindow.allParsedGroupsDtht = [];
             let groupIndices = [];
 
             for (let i = 0; i < lines.length; i++) {
@@ -572,7 +515,7 @@ unsafeWindow.lamMoiTatCa = function() {
             for (let k = 0; k < groupIndices.length; k++) {
                 let startIdx = groupIndices[k];
                 let endIdx = (k < groupIndices.length - 1) ? groupIndices[k+1] : lines.length;
-                let name = unsafeWindow.trimName(lines[startIdx]);
+                let name = unsafeWindow.trimNameDtht(lines[startIdx]);
                 let r = 0, t = 0, p = 0;
 
                 for (let j = startIdx + 1; j < endIdx; j++) {
@@ -583,31 +526,28 @@ unsafeWindow.lamMoiTatCa = function() {
                     if (line.includes("% HT")) p = extractPct(line) || extractPct(nextLine);
                 }
                 if(name && (r > 0 || t > 0)) {
-                    unsafeWindow.allParsedGroups.push({ name, r, t, p });
+                    unsafeWindow.allParsedGroupsDtht.push({ name, r, t, p });
                 }
             }
 
-            let displayList = unsafeWindow.allParsedGroups.filter(g => unsafeWindow.groupConfigs[g.name]?.visible !== false);
+            let displayList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.name]?.visible !== false);
             displayList.sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
 
             let gridHtml = "", datCount = 0;
             displayList.forEach(g => {
                 if(g.t > 0 && g.p >= 100) datCount++;
-
                 let pDisplay = g.r === 0 ? 0 : Math.round(g.p);
                 let pCl = g.r === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
-                let finalName = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
+                let finalName = unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name;
 
                 gridHtml += `
                     <div class="group-card">
-                        <div class="group-name">
-                            <span class="group-sticker">${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"}</span> ${finalName}
-                        </div>
+                        <div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigsDtht[g.name]?.sticker || "📦"}</span> ${finalName}</div>
                         <div class="group-stats">
                             <div class="group-num">${g.r}${g.t>0 ? '/'+g.t : ''}</div>
                             <div class="group-pct ${pCl}">${pDisplay}%</div>
                         </div>
-                        <div style="width:100%; height:4px; background:#eee; border-radius:2px; margin-top:6px; overflow:hidden; border:none;">
+                        <div style="width:100%; height:4px; background:#eee; border-radius:2px; margin-top:6px; overflow:hidden;">
                             <div style="width:${g.r === 0 ? 0 : Math.min(100, g.p)}%; height:100%;" class="${pCl.replace('pct-', 'bg-')}"></div>
                         </div>
                     </div>`;
@@ -617,102 +557,73 @@ unsafeWindow.lamMoiTatCa = function() {
             const totalGroups = displayList.filter(x=>x.t>0).length;
             document.getElementById('outDatCount').innerText = `${datCount}/${totalGroups}`;
 
-            document.getElementById('outDTStr').innerText = lamTronTamHoa(dt) + "/" + lamTronTamHoa(masterTarget);
+            document.getElementById('outDTStr').innerText = lamTronDtht(dt) + "/" + lamTronDtht(masterTarget);
             const pDT = ((dt / masterTarget) * 100);
-            document.getElementById('outDTPct').innerText = lamTronTamHoa(pDT) + "%";
+            document.getElementById('outDTPct').innerText = lamTronDtht(pDT) + "%";
             document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
-            document.getElementById('outTGVal').innerText = lamTronTamHoa(tg) + "%";
+            document.getElementById('outTGVal').innerText = lamTronDtht(tg) + "%";
             document.getElementById('outFooterTime').innerText = time;
 
-            const toSticker = (num) => {
-                const stickers = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
-                return num.toString().split('').map(d => stickers[parseInt(d)] || d).join('');
-            };
+            const toSticker = (num) => num.toString().split('').map(d => ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"][parseInt(d)] || d).join('');
 
-            let dtTron = lamTronTamHoa(dt);
-            let targetTron = lamTronTamHoa(masterTarget);
-            let pDTTron = lamTronTamHoa(pDT);
-            let tgTron = lamTronTamHoa(tg);
-            let thieuTron = lamTronTamHoa(Math.abs(masterTarget - dt));
+            let dtTron = lamTronDtht(dt), targetTron = lamTronDtht(masterTarget), pDTTron = lamTronDtht(pDT), tgTron = lamTronDtht(tg), thieuTron = lamTronDtht(Math.abs(masterTarget - dt));
+            let prefix = "", mainStatus = "", footer = "\nNhóm hàng đạt/Tổng nhóm: " + datCount + "/" + totalGroups + "\n🚀 Push số gấp 💪🔥";
 
-            let prefix = "", mainStatus = "", footer = "";
             if (mode === 'now') {
-                prefix = `🔥 CẬP NHẬT DOANH THU HIỆN TẠI (${time}): `;
-                mainStatus = pDT >= 100 ? `🎊 TUYỆT VỜI! Đã cán đích với ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%). Duy trì phong độ nhé! 🚀` : `📉 Hiện tại đạt: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Còn thiếu: ${toSticker(thieuTron)}TR`;
-                footer = "\n🚀 Team mình nhận thông tin PUSH SỐ GẤP 💪🔥";
+                prefix = `🔥 CẬP NHẬT HIỆN TẠI (${time}): `;
+                mainStatus = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%).` : `📉 Đạt: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Thiếu: ${toSticker(thieuTron)}TR`;
             } else if (mode === 'morning') {
-                prefix = `☀️ KẾT THÚC CA SÁNG: `;
-                mainStatus = pDT >= 100 ? `🎊 Ca sáng làm quá tốt! Đạt ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%). 🚀` : `⚠️ Kết ca sáng: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Thiếu: ${toSticker(thieuTron)}TR`;
-                footer = "\n🚀 Team ca chiều nhận thông tin PUSH SỐ GẤP! 🔥";
+                prefix = `☀️ KẾT CA SÁNG: `;
+                mainStatus = pDT >= 100 ? `🎊 Ca sáng tốt! ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%).` : `⚠️ Kết ca sáng: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Thiếu: ${toSticker(thieuTron)}TR`;
             } else {
                 prefix = `🏁 TỔNG KẾT NGÀY: `;
-                mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích rực rỡ với ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%). 🏆` : `📉 Hôm nay về: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Thiếu: ${toSticker(thieuTron)}TR`;
-                footer = "\nCám ơn team, chúc cả nhà ngủ ngon! 😴";
+                mainStatus = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%).` : `📉 Về: ${toSticker(dtTron)}/${toSticker(targetTron)}TR (${toSticker(pDTTron)}%)\n👉 Thiếu: ${toSticker(thieuTron)}TR`;
             }
 
-            let txt = `${prefix}\n${mainStatus}\n💳 TỈ LỆ TRẢ GÓP: ${toSticker(tgTron)}%\n🎯 SỐ NHÓM ĐẠT: ${toSticker(datCount)}/${toSticker(totalGroups)}\n\n`;
+            let txt = `${prefix}\n${mainStatus}\n💳 TRẢ GÓP: ${toSticker(tgTron)}%\n\n`;
 
             const highG = displayList.filter(g => g.t > 0 && g.p >= 100);
             const lowG = displayList.filter(g => g.t > 0 && g.p < 100);
 
             if(highG.length > 0) {
                 txt += `✅ NHÓM ĐÃ ĐẠT:\n`;
-                highG.forEach(g => {
-                    let n = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                    let pDisplayTxt = g.r === 0 ? 0 : Math.round(g.p);
-                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplayTxt)}%\n`;
-                });
+                highG.forEach(g => txt += `${unsafeWindow.groupConfigsDtht[g.name]?.sticker || "📦"} ${unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name}: ${toSticker(Math.round(g.p))}%\n`);
                 txt += `\n`;
             }
             if(lowG.length > 0) {
                 txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
-                lowG.forEach(g => {
-                    let n = unsafeWindow.groupConfigs[g.name]?.nickname || g.name;
-                    let pDisplayTxt = g.r === 0 ? 0 : Math.round(g.p);
-                    txt += `${unsafeWindow.groupConfigs[g.name]?.sticker || "📦"} ${n}: ${toSticker(pDisplayTxt)}%\n`;
-                });
+                lowG.forEach(g => txt += `${unsafeWindow.groupConfigsDtht[g.name]?.sticker || "📦"} ${unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name}: ${toSticker(Math.round(g.p))}%\n`);
             }
             document.getElementById('lienText').value = txt + footer;
             document.getElementById('outputArea').style.display = "block";
         };
 
-        unsafeWindow.renderDaily();
+        unsafeWindow.renderDailyDtht();
     }
 
- function tuDongVaoTiem() {
-        if (window.radarTamHoa) clearInterval(window.radarTamHoa);
-
-        window.radarTamHoa = setInterval(() => {
+    function tuDongVaoTiem() {
+        if (window.radarDtht) clearInterval(window.radarDtht);
+        window.radarDtht = setInterval(() => {
             const isTamHoaPage = window.location.href.includes("bi.thegioididong.com/thi-dua");
-            const giayNhan = GM_getValue('robot_state'); // Móc túi xem có lệnh không
-
             if (isTamHoaPage) {
-                // ĐÃ VÀO TRONG TIỆM
-                if (giayNhan === 'AUTO_RUN_START') {
-                    // Nếu có giấy nhắn Làm Mới, đợi đến khi thấy nút là bấm ngay!
-                    const btn = document.getElementById('btn-robot-tamhoa');
+                if (GM_getValue('dtht_robot_state') === 'AUTO_RUN_START') {
+                    const btn = document.getElementById('btn-robot-dtht');
                     if (btn) {
-                        btn.click(); // BẤM NÚT ĐỔ SỐ
-                        GM_deleteValue('robot_state'); // Xóa giấy nhắn
-                        clearInterval(window.radarTamHoa); // Tắt radar cho nhẹ máy
-                        console.log("Đã kích nổ nút làm mới tự động!");
+                        btn.click();
+                        GM_deleteValue('dtht_robot_state');
+                        clearInterval(window.radarDtht);
                     }
-                } else {
-                    // Nếu vào tiệm bình thường (ông tự F5), không có giấy -> Tắt radar
-                    clearInterval(window.radarTamHoa);
-                }
+                } else clearInterval(window.radarDtht);
             } else {
-                // ĐANG Ở TRANG CHỦ
-                const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO - 05/1B Quốc Lộ 1 (Tam Hòa)'));
-                if (linkTamHoa && !window.daBamVaoTiem) {
-                    window.daBamVaoTiem = true; // Chốt an toàn: Đánh dấu đã vặn ga để không bấm 2 lần
+                const linkTamHoa = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('TGD_DON_BHO'));
+                if (linkTamHoa && !window.daBamVaoTiemDtht) {
+                    window.daBamVaoTiemDtht = true;
                     linkTamHoa.click();
                 }
             }
-        }, 500); // Quét 0.5s/lần
+        }, 500);
     }
 
-    // Reset chốt an toàn khi mở trang
-    window.daBamVaoTiem = false;
+    window.daBamVaoTiemDtht = false;
     tuDongVaoTiem();
 })();
