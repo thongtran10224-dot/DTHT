@@ -39,7 +39,7 @@
         });
     }
 
-    // Biến global để giữ cho tên lửa không bị mất
+     // Biến global để giữ cho tên lửa không bị mất
     let rocketInterval = null;
 
     function hienThiVuTruLoading() {
@@ -65,17 +65,17 @@
             if (!document.getElementById('master-loading-overlay')) {
                 let div = document.createElement('div');
                 div.id = 'master-loading-overlay'; div.className = 'skst-overlay';
-                
+
                 let bgStars = '<div class="stars-bg">';
                 for(let i=0; i<60; i++) {
                     let size = Math.random() * 3 + 2;
                     bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
                 }
                 bgStars += '</div>';
-                
+
                 div.innerHTML = bgStars + `
-                    <div class="rocket-container" id="rocket">🚀<div id="stars"></div></div>
-                    <div class="status-text">ĐANG HÚT SỐ...</div>
+                    <div class="rocket-container" id="rocket">🌟<div id="stars"></div></div>
+                    <div class="status-text">LOADING...</div>
                 `;
                 document.body.appendChild(div);
 
@@ -111,13 +111,19 @@
     const STATE_KEY = 'tamhoa_master_state';
     let currentState = GM_getValue(STATE_KEY, 'IDLE');
 
-    function taoNutBatTu() {
+   function taoNutBatTu() {
         if(document.getElementById('btn-immortal-menu')) return;
         let btn = document.createElement('button');
         btn.id = "btn-immortal-menu";
-        btn.innerHTML = "BI";
-        // Đã sửa lại vị trí ra giữa bottom và font chữ đồng bộ theo yêu cầu
-        btn.style.cssText = `position:fixed; bottom:40px; left:50%; transform:translateX(-50%); z-index:2147483647; width:50px; height:50px; background:linear-gradient(90deg, #1e3799, #004a99); color:#ffc107; font-weight:900; font-size:18px; border:2px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display:flex; justify-content:center; align-items:center; transition: all 0.3s ease;`;
+
+
+        btn.innerHTML = "📊";
+
+        btn.style.cssText = `position:fixed; bottom:40px; left:50%; transform:translateX(-50%); z-index:2147483647; width:50px; height:50px; background:linear-gradient(90deg, #1e3799, #004a99); color:#ffc107; font-weight:900; font-size:24px; border:2px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: all 0.3s ease;`;
+
+        // Thêm hiệu ứng nhấp nháy nhẹ khi di chuột vào cho xịn
+        btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
+        btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
 
         btn.onclick = () => {
             let panel = document.getElementById('super-master-panel');
@@ -703,11 +709,14 @@
             }
         });
 
-        overlay.innerHTML = `
+       overlay.innerHTML = `
             <div class="header-controls">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <span style="font-weight: 900; color: #004a99; font-size: 13px;">📊 BẢNG SỨC KHỎE ST</span>
-                    <button onclick="document.getElementById('skst-super-overlay').remove()" style="background: #d63031; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 11px;">ĐÓNG ❌</button>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="window.skst_openSettings()" style="background: #6c757d; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 11px;">⚙️ CÀI ĐẶT</button>
+                        <button onclick="document.getElementById('skst-super-overlay').remove()" style="background: #d63031; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 11px;">ĐÓNG ❌</button>
+                    </div>
                 </div>
                 <div class="input-container">
                     <div class="input-item"><label>1.SKST</label><textarea class="sk-ta" id="i1"></textarea></div>
@@ -717,12 +726,13 @@
                     <div class="input-item"><label>5.T.Góp</label><textarea class="sk-ta" id="i5"></textarea></div>
                 </div>
                 <div class="btn-group">
-                    <button class="btn-sk" style="background:#6c757d; flex:0 0 40px;" onclick="window.skst_openSettings()">Cài Đặt ⚙️</button>
                     <button class="btn-sk" style="background:#004a99" onclick="window.skst_masterProcess()">Xuất Dữ Liệu ⚡</button>
                     <button class="btn-sk" style="background:#28a745" onclick="window.skst_captureReport()">Chụp Hình 📷</button>
                     <button class="btn-sk" style="background:#e67e22" onclick="window.skst_generateFullReport()">Copy Nhận Xét 🚀</button>
                     <button class="btn-sk" style="background:#8e44ad; font-weight:900;" onclick="window.skst_toggleReward()">THƯỞNG 🏆</button>
                 </div>
+            </div>
+            <!-- ... (giữ nguyên phần còn lại của overlay.innerHTML) ... -->
             </div>
             <div id="reportOutput" style="display:none; background:#fff; padding:10px; margin:10px; border-radius:8px; border:2px solid #004a99; white-space:pre-wrap; font-size:12px; font-weight:900;"></div>
             <div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
