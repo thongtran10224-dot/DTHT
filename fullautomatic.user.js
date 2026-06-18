@@ -39,47 +39,66 @@
         });
     }
 
+    // Biến global để giữ cho tên lửa không bị mất
+    let rocketInterval = null;
+
     function hienThiVuTruLoading() {
-        if(document.getElementById('master-loading-overlay')) return;
-        const css = `
-            .skst-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 9999999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; pointer-events: all; }
-            .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
-            .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
-            @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-            .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
-            @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-            .star-sparkle { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff, 0 0 30px #00d2ff; animation: pulse 1.5s infinite alternate; }
-            @keyframes pulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.8); } }
-            .status-text { margin-top: 80px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 22px; letter-spacing: 4px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; }
-        `;
-        let style = document.createElement('style'); style.innerHTML = css; document.head.appendChild(style);
-
-        let div = document.createElement('div');
-        div.id = 'master-loading-overlay'; div.className = 'skst-overlay';
-        let bgStars = '<div class="stars-bg">';
-        for(let i=0; i<60; i++) {
-            let size = Math.random() * 3 + 2;
-            bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
+        // Cài CSS một lần duy nhất để không bị xóa
+        if (!document.getElementById('rocket-style-permanent')) {
+            const css = `
+                .skst-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 2147483647 !important; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; pointer-events: all; }
+                .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
+                .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
+                @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+                .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
+                @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+                .star-sparkle { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff, 0 0 30px #00d2ff; animation: pulse 1.5s infinite alternate; }
+                @keyframes pulse { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.8); } }
+                .status-text { margin-top: 80px; font-family: sans-serif; font-size: 22px; letter-spacing: 4px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; }
+            `;
+            let style = document.createElement('style'); style.id = 'rocket-style-permanent'; style.innerHTML = css; document.head.appendChild(style);
         }
-        bgStars += '</div>';
-        div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🚀<div id="stars"></div></div><div class="status-text">ĐANG HÚT SỐ...</div>`;
-        document.body.appendChild(div);
 
-        const starContainer = document.getElementById('stars');
-        for(let i=0; i<12; i++) {
-            let star = document.createElement('div'); star.className = 'star-sparkle';
-            let angle = (i / 12) * Math.PI * 2;
-            star.style.left = (40 + Math.cos(angle) * 80) + "px"; star.style.top = (40 + Math.sin(angle) * 80) + "px";
-            star.style.animationDelay = (i * 0.15) + "s";
-            starContainer.appendChild(star);
-        }
+        if (rocketInterval) return;
+
+        rocketInterval = setInterval(() => {
+            if (!document.getElementById('master-loading-overlay')) {
+                let div = document.createElement('div');
+                div.id = 'master-loading-overlay'; div.className = 'skst-overlay';
+                
+                let bgStars = '<div class="stars-bg">';
+                for(let i=0; i<60; i++) {
+                    let size = Math.random() * 3 + 2;
+                    bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
+                }
+                bgStars += '</div>';
+                
+                div.innerHTML = bgStars + `
+                    <div class="rocket-container" id="rocket">🚀<div id="stars"></div></div>
+                    <div class="status-text">ĐANG HÚT SỐ...</div>
+                `;
+                document.body.appendChild(div);
+
+                const starContainer = document.getElementById('stars');
+                for(let i=0; i<12; i++) {
+                    let star = document.createElement('div'); star.className = 'star-sparkle';
+                    let angle = (i / 12) * Math.PI * 2;
+                    star.style.left = (40 + Math.cos(angle) * 80) + "px"; star.style.top = (40 + Math.sin(angle) * 80) + "px";
+                    star.style.animationDelay = (i * 0.15) + "s";
+                    starContainer.appendChild(star);
+                }
+            }
+        }, 100); // Kiểm tra 10 lần mỗi giây, siêu nhanh
     }
 
     function tatVuTruLoading() {
+        if (rocketInterval) {
+            clearInterval(rocketInterval);
+            rocketInterval = null;
+        }
         let load = document.getElementById('master-loading-overlay');
         if(load) load.remove();
     }
-
     if (!window.html2canvas) {
         let script = document.createElement('script');
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
