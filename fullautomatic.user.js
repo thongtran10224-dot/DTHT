@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TAM HÒA V7 - TINH GỌN & FULL STICKER
+// @name         🚀 SIÊU TOOL v8
 // @namespace    http://tampermonkey.net/
 // @version      5.0
-// @description  Máy trạng thái hoàn chỉnh + Giao diện tinh túy + Fix Sticker Sức Khỏe + Logic Nhận Xét Mới
+// @description  Máy trạng thái hoàn chỉnh + Giao diện tinh túy 2x2 Bo Góc
 // @match        *://bi.thegioididong.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -43,7 +43,6 @@
     let rocketInterval = null;
 
     function hienThiVuTruLoading() {
-        // Cài CSS một lần duy nhất để không bị xóa
         if (!document.getElementById('rocket-style-permanent')) {
             const css = `
                 .skst-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 2147483647 !important; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; pointer-events: all; }
@@ -88,7 +87,7 @@
                     starContainer.appendChild(star);
                 }
             }
-        }, 100); // Kiểm tra 10 lần mỗi giây, siêu nhanh
+        }, 100);
     }
 
     function tatVuTruLoading() {
@@ -115,13 +114,9 @@
         if(document.getElementById('btn-immortal-menu')) return;
         let btn = document.createElement('button');
         btn.id = "btn-immortal-menu";
-
-
         btn.innerHTML = "📊";
-
         btn.style.cssText = `position:fixed; bottom:40px; left:50%; transform:translateX(-50%); z-index:2147483647; width:50px; height:50px; background:linear-gradient(90deg, #1e3799, #004a99); color:#ffc107; font-weight:900; font-size:24px; border:2px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: all 0.3s ease;`;
 
-        // Thêm hiệu ứng nhấp nháy nhẹ khi di chuột vào cho xịn
         btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
         btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
 
@@ -161,7 +156,6 @@
         const btnStart = document.getElementById('btn-start-flow');
         const lblDT = document.getElementById('lbl-dt'), lblSK = document.getElementById('lbl-sk');
 
-        // Logic bập bênh mượt mà
         radDT.onchange = () => {
             lblSK.style.opacity = '0.4'; lblDT.style.opacity = '1';
             btnStart.disabled = false; btnStart.style.cursor = 'pointer'; btnStart.style.opacity = '1';
@@ -276,7 +270,6 @@
         let div = document.createElement('div'); div.id = 'dtht-commander-overlay';
         div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483645; background:rgba(0,0,0,0.8); overflow-y:auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;";
 
-        // FIX LỖI LIỆT NÚT STICKER DOANH THU Ở ĐÂY
         div.addEventListener('click', (e) => {
             const btn = e.target.closest('.st-picker-btn');
             if (btn) {
@@ -295,20 +288,22 @@
             .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 900; font-size: 10px; text-transform: uppercase; }
             .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
             .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 900; font-size: 15px; cursor: pointer; text-transform: uppercase; }
-            #finalReportArea { background: var(--bg); padding: 5px; width: 100%; }
-            .skst-row { display: flex; background: #fff; padding: 12px 8px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 8px; border-left: 6px solid var(--primary); width: 100%; align-items: center; }
-            .skst-item { flex: 1; text-align: center; border-right: 1px solid #eee; overflow: hidden; padding: 0 4px; }
-            .skst-item:last-child { border-right: none; }
-            .m-label { font-size: 10px; font-weight: 900; color: #666; text-transform: uppercase; margin-bottom: 4px; }
-            .skst-value { font-size: 20px; font-weight: 900; color: var(--primary); margin: 0; white-space: nowrap; }
-            .capture-frame { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; }
-            .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; width: 100%; }
-            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 8px 6px; border-radius: 8px; border-bottom: none; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; }
-            .group-name { font-size: 11px; font-weight: 900; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; margin-bottom: 6px; text-transform: uppercase; min-height: 2.6em; line-height: 1.2; display: flex; align-items: center; gap: 8px; word-break: break-word; }
-            .group-sticker { font-size: 24px; flex-shrink: 0; }
+            #finalReportArea { background: var(--bg); padding: 8px; width: 100%; border-radius: 16px; display: flex; flex-direction: column; gap: 8px;}
+
+            /* CSS MỚI CHO BỐ CỤC 2X2 BO GÓC */
+            .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 100%; }
+            .stat-box { background: #fff; padding: 15px 10px; border-radius: 16px; border: 2px solid var(--primary); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.3s ease; }
+            .stat-label { font-size: 11px; font-weight: 900; color: #666; text-transform: uppercase; margin-bottom: 6px; }
+            .stat-val { font-size: 28px !important; font-weight: 950 !important; color: var(--primary); text-shadow: 0.5px 0.5px 0px #000, 0px 0px 0px #000; line-height: 1.1; }
+
+            .capture-frame { width: 100%; }
+            .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 0; width: 100%; }
+            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px 8px; border-radius: 16px; border-bottom: none; display: flex; flex-direction: column; justify-content: space-between; min-height: 80px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);}
+            .group-name { font-size: 14px !important; font-weight: 950 !important; color: var(--black); border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; margin-bottom: 6px; text-transform: uppercase; min-height: 2.6em; line-height: 1.2; display: flex; align-items: center; gap: 4px; word-break: break-word; }
+            .group-sticker { font-size: 22px !important; display: inline-block; transform: translateY(-1px); }
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: auto; }
-            .group-num { font-size: 13px; font-weight: 900; color: var(--primary); }
-            .group-pct { font-size: 11px; font-weight: 900; padding: 4px 8px; border-radius: 8px; min-width: 55px; text-align: center; white-space: nowrap; }
+            .group-num { font-size: 20px !important; font-weight: 950 !important; color: var(--primary); text-shadow: 0.3px 0.3px 0px var(--primary); }
+            .group-pct { font-size: 18px !important; font-weight: 950 !important; padding: 4px 8px; border-radius: 8px; text-shadow: 0.3px 0.3px 0px rgba(0,0,0,0.2); }
             #lienText { background: #fffbe6; border: 2px dashed var(--primary); font-weight: 900; height: 220px; margin-top: 8px; font-size: 12px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; }
             .overlay { display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2147483648; }
             .settings-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; width:95%; max-width:550px; max-height:85vh; padding:15px; border-radius:12px; z-index:2147483649; flex-direction: column; }
@@ -321,7 +316,7 @@
             .nickname-input { font-size: 12px; padding: 6px; border: 1px solid #ccc; border-radius: 6px; width: 100%; font-weight: 900; text-transform: uppercase; background: #fffdf0; }
             .g-vis { width: 22px; height: 22px; flex-shrink: 0; cursor: pointer; }
             .sticker-popup { display: none; position: fixed; background: white; border: 3px solid var(--primary); padding: 8px; border-radius: 15px; z-index: 2147483650; width: 96%; max-width: 550px; max-height: 75vh; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.5); flex-direction: column; }
-            .sticker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; overflow-y: auto; padding: 10px; flex: 1; }
+            .sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; overflow-y: auto; overflow-x: hidden; padding: 10px; flex: 1; }
             .st-opt { cursor: pointer; font-size: 30px; text-align: center; padding: 8px; }
             .st-close { background: #f0f0f0; text-align: center; padding: 12px; font-weight: 900; border-radius: 8px; margin-top: 5px; cursor: pointer; }
             .pct-high { background: var(--success); color: #fff; } .pct-mid { background: var(--accent); color: #000; } .pct-low { background: var(--danger); color: #fff; }
@@ -353,21 +348,27 @@
 
                 <div id="outputArea" style="display:none;">
                     <div id="finalReportArea">
-                        <div class="skst-row">
-                            <div class="skst-item"><div class="m-label">THỰC/TARGET</div><div id="outDTStr" class="skst-value">0/0</div></div>
-                            <div class="skst-item"><div class="m-label">% ĐẠT</div><div id="outDTPct" class="skst-value">0%</div></div>
-                            <div class="skst-item"><div class="m-label">TRẢ GÓP</div><div id="outTGVal" class="skst-value">0%</div></div>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">THỰC/TARGET (TR)</div>
+                                <div id="outDTStr" class="stat-val" style="color: #d35400;">0/0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">% ĐẠT</div>
+                                <div id="outDTPct" class="stat-val">0%</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">TRẢ GÓP</div>
+                                <div id="outTGVal" class="stat-val">0%</div>
+                            </div>
+                            <div class="stat-box" id="boxDatCount">
+                                <div class="stat-label">NHÓM ĐẠT</div>
+                                <div id="outDatCount" class="stat-val" style="color: #000;">0/18</div>
+                            </div>
                         </div>
+
                         <div class="capture-frame">
-                            <div style="background:var(--primary); color:white; padding:6px; display:flex; justify-content:space-between; align-items:center;">
-                                <h3 style="margin:0; font-weight:900; font-size:10px; text-transform:uppercase;">🔹 CHI TIẾT NHÓM HÀNG</h3>
-                                <span id="outDatCount" style="background:var(--success); padding: 4px 10px; border-radius: 20px; font-weight: 900; font-size: 9px;">0/0</span>
-                            </div>
                             <div class="group-grid" id="outGrid"></div>
-                            <div style="text-align:center; padding:8px; color:#555; font-size:11px; font-weight:900; background:#fdfdfd; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:10px;">
-                                <span>⏰️ <span id="outFooterTime"></span></span>
-                                <span style="color: #004a99; font-weight: 900;">🥰MUA MAY BÁN ĐẮT🥰</span>
-                            </div>
                         </div>
                     </div>
                     <div class="btn-grid">
@@ -426,7 +427,8 @@
             btn.innerText = "⏳ ĐANG CHỤP..."; document.getElementById('dtht-commander-overlay').scrollTo(0,0);
             setTimeout(() => {
                 html2canvas(area, { scale: 3, useCORS: true, backgroundColor: "#f0f2f5" }).then(canvas => {
-                    const link = document.createElement('a'); link.download = `DTHT_${document.getElementById('outFooterTime').innerText}.png`;
+                    const timeStr = document.getElementById('inpTime').value || "NOW";
+                    const link = document.createElement('a'); link.download = `DTHT_${timeStr}.png`;
                     link.href = canvas.toDataURL("image/png"); link.click();
                     btn.innerText = "✅ XONG!"; setTimeout(() => { btn.innerText = "📸 CHỤP ẢNH"; }, 1500);
                 });
@@ -533,21 +535,39 @@
                 let pCl = g.r === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let fName = unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name;
                 gridHtml += `<div class="group-card"><div class="group-name"><span class="group-sticker">${unsafeWindow.groupConfigsDtht[g.name]?.sticker || "📦"}</span> ${fName}</div><div class="group-stats"><div class="group-num">${g.r}${g.t>0 ? '/'+g.t : ''}</div><div class="group-pct ${pCl}">${pDisplay}%</div></div><div style="width:100%; height:4px; background:#e0e0e0; border-radius:2px; margin-top:6px; overflow:hidden;"><div style="width:${g.r === 0 ? 0 : Math.min(100, g.p)}%; height:100%;" class="${pCl}"></div></div></div>`;
-});
+            });
 
             document.getElementById('outGrid').innerHTML = gridHtml;
             const tGroups = dList.filter(x=>x.t>0).length;
-            document.getElementById('outDatCount').innerText = `${datCount}/${tGroups}`;
+
+            // Đổi màu Box Nhóm Đạt
+            const elDat = document.getElementById('outDatCount');
+            const boxDat = document.getElementById('boxDatCount');
+            elDat.innerText = `${datCount}/${tGroups}`;
+
+            if (datCount === tGroups && tGroups > 0) {
+                boxDat.style.background = "#FFD700";
+                boxDat.style.borderColor = "#e67e22";
+                elDat.style.color = "#000";
+            } else if (datCount >= (tGroups / 2)) {
+                boxDat.style.background = "#e8f8f5";
+                boxDat.style.borderColor = "#2ecc71";
+                elDat.style.color = "#27ae60";
+            } else {
+                boxDat.style.background = "#fdedec";
+                boxDat.style.borderColor = "#e74c3c";
+                elDat.style.color = "#c0392b";
+            }
 
             document.getElementById('outDTStr').innerText = lamTronTamHoa(dt) + "/" + lamTronTamHoa(masterTarget);
             const pDT = ((dt / masterTarget) * 100);
             document.getElementById('outDTPct').innerText = lamTronTamHoa(pDT) + "%"; document.getElementById('outDTPct').style.color = pDT >= 100 ? 'var(--success)' : 'var(--danger)';
-            document.getElementById('outTGVal').innerText = lamTronTamHoa(tg) + "%"; document.getElementById('outFooterTime').innerText = time;
+            document.getElementById('outTGVal').innerText = lamTronTamHoa(tg) + "%";
 
             const toSt = num => num.toString().split('').map(d => ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"][parseInt(d)] || d).join('');
             let dtTr = lamTronTamHoa(dt), tTr = lamTronTamHoa(masterTarget), pTr = lamTronTamHoa(pDT), tgTr = lamTronTamHoa(tg), thTr = lamTronTamHoa(Math.abs(masterTarget - dt));
 
-            // LOGIC NHẬN XÉT MỚI CỦA THÔNG
+            // LOGIC NHẬN XÉT MỚI
             let pre = "", st = "", cauKet = "";
             if (mode === 'now') {
                 pre = `🔥 CẬP NHẬT HIỆN TẠI (${time}): `;
@@ -580,7 +600,7 @@
     }
 
     // =========================================================================
-    // XƯỞNG SỨC KHỎE ST (SKST) - ĐÃ BỔ SUNG STICKER POPUP
+    // XƯỞNG SỨC KHỎE ST (SKST)
     // =========================================================================
     async function chonMenuBangClickGiaLap(indexPha) {
         let nutTongDropdown = document.querySelector('button[data-id="showdatacomprog"]'); if (!nutTongDropdown) return;
@@ -688,9 +708,8 @@
             .alias-input { width: 100%; font-size: 12px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-weight: 900; background:#fffdf0; }
             .skst-sticker-btn { cursor:pointer; font-size:24px; padding:2px 6px; background:#f0f0f0; border-radius:4px; flex-shrink:0;}
 
-            /* -- ĐOẠN CSS BỊ THIẾU ĐỂ LÀM NỔI BẢNG STICKER ĐÂY RỒI! -- */
             .sticker-popup { display: none; position: fixed; background: white; border: 3px solid var(--primary); padding: 8px; border-radius: 15px; z-index: 2147483650; width: 96%; max-width: 550px; max-height: 75vh; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.5); flex-direction: column; }
-            .sticker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; overflow-y: auto; padding: 10px; flex: 1; }
+            .sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; overflow-y: auto; overflow-x: hidden; padding: 10px; flex: 1; }
             .st-opt { cursor: pointer; font-size: 30px; text-align: center; padding: 8px; }
             .st-close { background: #f0f0f0; text-align: center; padding: 12px; font-weight: 900; border-radius: 8px; margin-top: 5px; cursor: pointer; }
         `;
@@ -700,7 +719,6 @@
         overlay.id = "skst-super-overlay";
         overlay.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2147483645; display:none; overflow-y:auto; padding-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;`;
 
-        // FIX LỖI LIỆT NÚT STICKER SỨC KHỎE ST Ở ĐÂY
         overlay.addEventListener('click', (e) => {
             const btn = e.target.closest('.skst-sticker-btn');
             if (btn) {
@@ -732,7 +750,6 @@
                     <button class="btn-sk" style="background:#8e44ad; font-weight:900;" onclick="window.skst_toggleReward()">THƯỞNG 🏆</button>
                 </div>
             </div>
-            <!-- ... (giữ nguyên phần còn lại của overlay.innerHTML) ... -->
             </div>
             <div id="reportOutput" style="display:none; background:#fff; padding:10px; margin:10px; border-radius:8px; border:2px solid #004a99; white-space:pre-wrap; font-size:12px; font-weight:900;"></div>
             <div id="screenshotArea" style="background: var(--bg); padding: 8px; width: fit-content; min-width: 100%; box-sizing: border-box;">
@@ -891,9 +908,14 @@
         unsafeWindow.skst_showStaffDetail = function(sid) {
             if(!unsafeWindow.skst_processedData) return;
             const { storeInfo, sData, gNames } = unsafeWindow.skst_processedData;
-            const s = sData.find(x => x.id === sid); const slnv = sData.filter(x => unsafeWindow.skst_config.staffs[x.id]?.show).length || 1;
+            const s = sData.find(x => x === sid); // Giữ nguyên theo code gốc
+            const slnv = sData.filter(x => unsafeWindow.skst_config.staffs[x.id]?.show).length || 1;
             const bDT = parseFloat(unsafeWindow.skst_config.boostDT) || 1.0; const bNH = parseFloat(unsafeWindow.skst_config.boostNH) || 1.0;
             const daysLeft = unsafeWindow.skst_getRemainingDays(), daysPassed = unsafeWindow.skst_getPassedDays(), daysTotal = unsafeWindow.skst_getTotalDays();
+
+            // Xử lý cẩn thận nếu biến s bị lỗi
+            if (!s) return;
+
             const t_nv_boost = (storeInfo.t_goc * bDT) / slnv; const p_dk_boost = ((s.dt / daysPassed) * daysTotal / t_nv_boost) * 100;
             const conLaiDT = Math.max(0, t_nv_boost - s.dt); const moiNgayDT = conLaiDT / daysLeft;
 
@@ -1125,8 +1147,8 @@
             const dtHienTai = storeInfo.dt; const targetMoi = storeInfo.t_boost; const phanTramMoi = storeInfo.p_boost; const canBucPha = Math.max(0, (targetMoi - dtHienTai) / days);
 
             // Trích xuất số % trả góp làm tròn
-let tgNum = parseFloat(storeInfo.tg.replace(/%/g, ''));
-let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${lamTronTamHoa(phanTramMoi)}%\n⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${lamTronTamHoa(canBucPha)}tr/ngày để về đích nhé team! 🏁\n💸 Góp ST: ${toStkNum(lamTronTamHoa(tgNum))}%\n📦 Nhóm hàng đạt/Tổng nhóm: ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
+            let tgNum = parseFloat(storeInfo.tg.replace(/%/g, ''));
+            let r = `🚀 SỨC KHỎE TAM HÒA ĐẾN NGÀY ${toStkNum(new Date().getDate())}/${toStkNum(new Date().getMonth()+1)} 🚀\n🏥 1. TÌNH HÌNH CHUNG\n🔥 Doanh thu: ${toStkNum(dtHienTai)}/${toStkNum(targetMoi)} đạt ${lamTronTamHoa(phanTramMoi)}%\n⚡ Nhắc nhở: Còn ${toStkNum(days)} ngày, cần bứt phá ${lamTronTamHoa(canBucPha)}tr/ngày để về đích nhé team! 🏁\n💸 Góp ST: ${toStkNum(lamTronTamHoa(tgNum))}%\n📦 Nhóm hàng đạt/Tổng nhóm: ${toStkNum(actG.filter(g => g.pb >= 100).length)}/${toStkNum(actG.length)}\n`;
             if(hoanThanh) r += `✅ Hoàn thành: ${hoanThanh}. Duy trì phong độ nhé!\n`;
             if(ganDat) r += `🎯 Gần đạt: ${ganDat}. Cố gắng thêm chút nữa là xong!\n`;
             if(canhBaoG) r += `🛑 Cần tập trung: ${canhBaoG}. Nỗ lực đẩy mạnh phần này nha anh em!\n\n`;
