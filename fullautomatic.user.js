@@ -1,9 +1,10 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL v8
+// @name         🚀 SIÊU TOOL v5.1 - ỔN ĐỊNH TỐI ĐA
 // @namespace    http://tampermonkey.net/
-// @version      5.0
-// @description  Máy trạng thái hoàn chỉnh + Giao diện tinh túy 2x2 Bo Góc
+// @version      5.1
+// @description  Giữ lõi v5.0 hoàn hảo + Vá bộ quét Doanh Thu & Fix chụp ảnh
 // @match        *://bi.thegioididong.com/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
@@ -12,6 +13,9 @@
 
 (function() {
     'use strict';
+
+    // Đảm bảo html2canvas luôn sẵn sàng để không bị lỗi chụp ảnh
+    window.html2canvas = html2canvas;
 
     // =========================================================================
     // PHÒNG 0: BỘ CÔNG CỤ LÕI & LUẬT LÀM TRÒN TAM HÒA
@@ -98,11 +102,6 @@
         let load = document.getElementById('master-loading-overlay');
         if(load) load.remove();
     }
-    if (!window.html2canvas) {
-        let script = document.createElement('script');
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-        document.head.appendChild(script);
-    }
 
     // =========================================================================
     // PHÒNG 1: BỘ NÃO ĐIỀU HÀNH (STATE MACHINE)
@@ -135,21 +134,26 @@
         panel.id = 'super-master-panel';
         panel.style.display = 'none';
         panel.innerHTML = `
-            <div style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 260px; background: rgba(0, 74, 153, 0.98); border: 3px solid #ffc107; padding: 15px; border-radius: 12px; color: white; z-index: 2147483646; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 5px 25px rgba(0,0,0,0.7);">
-                <h3 style="text-align: center; color: #ffc107; margin-top: 0; border-bottom: 1px dashed #ffc107; padding-bottom: 10px; font-weight: 950;">🕹️ CHỌN TOOL </h3>
-                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                    <label id="lbl-dt" style="display: flex; align-items: center; margin-bottom: 15px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;">
-                        <input type="radio" name="tool-select" id="radio-dt" style="accent-color: #ffc107; width: 20px; height: 20px; margin-right: 10px;">
-                        📊 BÁO CÁO DOANH THU
-                    </label>
-                    <label id="lbl-sk" style="display: flex; align-items: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;">
-                        <input type="radio" name="tool-select" id="radio-sk" style="accent-color: #ffc107; width: 20px; height: 20px; margin-right: 10px;">
-                        🏥 BÁO CÁO SỨC KHỎE
-                    </label>
-                </div>
-                <button id="btn-start-flow" disabled style="background: linear-gradient(90deg, #f1c40f, #e67e22); color: black; border: none; width: 100%; padding: 12px; font-weight: 900; font-size: 14px; border-radius: 5px; cursor: not-allowed; opacity: 0.5;">🚀 BẮT ĐẦU </button>
-            </div>
-        `;
+    <div style="position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 260px; background: rgba(0, 74, 153, 0.98); border: 3px solid #ffc107; padding: 15px; border-radius: 12px; color: white; z-index: 2147483646; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 5px 25px rgba(0,0,0,0.7);">
+        <h3 style="text-align: center; color: #ffc107; margin-top: 0; border-bottom: 1px dashed #ffc107; padding-bottom: 10px; font-weight: 950;">🕹️ CHỌN TOOL </h3>
+        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+
+            <!-- ĐÃ ĐƯA BÁO CÁO SỨC KHỎE LÊN TRƯỚC -->
+            <label id="lbl-sk" style="display: flex; align-items: center; margin-bottom: 15px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;">
+                <input type="radio" name="tool-select" id="radio-sk" style="accent-color: #ffc107; width: 20px; height: 20px; margin-right: 10px;">
+                🏥 BÁO CÁO SỨC KHỎE
+            </label>
+
+            <!-- ĐÃ ĐƯA BÁO CÁO DOANH THU XUỐNG DƯỚI -->
+            <label id="lbl-dt" style="display: flex; align-items: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;">
+                <input type="radio" name="tool-select" id="radio-dt" style="accent-color: #ffc107; width: 20px; height: 20px; margin-right: 10px;">
+                📊 BÁO CÁO DOANH THU
+            </label>
+
+        </div>
+        <button id="btn-start-flow" disabled style="background: linear-gradient(90deg, #f1c40f, #e67e22); color: black; border: none; width: 100%; padding: 12px; font-weight: 900; font-size: 14px; border-radius: 5px; cursor: not-allowed; opacity: 0.5;">🚀 BẮT ĐẦU </button>
+    </div>
+`;
         document.body.appendChild(panel);
 
         const radDT = document.getElementById('radio-dt'), radSK = document.getElementById('radio-sk');
@@ -200,48 +204,55 @@
     }
 
     // =========================================================================
-    // XƯỞNG DOANH THU (DTHT)
+    // XƯỞNG DOANH THU (DTHT) - ĐÃ NÂNG CẤP BỘ QUÉT
     // =========================================================================
     async function xuLyDoanhThu_Trang1() {
         let tab = await waitForElement('#tab-bcdtnh', 15000); tab.click();
-        let filterDivs = await waitForElement('.filter-option-inner-inner', 10000);
-        let allDivs = document.querySelectorAll('.filter-option-inner-inner');
-        let dropdownBtn = null;
+        await delay(3000); // Đợi giao diện render xong
 
+        // CƠ CHẾ ÉP CHỌN REALTIME MẠNH MẼ
+        let allDivs = document.querySelectorAll('.filter-option-inner-inner');
         for (let div of allDivs) {
             if (div.innerText.trim() === 'Lũy kế Tháng' || div.innerText.trim() === 'Realtime') {
-                dropdownBtn = div.closest('button'); break;
+                let dropdownBtn = div.closest('button');
+                if (dropdownBtn && !dropdownBtn.innerText.includes('Realtime')) {
+                    dropdownBtn.click(); await delay(1000);
+                    let options = document.querySelectorAll('a.dropdown-item span.text, li a');
+                    let found = false;
+                    for (let opt of options) {
+                        if (opt.innerText.trim() === 'Realtime') { opt.click(); found = true; await delay(1500); break; }
+                    }
+                    if (!found) throw new Error("Không tìm thấy bộ lọc Realtime");
+                }
+                break; // Xử lý xong bộ lọc thì thoát vòng lặp
             }
-        }
-
-        if (dropdownBtn && !dropdownBtn.innerText.includes('Realtime')) {
-            dropdownBtn.click(); await delay(1000);
-            let options = document.querySelectorAll('a.dropdown-item span.text, li a');
-            let found = false;
-            for (let opt of options) {
-                if (opt.innerText.trim() === 'Realtime') { opt.click(); found = true; break; }
-            }
-            if (!found) throw new Error("Không tìm thấy bộ lọc Realtime");
         }
 
         let dataTong = null;
+        // BỘ QUÉT THÔNG MINH (Chỉ cần 4 cột, lọc Trả chậm & Nhân sự cấm)
+     // BỘ QUÉT THÔNG MINH ĐÃ ĐƯỢC LÀM SẠCH
         for(let scan = 0; scan < 20; scan++) {
-            await delay(1500);
+            await delay(2000);
             let rows = document.querySelectorAll('tr');
             for (let i = 0; i < rows.length; i++) {
                 let text = rows[i].textContent.trim();
-                if (text.includes("Tổng") && text.includes("%") && !text.includes("Việt Bí")) {
-                    let cells = rows[i].querySelectorAll('td');
-                    if (cells.length >= 8) {
-                        dataTong = { dt: cells[3].textContent.trim(), target: cells[4].textContent.trim(), pct: cells[5].textContent.trim(), tracham: cells[7].textContent.trim() };
+                let cells = rows[i].querySelectorAll('td');
+                // ĐÃ LOẠI BỎ ĐIỀU KIỆN LỌC "Việt Bí"
+                if (text.includes("Tổng") && cells.length >= 4 && !text.includes("Trả Chậm")) {
+                    try {
+                        dataTong = {
+                            dt: cells[3]?.textContent.trim() || "0",
+                            target: cells[4]?.textContent.trim() || "0",
+                            pct: cells[5]?.textContent.trim() || "0",
+                            tracham: cells[7]?.textContent.trim() || "0"
+                        };
                         break;
-                    }
+                    } catch(e) { console.error("Lỗi parse:", e); }
                 }
             }
-            if (dataTong && dataTong.dt !== "") break;
+            if (dataTong && dataTong.dt !== "0") break;
         }
-
-        if (!dataTong || dataTong.dt === "") throw new Error("Chưa lấy được số Tổng Doanh Thu.");
+        if (!dataTong || dataTong.dt === "0") throw new Error("Chưa lấy được số Tổng Doanh Thu. Vui lòng thử lại!");
         GM_setValue('dtht_data_trang1', JSON.stringify(dataTong));
         GM_setValue(STATE_KEY, 'DT_FETCH2');
         window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
@@ -908,7 +919,7 @@
         unsafeWindow.skst_showStaffDetail = function(sid) {
             if(!unsafeWindow.skst_processedData) return;
             const { storeInfo, sData, gNames } = unsafeWindow.skst_processedData;
-            const s = sData.find(x => x === sid); // Giữ nguyên theo code gốc
+            const s = sData.find(x => x.id === sid); // Đã sửa lại lỗi find object
             const slnv = sData.filter(x => unsafeWindow.skst_config.staffs[x.id]?.show).length || 1;
             const bDT = parseFloat(unsafeWindow.skst_config.boostDT) || 1.0; const bNH = parseFloat(unsafeWindow.skst_config.boostNH) || 1.0;
             const daysLeft = unsafeWindow.skst_getRemainingDays(), daysPassed = unsafeWindow.skst_getPassedDays(), daysTotal = unsafeWindow.skst_getTotalDays();
