@@ -75,7 +75,7 @@
                     bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
                 }
                 bgStars += '</div>';
-                div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🌟<div id="stars"></div></div><div class="status-text">LOADING...</div>`;
+                div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🌟<div id="stars"></div></div><div class="status-text">🤍🤍🤍 ĐỢI LÁT NHÉ BOSS NHUNG NẾU LỖI ĐỔ LẠI 🤍🤍🤍</div>`;
                 document.body.appendChild(div);
                 const starContainer = document.getElementById('stars');
                 for(let i=0; i<12; i++) {
