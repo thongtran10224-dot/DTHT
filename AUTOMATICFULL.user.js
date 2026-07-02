@@ -75,7 +75,7 @@
                     bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
                 }
                 bgStars += '</div>';
-                div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🌟<div id="stars"></div></div><div class="status-text">🤍🤍🤍 ĐỢI LÁT NHÉ BOSS NHUNG NẾU LỖI ĐỔ LẠI 🤍🤍🤍</div>`;
+                div.innerHTML = bgStars + `<div class="rocket-container" id="rocket">🌟<div id="stars"></div></div><div class="status-text">🤍🤍🤍 ĐỢI LÁT NHÉ NẾU LỖI ĐỔ LẠI 🤍🤍🤍</div>`;
                 document.body.appendChild(div);
                 const starContainer = document.getElementById('stars');
                 for(let i=0; i<12; i++) {
@@ -909,10 +909,10 @@
                 if(name && (r > 0 || t > 0)) unsafeWindow.allParsedGroupsDtht.push({ name, r, t, p });
             }
 
-            let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.name]?.visible !== false).sort((a,b) => (b.t > 0) - (a.t > 0) || b.p - a.p);
+          let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.n]?.visible !== false).sort((a,b) => (b.p >= 100) - (a.p >= 100) || (b.t > 0) - (a.t > 0) || b.p - a.p);
             let gridHtml = "", datCount = 0;
             dList.forEach(g => {
-                if(g.t > 0 && g.p >= 100) datCount++;
+                if(g.p >= 100) datCount++;
                 let pDisplay = g.r === 0 ? 0 : lamTronTamHoa(g.p);
                 let pCl = g.r === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let fName = unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name;
