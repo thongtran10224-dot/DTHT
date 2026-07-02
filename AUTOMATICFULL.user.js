@@ -1046,7 +1046,7 @@
             .sk-table { border-collapse: collapse; text-align: center; table-layout: auto; width: 100%; min-width: max-content; }
             .sk-table th, .sk-table td { border: 1px solid #aaa; padding: 6px 4px; font-weight: 900; font-size: 11px; white-space: nowrap; }
             .sk-table thead th { background: var(--primary); color: white; font-size: 14px !important; font-weight: 900 !important; padding: 12px 6px !important; }
-            .fixed-col { width: 50px; min-width: 50px; text-align: center; font-size: 14px !important; }
+            .fixed-col { width: auto; min-width: 80px; text-align: center; font-size: 14px !important; }
             .stk-display { font-size: 18px; display: block; margin-bottom: 2px; }
             .sticky-col { position: sticky; left: 0; background: #fff !important; z-index: 5; border-right: 2px solid var(--primary); color: #000 !important; font-size: 11px; text-align: left; width: 60px; min-width: 60px; max-width: 60px; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
             .bg-good { background-color: var(--success) !important; color: #006100 !important; font-weight: 900 !important; }
@@ -1469,10 +1469,10 @@
 
             const visS = sData.filter(s => unsafeWindow.skst_config.staffs[s.id]?.show); const visG = gNames.filter(gn => actG.some(ag => ag.n === gn));
             let mh = `<th class="sticky-col">TÊN</th>`;
-            if(unsafeWindow.skst_config.showCols.dt) mh += `<th class="fixed-col">DT</th>`;
-            if(unsafeWindow.skst_config.showCols.bk) mh += `<th class="fixed-col">BK</th>`;
-            if(unsafeWindow.skst_config.showCols.tg) mh += `<th class="fixed-col">TG</th>`;
-            if(unsafeWindow.skst_config.showCols.btm) mh += `<th class="fixed-col">BTM</th>`;
+            if(unsafeWindow.skst_config.showCols.dt) mh += `<th class="fixed-col">DOANH THU</th>`;
+            if(unsafeWindow.skst_config.showCols.bk) mh += `<th class="fixed-col">BÁN KÈM</th>`;
+            if(unsafeWindow.skst_config.showCols.tg) mh += `<th class="fixed-col">TRẢ GÓP</th>`;
+            if(unsafeWindow.skst_config.showCols.btm) mh += `<th class="fixed-col">BOTTOM NH</th>`;
             visG.forEach(gn => mh += `<th>${unsafeWindow.skst_getDN(gn)}</th>`);
             document.getElementById('mh').innerHTML = mh;
 
@@ -1506,9 +1506,21 @@
         }
 
         unsafeWindow.skst_captureReport = async function() {
-            const area = document.getElementById('screenshotArea'); const oldW = area.style.width; area.style.width = area.scrollWidth + "px";
-            const canvas = await html2canvas(area, { scale: 6, useCORS: true, backgroundColor: "#ffffff" });
-            area.style.width = oldW;
+            const area = document.getElementById('screenshotArea');
+            const wrapper = document.getElementById('reportArea');
+            const oldOverflow = wrapper.style.overflowX;
+            const oldWidth = area.style.width;
+
+            // Mở khóa để thấy hết bảng
+            wrapper.style.overflowX = 'visible';
+            area.style.width = area.scrollWidth + "px";
+
+            const canvas = await html2canvas(area, { scale: 6, useCORS: true, backgroundColor: "#ffffff", width: area.scrollWidth });
+
+            // Trả lại trạng thái cũ
+            wrapper.style.overflowX = oldOverflow;
+            area.style.width = oldWidth;
+
             const link = document.createElement('a'); link.download = `SKNV_${new Date().getDate()}-${new Date().getMonth()+1}.png`; link.href = canvas.toDataURL(); link.click();
         }
 
