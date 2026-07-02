@@ -837,7 +837,7 @@
                             </div>
                             <input type="checkbox" class="g-vis" data-name="${g.name}" ${conf.visible?'checked':''}>
                         </div>
-                        <input type="text" class="nickname-input" placeholder="Đặt biệt danh..." value="${conf.nickname || ''}">
+                        <input type="text" class="nickname-input" oninput="this.value = this.value.toUpperCase()" placeholder="Đặt biệt danh..." value="${conf.nickname || ''}">
                     </div>`;
             });
             let ovl = document.getElementById('dtht_overlay'); let pnl = document.getElementById('dtht_settingsPanel');
@@ -1230,7 +1230,7 @@
                         </div>
                         <div style="display:flex; align-items:center; gap:5px;">
                             <input type="checkbox" class="g-vis-sk" data-id="${gn}" ${conf.show?'checked':''}>
-                            <input type="text" class="alias-input" placeholder="Tên ngắn..." value="${conf.alias||''}">
+                            <input type="text" class="alias-input" oninput="this.value = this.value.toUpperCase()" placeholder="Tên ngắn..." value="${conf.alias||''}">
                         </div>
                     </div>`;
             });
