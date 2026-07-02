@@ -909,10 +909,10 @@
                 if(name && (r > 0 || t > 0)) unsafeWindow.allParsedGroupsDtht.push({ name, r, t, p });
             }
 
-          let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.n]?.visible !== false).sort((a,b) => (b.p >= 100) - (a.p >= 100) || (b.t > 0) - (a.t > 0) || b.p - a.p);
+          let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.n]?.visible !== false).sort((a,b) => ((b.p >= 100 || (b.t === 0 && b.r > 0)) - (a.p >= 100 || (a.t === 0 && a.r > 0))) || (b.t > 0) - (a.t > 0) || b.p - a.p);
             let gridHtml = "", datCount = 0;
             dList.forEach(g => {
-                if(g.p >= 100) datCount++;
+                if(g.p >= 100 || (g.t === 0 && g.r > 0)) datCount++;
                 let pDisplay = g.r === 0 ? 0 : lamTronTamHoa(g.p);
                 let pCl = g.r === 0 ? "" : (g.p >= 100 ? "pct-high" : (g.p >= 50 ? "pct-mid" : "pct-low"));
                 let fName = unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name;
@@ -920,7 +920,7 @@
             });
 
             document.getElementById('outGrid').innerHTML = gridHtml;
-            const tGroups = dList.filter(x=>x.t>0).length;
+            const tGroups = dList.length;(x=>x.t>0).length;
 
             const elDat = document.getElementById('outDatCount');
             const boxDat = document.getElementById('boxDatCount');
