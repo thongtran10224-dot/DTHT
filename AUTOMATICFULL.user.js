@@ -141,15 +141,15 @@
                 <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
                     <label id="lbl-dt" style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.3s;">
                         <input type="radio" name="tool-select" id="radio-dt" style="accent-color: #ffc107; width: 18px; height: 18px; margin-right: 10px;">
-                        📊 DOANH THU NGÀY
+                        📊 BC DOANH THU
                     </label>
                     <label id="lbl-sk" style="display: flex; align-items: center; margin-bottom: 12px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.3s;">
                         <input type="radio" name="tool-select" id="radio-sk" style="accent-color: #ffc107; width: 18px; height: 18px; margin-right: 10px;">
-                        🏥 SỨC KHỎE SIÊU THỊ
+                        🏥 BC SỨC KHỎE
                     </label>
                     <label id="lbl-v16" style="display: flex; align-items: center; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.3s; border-top: 1px dashed #ffffff55; padding-top: 10px;">
                         <input type="radio" name="tool-select" id="radio-v16" style="accent-color: #ffc107; width: 18px; height: 18px; margin-right: 10px;">
-                        🏢 SỨC KHỎE NHÓM HÀNG
+                        🏢 SO VỚI CÙNG KỲ
                     </label>
                 </div>
                 <button id="btn-start-flow" disabled style="background: linear-gradient(90deg, #f1c40f, #e67e22); color: black; border: none; width: 100%; padding: 12px; font-weight: 900; font-size: 14px; border-radius: 5px; cursor: not-allowed; opacity: 0.5;">🚀 BẮT ĐẦU </button>
@@ -556,53 +556,71 @@
     // =========================================================================
     // XƯỞNG 2: DOANH THU (dtht) TỪ V9.1
     // =========================================================================
-    // XƯỞNG 2: DOANH THU (dtht) TỪ V9.1
-    // =========================================================================
-    async function xuLyDoanhThu_Trang1() {
-        let tab = await waitForElement('#tab-bcdtnh', 15000); tab.click();
+   async function xuLyDoanhThu_Trang1() {
+        let tab = await waitForElement('#tab-bcdtnh', 15000);
+        tab.click();
+
         let filterDivs = await waitForElement('.filter-option-inner-inner', 10000);
         let allDivs = document.querySelectorAll('.filter-option-inner-inner');
         let dropdownBtn = null;
 
         for (let div of allDivs) {
             if (div.innerText.trim() === 'Lũy kế Tháng' || div.innerText.trim() === 'Realtime') {
-                dropdownBtn = div.closest('button'); break;
+                dropdownBtn = div.closest('button');
+                break;
             }
         }
 
         if (dropdownBtn && !dropdownBtn.innerText.includes('Realtime')) {
-            dropdownBtn.click(); await delay(1000);
+            dropdownBtn.click();
+            await delay(1000);
             let options = document.querySelectorAll('a.dropdown-item span.text, li a');
             let found = false;
             for (let opt of options) {
-                if (opt.innerText.trim() === 'Realtime') { opt.click(); found = true; break; }
+                if (opt.innerText.trim() === 'Realtime') {
+                    opt.click();
+                    found = true;
+                    break;
+                }
             }
             if (!found) throw new Error("Không tìm thấy bộ lọc Realtime");
+
+            // Đợi 5 giây để BI quét xong dữ liệu Realtime
+            await delay(5000);
+        } else {
+            await delay(2000);
         }
 
         let dataTong = null;
-        for(let scan = 0; scan < 20; scan++) {
-            await delay(1500);
-            let rows = document.querySelectorAll('tr');
-            for (let i = 0; i < rows.length; i++) {
-                let text = rows[i].textContent.trim();
-                if (text.includes("Tổng") && text.includes("%") && !text.includes("Việt Bí")) {
-                    let cells = rows[i].querySelectorAll('td');
-                    if (cells.length >= 8) {
-                        dataTong = { dt: cells[3].textContent.trim(), target: cells[4].textContent.trim(), pct: cells[5].textContent.trim(), tracham: cells[7].textContent.trim() };
+        for(let scan = 0; scan < 10; scan++) {
+            const table = document.getElementById('tbl-bcdtnh-data');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                if (rows.length > 0) {
+                    const totalRow = rows[0];
+                    if (totalRow && totalRow.innerText.includes("Tổng")) {
+                        const cells = totalRow.querySelectorAll('td');
+                        dataTong = {
+                            dt: cells[3] ? cells[3].innerText.trim() : "0",
+                            target: cells[4] ? cells[4].innerText.trim() : "0",
+                            pct: "0",
+                            tracham: cells[10] ? cells[10].innerText.trim() : "0%"
+                        };
                         break;
                     }
                 }
             }
-            if (dataTong && dataTong.dt !== "") break;
+            await delay(1000);
         }
 
-        if (!dataTong || dataTong.dt === "") throw new Error("Chưa lấy được số Tổng Doanh Thu.");
+        if (!dataTong || dataTong.dt === "0" || dataTong.dt === "") {
+            throw new Error("Chưa lấy được số Tổng Doanh Thu Realtime.");
+        }
+
         GM_setValue('dtht_data_trang1', JSON.stringify(dataTong));
         GM_setValue(STATE_KEY, 'DT_FETCH2');
         window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
-
     async function xuLyDoanhThu_Trang2() {
         await waitForElement('body', 15000); await delay(3000);
 
