@@ -959,7 +959,7 @@
                 cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
             }
 
-            let txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(tgTr)}%\n📦 Nhóm hàng đạt/Tổng nhóm: ${datCount}/${tGroups}\n\n`;
+            let txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(tgTr)}%\n📦 Nhóm hàng đạt/Tổng nhóm: ${toSt(datCount)}/${toSt(tGroups)}\n\n`;
 
             const hG = dList.filter(g => g.t > 0 && g.p >= 100), lG = dList.filter(g => g.t > 0 && g.p < 100);
             if(hG.length > 0) { txt += `✅ NHÓM ĐĐẠT:\n`; hG.forEach(g => txt += `${unsafeWindow.groupConfigsDtht[g.name]?.sticker || "📦"} ${unsafeWindow.groupConfigsDtht[g.name]?.nickname || g.name}: ${toSt(lamTronTamHoa(g.p))}%\n`); txt += `\n`; }
