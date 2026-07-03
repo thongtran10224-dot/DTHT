@@ -355,22 +355,44 @@
                 }
             });
 
-            smartItems.sort((a, b) => a.valTien - b.valTien);
-            otherItems.sort((a, b) => a.valTien - b.valTien);
+            // Logic tách Apple/Android
+            let appleItems = [], androidItems = [];
+            smartItems.forEach(item => {
+                if (/Apple|iPhone/i.test(item.tenNhom)) {
+                    appleItems.push(item);
+                } else {
+                    androidItems.push(item);
+                }
+            });
+
+            // Hàm tính đơn giá và gom lại
+            const calcGroup = (arr, name) => {
+                let sumDT = arr.reduce((acc, cur) => acc + parseFloat(cur.dtqdRaw.replace(/,/g, '')), 0);
+                let sumSL = arr.reduce((acc, cur) => acc + parseInt(cur.sl), 0);
+                return {
+                    tenNhom: name,
+                    sl: sumSL,
+                    dtqd: formatMoney(sumDT),
+                    dtqdRaw: sumDT,
+                    donGia: sumSL > 0 ? formatMoney(sumDT / sumSL) : "0"
+                };
+            };
+
+            let sumApple = calcGroup(appleItems, "🍎 APPLE (IPHONE)");
+            let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
 
             GM_setValue(STATE_KEY, 'IDLE');
             tatVuTruLoading();
             taoNutBatTu();
             taoBangDieuKhienMenu();
 
-            renderUIV16(soTong, parentItems, smartItems, otherItems, donGiaTrungBinhTong);
+            renderUIV16(soTong, parentItems, appleItems, androidItems, sumApple, sumAndroid, otherItems, donGiaTrungBinhTong);
 
         } catch (error) {
             resetTrangThai("Lỗi V16: " + error.message);
         }
     }
-
-    function renderUIV16(soTong, parents, smart, other, donGiaTong) {
+    function renderUIV16(soTong, parents, appleItems, androidItems, sumApple, sumAndroid, other, donGiaTong) {
         let overlay = document.getElementById('report-v15');
         if (overlay) overlay.remove();
 
@@ -409,9 +431,9 @@
 
         txt += `📲 NHÓM ĐIỆN THOẠI:\n`;
         renderText(parents);
-        renderText(smart);
+        renderText(appleItems);   // Sửa thành dòng này
+        renderText(androidItems); // Thêm dòng này
         txt += `\n📦 CÁC NHÓM HÀNG KHÁC:\n`;
-        renderText(other);
 
         const generateRow = (r, isChild = false) => {
             const colorTien = r.valTien < 0 ? "#DC2626" : (r.valTien > 0 ? "#16A34A" : "#0F172A");
@@ -486,72 +508,107 @@
                         <tbody>
         `;
 
-        parents.forEach(r => boxHtml += generateRow(r, false));
-        smart.forEach(r => boxHtml += generateRow(r, true));
+        // Render nhóm chính (Parents)
+                    parents.forEach(r => boxHtml += generateRow(r, false));
 
-        boxHtml += `
-                        </tbody>
-                    </table>
-                </div>
+                    // Dòng tổng 🍎 APPLE và 🤖 ANDROID
+                    boxHtml += `
+                        <tr style="background:#fef2f2; font-weight:900; border-bottom:2px solid #e11d48;">
+                            <td style="padding:12px 10px; color:#e11d48;">${sumApple.tenNhom}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumApple.sl}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumApple.dtqd}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumApple.donGia}</td>
+                            <td colspan="6"></td>
+                        </tr>
+                        <tr style="background:#f0f9ff; font-weight:900; border-bottom:2px solid #0284c7;">
+                            <td style="padding:12px 10px; color:#0284c7;">${sumAndroid.tenNhom}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumAndroid.sl}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumAndroid.dtqd}</td>
+                            <td style="padding:12px 10px; text-align:right;">${sumAndroid.donGia}</td>
+                            <td colspan="6"></td>
+                        </tr>
+                    `;
 
-                <div style="background:#FFF; border:2px solid #475569; border-radius:8px; overflow:hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
-                    <table style="width:100%; border-collapse:collapse; font-size:15px;">
-                        <thead style="background:#475569; color:#FFF;">
-                            <tr><th colspan="10" style="padding:12px; font-weight:900; font-size:18px; text-align:left; letter-spacing:0.5px;">📦 CÁC NHÓM HÀNG KHÁC</th></tr>
-                            ${tableHeader}
-                        </thead>
-                        <tbody>
-        `;
+                    // Render chi tiết
+                    appleItems.forEach(r => boxHtml += generateRow(r, true));
+                    androidItems.forEach(r => boxHtml += generateRow(r, true));
 
-        other.forEach(r => boxHtml += generateRow(r, false));
+                    boxHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
 
-        boxHtml += `
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            <!-- Bảng CÁC NHÓM HÀNG KHÁC -->
+                            <div style="background:#FFF; border:2px solid #475569; border-radius:8px; overflow:hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.15); margin-bottom:20px;">
+                                <table style="width:100%; border-collapse:collapse; font-size:15px;">
+                                    <thead style="background:#475569; color:#FFF;">
+                                        <tr><th colspan="10" style="padding:12px; font-weight:900; font-size:18px; text-align:left; letter-spacing:0.5px;">📦 CÁC NHÓM HÀNG KHÁC</th></tr>
+                                        ${tableHeader}
+                                    </thead>
+                                    <tbody>
+                    `;
 
-            <div style="background:#1E293B; padding:20px; display:flex; gap:20px; align-items:center; border-top: 4px solid #0F172A;">
-                <textarea id="txt-nhan-xet" style="flex:2; height:100px; font-family:'Courier New', Courier, monospace; font-size:14px; font-weight:bold; padding:12px; border-radius:6px; border:2px solid #CBD5E1; resize:none; outline:none; background:#F8FAFC; color:#0F172A; line-height:1.5;" readonly>${txt}</textarea>
+                    other.forEach(r => boxHtml += generateRow(r, false));
 
-                <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
-    <div style="display:flex; gap:10px;">
-        <button id="btn-snap-v15" style="flex:1; padding:15px; background:#0EA5E9; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📸 CHỤP FULL</button>
-        <button id="btn-copy-v15" style="flex:1; padding:15px; background:#22C55E; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📋 COPY TEXT</button>
-    </div>
-    <button id="btn-close-v15" style="padding:15px; background:#EF4444; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer; width:100%;">ĐÓNG GIAO DIỆN</button>
-</div>
-        `;
+                    // 1. Đóng bảng 2
+                    // 2. ĐÓNG LUÔN CAPTURE-ZONE TẠI ĐÂY (Để chụp hình không dính nút)
+                    boxHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
 
-        overlay.innerHTML = boxHtml;
-        document.body.appendChild(overlay);
+                    // --- FOOTER DƯỚI CÙNG (Nằm ngoài capture-zone) ---
+                    boxHtml += `
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 20px; padding: 15px; background: #F1F5F9; border-top: 2px solid #CBD5E1; border-radius: 0 0 8px 8px;">
+                            <!-- Ô text hiển thị ở góc trái -->
+                            <textarea id="txt-nhan-xet" style="flex: 1; height: 50px; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px; resize: none; font-size: 13px; font-family: monospace;">${txt}</textarea>
 
-       // Đăng ký sự kiện nút bấm - Logic chuẩn V9.1
-        document.getElementById('btn-close-v15').onclick = () => overlay.remove();
-        document.getElementById('btn-copy-v15').onclick = () => {
-            const el = document.getElementById('txt-nhan-xet');
-            el.select();
-            navigator.clipboard.writeText(el.value);
-            alert("✅ Đã Copy text báo cáo!");
-        };
+                            <!-- Các nút bấm ở góc phải -->
+                            <div style="display: flex; gap: 10px;">
+                                <button id="btn-snap-v15" style="padding:15px 20px; background:#0EA5E9; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📸 CHỤP</button>
+                                <button id="btn-copy-v15" style="padding:15px 20px; background:#22C55E; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📋 COPY</button>
+                                <button id="btn-close-v15" style="padding:15px 20px; background:#EF4444; color:white; border:none; border-radius:6px; font-weight:900; cursor:pointer;">ĐÓNG</button>
+                            </div>
+                        </div>
+                    `;
 
-        // NÚT CHỤP HÌNH (Logic copy từ V9.1 - Đã kiểm chứng)
-        document.getElementById('btn-snap-v15').onclick = function() {
-            const btn = this;
-            const zone = document.getElementById('capture-zone');
-            btn.innerText = "⏳ ĐANG XỬ LÝ...";
+                    overlay.innerHTML = boxHtml;
+                    document.body.appendChild(overlay);
 
-            // Đợi 300ms cho giao diện ổn định (như V9.1)
-            setTimeout(() => {
-                // Gọi thẳng html2canvas toàn cục (nếu chưa có thì script trên đầu đã load rồi)
-                html2canvas(zone, { scale: 3, useCORS: true, backgroundColor: "#E2E8F0" }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `SKST_TAMHOA_${new Date().toISOString().slice(0,10)}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                });
-            }, 300);
-        };
+                    // Gán sự kiện
+                    setTimeout(() => {
+                        const btnClose = document.getElementById('btn-close-v15');
+                        const btnCopy = document.getElementById('btn-copy-v15');
+                        const btnSnap = document.getElementById('btn-snap-v15');
+
+                        if(btnClose) btnClose.onclick = () => overlay.remove();
+
+                        if(btnCopy) btnCopy.onclick = () => {
+                            const el = document.getElementById('txt-nhan-xet');
+                            if(el) {
+                                el.select();
+                                navigator.clipboard.writeText(el.value);
+                                alert("✅ Đã Copy text báo cáo!");
+                            }
+                        };
+
+                        if(btnSnap) btnSnap.onclick = function() {
+                            const btn = this;
+                            const zone = document.getElementById('capture-zone');
+                            btn.innerText = "⏳...";
+                            setTimeout(() => {
+                                html2canvas(zone, { scale: 3, useCORS: true, backgroundColor: "#E2E8F0" }).then(canvas => {
+                                    const link = document.createElement('a');
+                                    link.download = `skst_tamhoa_${new Date().toISOString().slice(0,10)}.png`;
+                                    link.href = canvas.toDataURL("image/png");
+                                    link.click();
+                                    btn.innerText = "📸 CHỤP";
+                                });
+                            }, 300);
+                        };
+                    }, 100);
     }
     // =========================================================================
     // XƯỞNG 2: DOANH THU (dtht) TỪ V9.1
