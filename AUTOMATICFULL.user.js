@@ -661,7 +661,7 @@
                             dt: cells[3] ? cells[3].innerText.trim() : "0",
                             target: cells[4] ? cells[4].innerText.trim() : "0",
                             pct: "0",
-                            tracham: cells[10] ? cells[10].innerText.trim() : "0%"
+                            tracham: cells[cells.length - 1] ? cells[cells.length - 1].innerText.trim() : "0%"
                         };
                         break;
                     }
