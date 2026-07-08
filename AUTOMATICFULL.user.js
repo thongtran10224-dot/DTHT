@@ -355,7 +355,7 @@
                 }
             });
 
-            // Logic tách Apple/Android
+           // Logic tách Apple/Android
             let appleItems = [], androidItems = [];
             smartItems.forEach(item => {
                 if (/Apple|iPhone/i.test(item.tenNhom)) {
@@ -365,6 +365,11 @@
                 }
             });
 
+            // Sắp xếp lại thứ tự tăng trưởng
+            parentItems.sort((a, b) => b.valTien - a.valTien);
+            appleItems.sort((a, b) => b.valTien - a.valTien);
+            androidItems.sort((a, b) => b.valTien - a.valTien);
+            otherItems.sort((a, b) => b.valTien - a.valTien);
             // Hàm tính đơn giá và gom lại
             const calcGroup = (arr, name) => {
                 let sumDT = arr.reduce((acc, cur) => acc + parseFloat(cur.dtqdRaw.replace(/,/g, '')), 0);
@@ -378,8 +383,9 @@
                 };
             };
 
-            let sumApple = calcGroup(appleItems, "🍎 APPLE (IPHONE)");
-            let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
+           let sumApple = calcGroup(appleItems, "🍎 APPLE (IPHONE)");
+sumApple.donGia = "—"; // Bỏ hiển thị đơn giá Apple theo yêu cầu
+let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
 
             GM_setValue(STATE_KEY, 'IDLE');
             tatVuTruLoading();
@@ -508,31 +514,24 @@
                         <tbody>
         `;
 
-        // Render nhóm chính (Parents)
+       // Render nhóm chính (Parents)
                     parents.forEach(r => boxHtml += generateRow(r, false));
 
-                    // Dòng tổng 🍎 APPLE và 🤖 ANDROID
+                    // Apple Items (Chỉ render data, bỏ header)
+                    appleItems.forEach(r => boxHtml += generateRow(r, true));
+
+                 // Android Group (Giữ nguyên header)
                     boxHtml += `
-                        <tr style="background:#fef2f2; font-weight:900; border-bottom:2px solid #e11d48;">
-                            <td style="padding:12px 10px; color:#e11d48;">${sumApple.tenNhom}</td>
-                            <td style="padding:12px 10px; text-align:right;">${sumApple.sl}</td>
-                            <td style="padding:12px 10px; text-align:right;">${sumApple.dtqd}</td>
-                            <td style="padding:12px 10px; text-align:right;">${sumApple.donGia}</td>
-                            <td colspan="6"></td>
-                        </tr>
                         <tr style="background:#f0f9ff; font-weight:900; border-bottom:2px solid #0284c7;">
                             <td style="padding:12px 10px; color:#0284c7;">${sumAndroid.tenNhom}</td>
                             <td style="padding:12px 10px; text-align:right;">${sumAndroid.sl}</td>
                             <td style="padding:12px 10px; text-align:right;">${sumAndroid.dtqd}</td>
                             <td style="padding:12px 10px; text-align:right;">${sumAndroid.donGia}</td>
                             <td colspan="6"></td>
-                        </tr>
-                    `;
-
-                    // Render chi tiết
-                    appleItems.forEach(r => boxHtml += generateRow(r, true));
+                        </tr>`;
                     androidItems.forEach(r => boxHtml += generateRow(r, true));
 
+                    // Đóng bảng 1 và mở bảng 2 (Các nhóm hàng khác)
                     boxHtml += `
                                     </tbody>
                                 </table>
@@ -678,8 +677,19 @@
         GM_setValue(STATE_KEY, 'DT_FETCH2');
         window.location.href = "https://bi.thegioididong.com/thi-dua?id=-1&tab=1&rt=1&dm=1";
     }
-    async function xuLyDoanhThu_Trang2() {
-        await waitForElement('body', 15000); await delay(3000);
+   async function xuLyDoanhThu_Trang2() {
+        await waitForElement('body', 15000);
+
+        // Quét đếm số lượng từ khóa "% HT". Khi bảng nhóm hàng thực sự bung ra, chữ này sẽ xuất hiện lặp lại.
+        for (let i = 0; i < 60; i++) {
+            let currentText = document.body.innerText;
+            let matchCount = (currentText.match(/% HT/g) || []).length;
+            if (matchCount > 3) {
+                break; // Đã thấy đủ dữ liệu bảng, thoát vòng lặp chờ
+            }
+            await delay(500);
+        }
+        await delay(1500); // Chờ thêm 1.5s để UI dàn trang xong hoàn toàn
 
         let data1_str = GM_getValue('dtht_data_trang1');
         let data1 = data1_str ? JSON.parse(data1_str) : { dt: "0", target: "500", pct: "0", tracham: "0" };
