@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TGDĐ TAM HÒA - V11 SUPREME (HỢP NHẤT)
+// @name         🚀 SIÊU TOOL TGDĐ TAM HÒA - V12
 // @namespace    http://tampermonkey.net/
-// @version      11
+// @version      12
 // @description  Hợp nhất V9.1 (DT & SKNV) và V16 (SKST). Kiến trúc 3 tầng FSM bất tử.
 // @match        *://bi.thegioididong.com/*
 // @grant        GM_setValue
@@ -341,8 +341,11 @@
                     target = "—";
                 }
 
+                // Đổi tên hiển thị cho trực quan
+                let tenHienThi = tenNhom === "Điện Thoại Di Động" ? "Điện Thoại Di Động (bàn phím)" : tenNhom;
+
                 const itemData = {
-                    tenNhom, sl, dtqdRaw, dtqd: formatMoney(dtqdNum), donGia, target, dtck: dtckStr, pctTangGiam,
+                    tenNhom: tenHienThi, sl, dtqdRaw, dtqd: formatMoney(dtqdNum), donGia, target, dtck: dtckStr, pctTangGiam,
                     tienTangGiam: formatMoney(tienTangGiam), valTien: tienTangGiam, dtTraGop, tyTrongTG
                 };
 
@@ -365,8 +368,16 @@
                 }
             });
 
-            // Sắp xếp lại thứ tự tăng trưởng
-            parentItems.sort((a, b) => b.valTien - a.valTien);
+            // Khóa cứng vị trí tuyệt đối bằng từ khóa (1. Điện thoại mới -> 2. Điện Thoại Di Động -> 3. Smartphone)
+            parentItems.sort((a, b) => {
+                const getWeight = (name) => {
+                    if (name.includes("mới")) return 1;
+                    if (name.includes("Di Động") || name.includes("bàn phím")) return 2;
+                    if (name.includes("Smartphone")) return 3;
+                    return 999;
+                };
+                return getWeight(a.tenNhom) - getWeight(b.tenNhom);
+            });
             appleItems.sort((a, b) => b.valTien - a.valTien);
             androidItems.sort((a, b) => b.valTien - a.valTien);
             otherItems.sort((a, b) => b.valTien - a.valTien);
@@ -1181,9 +1192,10 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                     <div class="input-item"><label>4.B.Kèm</label><textarea class="sk-ta" id="i4"></textarea></div>
                     <div class="input-item"><label>5.T.Góp</label><textarea class="sk-ta" id="i5"></textarea></div>
                 </div>
-                <div class="btn-group">
+               <div class="btn-group">
                     <button class="btn-sk" style="background:#004a99" onclick="window.skst_masterProcess()">Xuất Dữ Liệu ⚡</button>
                     <button class="btn-sk" style="background:#28a745" onclick="window.skst_captureReport()">Chụp Hình 📷</button>
+                    <button class="btn-sk" style="background:#0284c7; font-weight:900;" onclick="window.skst_downloadAllStaff()">TẢI ALL NV 📥</button>
                     <button class="btn-sk" style="background:#e67e22" onclick="window.skst_generateFullReport()">Copy Nhận Xét 🚀</button>
                     <button class="btn-sk" style="background:#8e44ad; font-weight:900;" onclick="window.skst_toggleReward()">THƯỞNG 🏆</button>
                 </div>
@@ -1430,6 +1442,36 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
             const canvas = await html2canvas(area, { scale: 6, useCORS: true, width: area.scrollWidth, windowWidth: area.scrollWidth, backgroundColor: "#ffffff" });
             area.style.width = oldWidth;
             const link = document.createElement('a'); link.download = `SK_${tenNV}_${new Date().getDate()}-${new Date().getMonth()+1}.png`; link.href = canvas.toDataURL("image/png", 1.0); link.click();
+        }
+
+        unsafeWindow.skst_downloadAllStaff = async function() {
+            if(!unsafeWindow.skst_processedData) {
+                alert("Vui lòng 'Xuất Dữ Liệu' trước khi tải!");
+                return;
+            }
+            const btn = document.querySelector('button[onclick="window.skst_downloadAllStaff()"]');
+            const oldText = btn.innerText;
+            btn.innerText = "⏳ ĐANG TẢI...";
+            btn.style.opacity = "0.7";
+            btn.disabled = true;
+
+            const { sData } = unsafeWindow.skst_processedData;
+            const visS = sData.filter(s => unsafeWindow.skst_config.staffs[s.id]?.show);
+
+            for (let i = 0; i < visS.length; i++) {
+                let s = visS[i];
+                btn.innerText = `⏳ TẢI ${i+1}/${visS.length}...`;
+                unsafeWindow.skst_showStaffDetail(s.id);
+                await delay(500); // Đợi UI render bảng chi tiết của nhân viên
+                await unsafeWindow.skst_captureStaffDetail();
+                await delay(500); // Đợi trình duyệt xử lý file tải về xong mới qua người tiếp theo
+            }
+
+            unsafeWindow.skst_closeDetail();
+            btn.innerText = oldText;
+            btn.style.opacity = "1";
+            btn.disabled = false;
+            alert(`✅ Đã tải thành công ${visS.length} bảng chi tiết nhân viên!`);
         }
 
         function getValByGPS(rawData, colIndex) {
