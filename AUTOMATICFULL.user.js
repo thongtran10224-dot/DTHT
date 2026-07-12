@@ -835,9 +835,17 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                     <h3 style="margin:0; color:var(--primary); font-weight:900; font-size:16px;">⚙️ CÀI ĐẶT DOANH THU</h3>
                     <span style="cursor:pointer; font-size:22px;" onclick="window.closeSettingsDtht()">✖</span>
                 </div>
-                <div class="setting-row">
-                    <label style="display:block; font-weight:900; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
-                    <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
+              <div class="setting-row" style="display: flex; gap: 10px; flex-direction: column;">
+                    <div>
+                        <label style="display:block; font-weight:900; font-size:11px; margin-bottom:5px; color:var(--danger)">🎯 TARGET DOANH THU NGÀY (TR):</label>
+                        <input type="number" id="setTargetDay" placeholder="Ví dụ: 500" inputmode="numeric" style="margin-bottom:0; border-color:var(--primary)">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button onclick="window.exportConfigDtht()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; cursor:pointer;">📥 XUẤT FILE</button>
+                        <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center;">
+                            📤 NHẬP FILE <input type="file" id="importConfigDtht" accept=".json" style="display:none;" onchange="window.importConfigDtht(event)">
+                        </label>
+                    </div>
                 </div>
                 <div id="groupChecklist"></div>
                 <button onclick="window.saveSettingsDtht()" style="width:100%; background:var(--success); color:white; border:none; padding:12px; border-radius:8px; font-weight: 900; margin-top: 10px;">LƯU LẠI</button>
@@ -891,12 +899,44 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
             try { document.execCommand('copy'); btnCopy.innerText = "✅ ĐÃ COPY!"; btnCopy.style.background = "#28a745"; setTimeout(() => { btnCopy.innerText = "📋 COPY CHỮ"; btnCopy.style.background = "var(--black)"; }, 2000); } catch (err) { alert("Lỗi copy!"); }
         };
 
+        // Logic tên bất tử: Cắt bỏ sạch các tiền tố/hậu tố dư thừa kể cả khi BI có đổi tên
         unsafeWindow.trimNameDtht = function(name) {
-            return name.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |BC Thi đua |Nhóm hàng /gi, "")
+            return name.replace(/Thi đua doanh thu |Thi đua số lượng |BC Thi đua |Thi đua |Nhóm hàng |NNH /gi, "")
                        .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship")
                        .replace("Pin sạc dự phòng", "Sạc dự phòng")
                        .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp(FE/SH/SS)")
                        .trim();
+        }
+
+        unsafeWindow.exportConfigDtht = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(unsafeWindow.groupConfigsDtht, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `dtht_config_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            alert("✅ Đã xuất file cấu hình thành công!");
+        }
+
+        unsafeWindow.importConfigDtht = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    unsafeWindow.groupConfigsDtht = importedData;
+                    localStorage.setItem('dthtSlimConfigs', JSON.stringify(unsafeWindow.groupConfigsDtht));
+                    alert("✅ Đã nạp cấu hình thành công! Đang tải lại dữ liệu...");
+                    unsafeWindow.openSettingsDtht();
+                    unsafeWindow.renderDailyDtht();
+                } catch (err) {
+                    alert("❌ File cấu hình không hợp lệ!");
+                }
+                event.target.value = ''; // Xóa input để có thể nạp lại file cũ nếu cần
+            };
+            reader.readAsText(file);
         }
 
         unsafeWindow.openSettingsDtht = function() {
@@ -1239,6 +1279,12 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                 <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px;">
                     <table style="width:100%"><tbody id="staffList"></tbody></table>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <button onclick="window.skst_exportConfig()" style="padding:10px; background:#0284c7; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📥 XUẤT CẤU HÌNH</button>
+                    <label style="padding:10px; background:#e67e22; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer; text-align:center; margin:0; display:flex; align-items:center; justify-content:center;">
+                        📤 NHẬP CẤU HÌNH <input type="file" id="importConfigSkst" accept=".json" style="display:none;" onchange="window.skst_importConfig(event)">
+                    </label>
+                </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <button onclick="window.skst_saveSettings()" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer;">LƯU ✅</button>
                     <button onclick="window.skst_closeSettings()" style="padding:10px; background:#6c757d; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer;">ĐÓNG ❌</button>
@@ -1273,10 +1319,50 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
         unsafeWindow.skst_processedData = null;
         unsafeWindow.skst_config = JSON.parse(localStorage.getItem('skst_config_v56')) || { boostDT: 1.0, boostNH: 1.0, showCols: {dt:true, bk:true, tg:true, btm:true}, groups:{}, staffs:{} };
 
+        // Nâng cấp logic tên bất tử cho SKST
+        unsafeWindow.skst_trimName = function(name) {
+            return name.replace(/Thi đua doanh thu |Thi đua số lượng |BC Thi đua |Thi đua |Ngành hàng |Nhóm hàng |Nhóm |Số lượng |NNH /gi, "")
+                       .replace("SMARTPHONE FLAGSHIP & TABLET ANDROID", "Flagship")
+                       .replace("Pin sạc dự phòng", "Sạc dự phòng")
+                       .replace("FECREDIT, SHINHAN, SAMSUNG FINANCE+", "Góp(FE/SH/SS)")
+                       .trim();
+        };
+
+        unsafeWindow.skst_exportConfig = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(unsafeWindow.skst_config, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `skst_config_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            alert("✅ Đã xuất file cấu hình Sức Khỏe NV thành công!");
+        };
+
+        unsafeWindow.skst_importConfig = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    unsafeWindow.skst_config = importedData;
+                    localStorage.setItem('skst_config_v56', JSON.stringify(unsafeWindow.skst_config));
+                    alert("✅ Đã nạp cấu hình thành công! Đang tải lại dữ liệu...");
+                    unsafeWindow.skst_openSettings();
+                    if (unsafeWindow.skst_processedData) unsafeWindow.skst_masterProcess();
+                } catch (err) {
+                    alert("❌ File cấu hình không hợp lệ!");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
         unsafeWindow.skst_getRemainingDays = () => { const now = new Date(); return (new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1) || 1; }
         unsafeWindow.skst_getPassedDays = () => new Date().getDate();
         unsafeWindow.skst_getTotalDays = () => new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        unsafeWindow.skst_getDN = (id, useBigStk = true) => { const item = unsafeWindow.skst_config.groups[id]; const base = id.replace(/Thi đua doanh thu |Thi đua số lượng |Thi đua |Ngành hàng |Nhóm |Số lượng /gi, "").trim(); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
+        unsafeWindow.skst_getDN = (id, useBigStk = true) => { const item = unsafeWindow.skst_config.groups[id]; const base = unsafeWindow.skst_trimName(id); if (!item) return base; const stk = item.stk || "📦"; const alias = item.alias || base; return useBigStk ? `<span class="stk-display">${stk}</span>${alias}` : alias + stk; };
         unsafeWindow.skst_getShort = (f) => { let p = f.split(" - ")[0].trim().split(" "); return p[p.length-1]; };
 
         unsafeWindow.skst_getRankColor = (v, a, isNH = false, rev = false) => {
