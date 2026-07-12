@@ -1226,11 +1226,11 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                     </div>
                 </div>
                 <div class="input-container">
-                    <div class="input-item"><label>1.SKST</label><textarea class="sk-ta" id="i1"></textarea></div>
-                    <div class="input-item"><label>2.D.Thu</label><textarea class="sk-ta" id="i2"></textarea></div>
-                    <div class="input-item"><label>3.N.HÀNG</label><textarea class="sk-ta" id="i3"></textarea></div>
-                    <div class="input-item"><label>4.B.Kèm</label><textarea class="sk-ta" id="i4"></textarea></div>
-                    <div class="input-item"><label>5.T.Góp</label><textarea class="sk-ta" id="i5"></textarea></div>
+                    <div class="input-item"><label>1.SỨC KHỎE TỔNG</label><textarea class="sk-ta" id="i1"></textarea></div>
+                    <div class="input-item"><label>2.DOANH THU NV</label><textarea class="sk-ta" id="i2"></textarea></div>
+                    <div class="input-item"><label>3.NHÓM HÀNG NV</label><textarea class="sk-ta" id="i3"></textarea></div>
+                    <div class="input-item"><label>4.BÁN KÈM NV</label><textarea class="sk-ta" id="i4"></textarea></div>
+                    <div class="input-item"><label>5.TRẢ GÓP NV</label><textarea class="sk-ta" id="i5"></textarea></div>
                 </div>
                <div class="btn-group">
                     <button class="btn-sk" style="background:#004a99" onclick="window.skst_masterProcess()">Xuất Dữ Liệu ⚡</button>
