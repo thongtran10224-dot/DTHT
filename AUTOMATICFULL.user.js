@@ -1027,7 +1027,7 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                 if(name && (r > 0 || t > 0)) unsafeWindow.allParsedGroupsDtht.push({ name, r, t, p });
             }
 
-          let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.n]?.visible !== false).sort((a,b) => ((b.p >= 100 || (b.t === 0 && b.r > 0)) - (a.p >= 100 || (a.t === 0 && a.r > 0))) || (b.t > 0) - (a.t > 0) || b.p - a.p);
+          let dList = unsafeWindow.allParsedGroupsDtht.filter(g => unsafeWindow.groupConfigsDtht[g.name]?.visible !== false).sort((a,b) => ((b.p >= 100 || (b.t === 0 && b.r > 0)) - (a.p >= 100 || (a.t === 0 && a.r > 0))) || (b.t > 0) - (a.t > 0) || b.p - a.p);
             let gridHtml = "", datCount = 0;
             dList.forEach(g => {
                 if(g.p >= 100 || (g.t === 0 && g.r > 0)) datCount++;
