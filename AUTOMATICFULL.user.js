@@ -842,9 +842,9 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <button onclick="window.exportConfigDtht()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; cursor:pointer;">📥 XUẤT FILE</button>
-                        <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center;">
-                            📤 NHẬP FILE <input type="file" id="importConfigDtht" accept=".json" style="display:none;" onchange="window.importConfigDtht(event)">
-                        </label>
+                        <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; text-align:center; cursor:pointer; margin:0; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+    📤 NHẬP FILE <input type="file" id="importConfigDtht" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="window.importConfigDtht(event)">
+</label>
                     </div>
                 </div>
                 <div id="groupChecklist"></div>
@@ -1226,11 +1226,11 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                     </div>
                 </div>
                 <div class="input-container">
-                    <div class="input-item"><label>1.SỨC KHỎE TỔNG</label><textarea class="sk-ta" id="i1"></textarea></div>
-                    <div class="input-item"><label>2.DOANH THU NV</label><textarea class="sk-ta" id="i2"></textarea></div>
-                    <div class="input-item"><label>3.NHÓM HÀNG NV</label><textarea class="sk-ta" id="i3"></textarea></div>
-                    <div class="input-item"><label>4.BÁN KÈM NV</label><textarea class="sk-ta" id="i4"></textarea></div>
-                    <div class="input-item"><label>5.TRẢ GÓP NV</label><textarea class="sk-ta" id="i5"></textarea></div>
+                    <div class="input-item"><label>1.SKST</label><textarea class="sk-ta" id="i1"></textarea></div>
+                    <div class="input-item"><label>2.D.Thu</label><textarea class="sk-ta" id="i2"></textarea></div>
+                    <div class="input-item"><label>3.N.HÀNG</label><textarea class="sk-ta" id="i3"></textarea></div>
+                    <div class="input-item"><label>4.B.Kèm</label><textarea class="sk-ta" id="i4"></textarea></div>
+                    <div class="input-item"><label>5.T.Góp</label><textarea class="sk-ta" id="i5"></textarea></div>
                 </div>
                <div class="btn-group">
                     <button class="btn-sk" style="background:#004a99" onclick="window.skst_masterProcess()">Xuất Dữ Liệu ⚡</button>
@@ -1281,9 +1281,9 @@ let sumAndroid = calcGroup(androidItems, "🤖 ANDROID");
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
                     <button onclick="window.skst_exportConfig()" style="padding:10px; background:#0284c7; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer;">📥 XUẤT CẤU HÌNH</button>
-                    <label style="padding:10px; background:#e67e22; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer; text-align:center; margin:0; display:flex; align-items:center; justify-content:center;">
-                        📤 NHẬP CẤU HÌNH <input type="file" id="importConfigSkst" accept=".json" style="display:none;" onchange="window.skst_importConfig(event)">
-                    </label>
+                    <label style="padding:10px; background:#e67e22; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer; text-align:center; margin:0; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+    📤 NHẬP CẤU HÌNH <input type="file" id="importConfigSkst" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="window.skst_importConfig(event)">
+</label>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <button onclick="window.skst_saveSettings()" style="padding:10px; background:#28a745; color:#fff; border:none; border-radius:6px; font-weight:900; cursor:pointer;">LƯU ✅</button>
