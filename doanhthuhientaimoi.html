@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.3 FULL PRO
+// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.4 PRO
 // @namespace    http://tampermonkey.net/
-// @version      31.3
-// @description  Bản chuẩn V31.3: Fix bốc số DT dự kiến né dấu ?, Nhận xét Text riêng cho Lũy kế, Đổi tên File ảnh chuẩn xuất.
+// @version      31.4
+// @description  Bản chuẩn V31.4: Nâng cấp Full UI Responsive chuẩn V12, Text-shadow siêu nét khi xuất ảnh, Tự động scale đẹp trên ĐT/Laptop.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -193,7 +193,6 @@
                     let idx = lines.findIndex(l => l.includes("DT dự kiến"));
                     if (idx !== -1) {
                         for (let i = idx + 1; i < lines.length; i++) {
-                            // Lọc bỏ dấu chấm hỏi tooltip, lấy ra dòng chứa số thực tế
                             if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
                                 summaryData.dtDuKien = lines[i];
                                 break;
@@ -265,8 +264,9 @@
             alert("❌ Lỗi hệ thống: " + error.message);
         }
     };
+
     // =========================================================================
-    // 3. RENDER BẢNG ĐIỀU KHIỂN & GIAO DIỆN CHUẨN MẪU
+    // 3. RENDER BẢNG ĐIỀU KHIỂN & GIAO DIỆN CHUẨN MẪU TỪ V12
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         window.currentParsedGroups = groups;
@@ -304,53 +304,54 @@
         let headerStatsHtml = "";
         if (isLuyKe) {
             headerStatsHtml = `
-                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:15px;">
-                    <div class="stat-box" style="padding:6px 2px;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">LŨY KẾ/TARGET</div>
-                        <div style="font-size:13px; font-weight:950; color:#004a99;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 950; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
+                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
                     </div>
-                    <div class="stat-box" style="padding:6px 2px;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">DỰ KIẾN</div>
-                        <div style="font-size:13px; font-weight:950; color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                    <div class="stat-box">
+                        <div class="stat-label">DỰ KIẾN</div>
+                        <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
                     </div>
-                    <div class="stat-box" style="padding:6px 2px;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
-                        <div style="font-size:13px; font-weight:950; color:#dc3545;">${moiNgay}TR</div>
+                    <div class="stat-box">
+                        <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                        <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
                     </div>
-                    <div class="stat-box" style="padding:6px 2px;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
-                        <div style="font-size:13px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                    <div class="stat-box">
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
                     </div>
-                    <div class="stat-box" style="padding:6px 2px;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                        <div style="font-size:13px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
+                   <div class="stat-box">
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
                     </div>
                 </div>
             `;
         } else {
             headerStatsHtml = `
-                <div class="mode-group" id="timeModeGroup">
+                <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
                     <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
                     <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
                     <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
                 </div>
-                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">⏰ REALTIME --:--</div>
-                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
+                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 950; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase;">⏰ REALTIME --:--</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-box">
-                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
-                        <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                        <div class="stat-label">THỰC / TARGET (TR)</div>
+                        <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
                     </div>
                     <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
-                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">% ĐẠT</div>
-                        <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                        <div class="stat-label">% ĐẠT</div>
+                        <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
                     </div>
                     <div class="stat-box">
-                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
-                        <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
                     </div>
                     <div class="stat-box">
-                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                        <div style="font-size:18px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
                     </div>
                 </div>
             `;
@@ -361,17 +362,25 @@
         div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;";
 
         const cssGoc = `
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
             .th-container { padding: 10px; width: 100%; max-width: 680px; margin: 20px auto; position:relative; }
             .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
-            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 900; font-size: 11px; text-transform: uppercase; }
+            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 900; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
             .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
-            .stat-box { background: #fff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display:flex; flex-direction:column; justify-content:center; }
-            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-            .group-name { font-size: 14px; font-weight: 900; color: #000000; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; margin-bottom: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
-            .pct-high { background: #28a745; color: #fff; padding: 4px 8px; border-radius: 6px; font-weight: 900; }
-            .pct-mid { background: #ffc107; color: #000; padding: 4px 8px; border-radius: 6px; font-weight: 900; }
-            .pct-low { background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 6px; font-weight: 900; }
+            #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; }
+            .stats-grid { display: grid; gap: 8px; margin-bottom: 15px; }
+            .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
+            .stat-label { font-size: 11px; font-weight: 950 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            .stat-val { font-size: 26px !important; font-weight: 950 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; }
+            .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+            .group-name { font-size: 13px !important; font-weight: 950 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
+            .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
+            .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; }
+            .group-num { font-size: 18px !important; font-weight: 950 !important; color: #000; }
+            .pct-high { background: #28a745; color: #fff; padding: 4px 8px; border-radius: 8px; font-weight: 950; font-size: 16px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.3); }
+            .pct-mid { background: #ffc107; color: #000; padding: 4px 8px; border-radius: 8px; font-weight: 950; font-size: 16px !important; }
+            .pct-low { background: #dc3545; color: #fff; padding: 4px 8px; border-radius: 8px; font-weight: 950; font-size: 16px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.3); }
             #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 900; height: 160px; margin-top: 15px; font-size: 12px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none;}
         `;
 
@@ -392,9 +401,9 @@
 
             gridHtml += `
                 <div class="group-card">
-                    <div class="group-name"><span style="font-size:18px;">${conf.sticker}</span> ${fName}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span style="font-weight:900; color:#000000; font-size:17px;">${rDisp} / ${tDisp}</span>
+                    <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
+                    <div class="group-stats">
+                        <span class="group-num">${rDisp} / ${tDisp}</span>
                         <span class="${pCl}">${pRounded}%</span>
                     </div>
                     <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
@@ -406,19 +415,19 @@
         div.innerHTML = `
             <style>${cssGoc}</style>
             <div class="th-container">
-                <div style="background:#f0f2f5; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 BÁO CÁO ${isLuyKe ? 'LŨY KẾ THÁNG' : 'REALTIME'}</h2>
+                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
                             <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">⚙️ CÀI ĐẶT</button>
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">❌ ĐÓNG</button>
                         </div>
                     </div>
 
-                    <div id="capture-zone" style="background:#fff; padding:15px; border-radius:12px; border:2px solid #004a99;">
+                    <div id="capture-zone">
                         ${headerStatsHtml}
-                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
+                        <div class="group-grid">
                             ${gridHtml}
                         </div>
                     </div>
@@ -427,7 +436,7 @@
 
                     <div style="display:flex; gap:10px; margin-top:15px;">
                         <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">📋 COPY CHỮ</button>
-                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">📸 CHỤP ẢNH</button>
+                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">📸 CHỤP ẢNH </button>
                     </div>
                 </div>
             </div>
@@ -442,7 +451,7 @@
     };
 
     // =========================================================================
-    // 4. XỬ LÝ VĂN BẢN (TEXTAREA) & CÀI ĐẶT
+    // 4. XỬ LÝ VĂN BẢN (TEXTAREA) & CHỤP ẢNH TỐI ƯU TỪ BẢN V12
     // =========================================================================
     window.setTimeMode = function(tm, btnEl) {
         window.currentTimeMode = tm;
@@ -489,7 +498,6 @@
         let txt = "";
 
         if (isLuyKe) {
-            // MẪU NHẬN XÉT ĐỘC LẬP CHO LŨY KẾ THÁNG
             txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
             txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
             txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
@@ -515,7 +523,6 @@
             txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
 
         } else {
-            // MẪU NHẬN XÉT ĐỘC LẬP CHO REALTIME
             let pre = "", st = "", cauKet = "";
             let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
 
@@ -682,155 +689,40 @@
         reader.readAsText(file);
     };
 
+    // Chụp trực tiếp zone render trên màn hình bằng chuẩn scale x3 như V12 (Chống mờ/Răng cưa hoàn hảo)
     window.captureReportImg = function() {
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let groups = window.currentParsedGroups || [];
-        let summaryData = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
-        let isLuyKe = window.currentReportMode === 'LUYKE';
-        let masterTarget = isLuyKe ? (parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014) : (parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304);
+            let btn = event.target;
+            let oldText = btn.innerText;
+            btn.innerText = "⏳ ĐANG CHỤP...";
 
-        let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
-        let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
-
-        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
-        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
-
-        let now = new Date();
-        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        let currentDay = now.getDate();
-        let remainingDays = Math.max(1, totalDays - currentDay);
-        let missing = Math.max(0, masterTarget - dtVal);
-        let moiNgay = lamTronTamHoa(missing / remainingDays);
-
-        let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
-        let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
-
-        let actG = groups.filter(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
-            return conf.visible !== false;
-        });
-        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
-
-        let gridHtml = "";
-        groups.forEach(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
-            if (conf.visible === false) return;
-
-            let fName = conf.nickname || g.name;
-            let pRounded = lamTronTamHoa(g.p);
-            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 50 ? "pct-mid" : "pct-low");
-            let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
-            let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
-            let pctBar = Math.min(100, Math.max(0, pRounded));
-            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 50 ? '#ffc107' : '#dc3545');
-
-            gridHtml += `
-                <div style="background: #ffffff; border: 1px solid #e0e6ed; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-                    <div style="font-size: 14px; font-weight: 900; color: #000000; border-bottom: 1px solid #f0f0f0; padding-bottom: 6px; margin-bottom: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;"><span style="font-size:18px;">${conf.sticker}</span> ${fName}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span style="font-weight:900; color:#000000; font-size:17px;">${rDisp} / ${tDisp}</span>
-                        <span style="padding: 4px 8px; border-radius: 6px; font-weight: 900; ${pRounded >= 100 ? 'background:#28a745; color:#ffffff;' : (pRounded >= 50 ? 'background:#ffc107; color:#000000;' : 'background:#dc3545; color:#ffffff;')}">${pRounded}%</span>
-                    </div>
-                    <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
-                        <div style="width:${pctBar}%; background:${barColor}; height:100%;"></div>
-                    </div>
-                </div>`;
-        });
-
-        let exportHeaderHtml = "";
-        if (isLuyKe) {
-            exportHeaderHtml = `
-                <div style="text-align: center; color: #ffffff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
-                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:15px;">
-                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">LŨY KẾ/TARGET</div>
-                        <div style="font-size:13px; font-weight:950; color:#004a99;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
-                    </div>
-                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">DỰ KIẾN</div>
-                        <div style="font-size:13px; font-weight:950; color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
-                    </div>
-                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
-                        <div style="font-size:13px; font-weight:950; color:#dc3545;">${moiNgay}TR</div>
-                    </div>
-                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
-                        <div style="font-size:13px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
-                    </div>
-                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
-                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                        <div style="font-size:13px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
-                    </div>
-                </div>
-            `;
-        } else {
-            exportHeaderHtml = `
-                <div style="text-align: center; color: #ffffff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">${document.getElementById('realtime-header')?.innerText || '⏰ REALTIME'}</div>
-                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
-                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
-                        <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
-                    </div>
-                    <div style="background: ${percentTarget >= 100 ? '#e8f8f5' : '#ffffff'}; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">% ĐẠT</div>
-                        <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
-                    </div>
-                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">TRẢ GÓP</div>
-                        <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
-                    </div>
-                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                        <div style="font-size:18px; font-weight:950; color:#000000;">${datCount}/${actG.length}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        let exportBox = document.createElement('div');
-        exportBox.style.cssText = "position:fixed; top:-9999px; left:-9999px; width:680px; background:#ffffff; padding:15px; border-radius:12px; border:2px solid #004a99; font-family:Arial, Helvetica, sans-serif; color:#000000; font-weight:800;";
-        exportBox.innerHTML = `
-            ${exportHeaderHtml}
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
-                ${gridHtml}
-            </div>
-        `;
-        document.body.appendChild(exportBox);
-
-        window.html2canvas(exportBox, {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            onclone: (clonedDoc) => {
-                clonedDoc.querySelectorAll('link, style').forEach(el => el.remove());
-                clonedDoc.querySelectorAll('*').forEach(node => {
-                    if (node.style) {
-                        for (let i = 0; i < node.style.length; i++) {
-                            let prop = node.style[i];
-                            let val = node.style.getPropertyValue(prop);
-                            if (val && val.includes('oklch')) {
-                                node.style.setProperty(prop, '#000000');
-                            }
-                        }
-                    }
-                });
-            }
-        }).then(canvas => {
-            exportBox.remove();
-            const link = document.createElement('a');
-
-            // Xử lý đổi tên file chuẩn yêu cầu
+            let zone = document.getElementById('capture-zone');
+            let isLuyKe = window.currentReportMode === 'LUYKE';
             let dateStr = new Date().toISOString().slice(0,10);
-            link.download = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+            let fileName = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
 
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        }).catch(err => {
-            exportBox.remove();
-            alert("❌ Lỗi chụp ảnh: " + err.message);
-        });
-    };
+            window.html2canvas(zone, {
+                scale: 3,
+                useCORS: true,
+                backgroundColor: "#f0f2f5",
+                onclone: (clonedDoc) => {
+                    clonedDoc.querySelectorAll('link[rel="stylesheet"], style').forEach(el => {
+                        if (!el.innerText.includes('th-container') && !el.innerText.includes('capture-zone')) {
+                            el.remove();
+                        }
+                    });
+                }
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                btn.innerText = "✅ XONG!";
+                setTimeout(() => { btn.innerText = oldText; }, 2000);
+            }).catch(err => {
+                alert("❌ Lỗi chụp ảnh: " + err.message);
+                btn.innerText = oldText;
+            });
+        };
 
     window.copyTextReport = function() {
         const textarea = document.getElementById('lienText');
