@@ -56,8 +56,8 @@
         rocketInterval = setInterval(() => {
             if (!document.getElementById('master-loading-overlay')) {
                 let div = document.createElement('div');
-                div.id = 'master-loading-overlay'; div.className = 'skst-overlay';
-                let bgStars = '<div class="stars-bg">';
+        div.id = 'dtht-commander-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 60px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;";
                 for(let i=0; i<60; i++) {
                     let size = Math.random() * 3 + 2;
                     bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
