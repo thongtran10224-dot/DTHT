@@ -39,10 +39,14 @@
     // 1. MÀN HÌNH CHỜ VŨ TRỤ & MENU ĐIỀU HƯỚNG
     // =========================================================================
     let rocketInterval = null;
+    let rocketInterval = null;
     function hienThiVuTruLoading(modeText = "ĐANG KẾT NỐI BI") {
+        let oldOverlay = document.getElementById('master-loading-overlay');
+        if (oldOverlay) oldOverlay.remove();
+
         if (!document.getElementById('rocket-style-permanent')) {
             const css = `
-                .skst-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #050505; z-index: 2147483647 !important; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; overflow: hidden; pointer-events: all; }
+                .skst-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; background: #050505 !important; z-index: 2147483647 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; color: white !important; overflow: hidden !important; pointer-events: all !important; }
                 .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
                 .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
                 @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
@@ -52,21 +56,18 @@
             `;
             let style = document.createElement('style'); style.id = 'rocket-style-permanent'; style.innerHTML = css; document.head.appendChild(style);
         }
-        if (rocketInterval) return;
-        rocketInterval = setInterval(() => {
-            if (!document.getElementById('master-loading-overlay')) {
-                let div = document.createElement('div');
-        div.id = 'dtht-commander-overlay';
-        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 60px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;";
-                for(let i=0; i<60; i++) {
-                    let size = Math.random() * 3 + 2;
-                    bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
-                }
-                bgStars += '</div>';
-                div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107;">[ ${modeText} ]</span></div>`;
-                document.body.appendChild(div);
-            }
-        }, 100);
+
+        let div = document.createElement('div');
+        div.id = 'master-loading-overlay'; 
+        div.className = 'skst-overlay';
+        let bgStars = '<div class="stars-bg">';
+        for(let i=0; i<60; i++) {
+            let size = Math.random() * 3 + 2;
+            bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
+        }
+        bgStars += '</div>';
+        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107;">[ ${modeText} ]</span></div>`;
+        document.body.appendChild(div);
     }
 
     function tatVuTruLoading() {
