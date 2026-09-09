@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY V31 FULL PRO
+// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.3 FULL PRO
 // @namespace    http://tampermonkey.net/
-// @version      31.1
-// @description  Bản chuẩn V31.1: Fix lỗi bốc nhầm tên nhóm hàng thành số (giao diện 1 tab mới). Tối ưu hóa click menu và font chữ html2canvas.
+// @version      31.3
+// @description  Bản chuẩn V31.3: Fix bốc số DT dự kiến né dấu ?, Nhận xét Text riêng cho Lũy kế, Đổi tên File ảnh chuẩn xuất.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -15,7 +15,7 @@
     // 0. BỘ CÔNG CỤ LÕI & LUẬT LÀM TRÒN TAM HÒA
     // =========================================================================
     const delay = ms => new Promise(r => setTimeout(r, ms));
-    const STICKERS = ["📱","📲","📳","☎️","📞","📟","🖨️","💻","🖥️","🖱️","⌨️","🎧","🔋","📸","⌚","💵","💰","💸","💲","💷","🏦","💳","👛","🏧","🛡️","📊","📉","🌐","📶","🚩","🕹️","🔊","🔥","📦"];
+    const STICKERS = ["📱","📲","📳","☎️","📞","📟","🖨️","💻","🖥️","🖱️","⌨️","🎧","🔋","📸","⌚","⚡","💰","💸","💲","💵","🏦","💳","👛","🏧","🛡️","📊","📉","🌐","📶","🚩","🕹️","🔊","🔥","📦"];
 
     const lamTronTamHoa = (num) => {
         let n = parseFloat(num);
@@ -63,7 +63,7 @@
                     bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
                 }
                 bgStars += '</div>';
-                div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐỢI LÁT NHÉ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107;">[ ${modeText} ]</span></div>`;
+                div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107;">[ ${modeText} ]</span></div>`;
                 document.body.appendChild(div);
             }
         }, 100);
@@ -95,9 +95,9 @@
         div.id = 'th-main-menu';
         div.style.cssText = 'position:fixed; bottom:90px; right:20px; z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family:sans-serif;';
         div.innerHTML = `
-            <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">🚀 CHỌN BÁO CÁO</h3>
+            <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">🔥 REALTIME NGÀY</button>
-            <button onclick="alert('Tính năng Lũy kế tháng đang được nâng cấp, ông dùng Realtime Ngày trước nhé!'); document.getElementById('th-main-menu').remove();" style="background:#6c757d; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">📈 LŨY KẾ THÁNG</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">📈 LŨY KẾ THÁNG</button>
         `;
         document.body.appendChild(div);
     };
@@ -142,7 +142,8 @@
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
 
-        hienThiVuTruLoading(`ĐANG HÚT SỐ REALTIME NGÀY`);
+        let modeTitle = mode === 'LUYKE' ? 'LŨY KẾ THÁNG' : 'REALTIME NGÀY';
+        hienThiVuTruLoading(`ĐANG HÚT SỐ ${modeTitle}`);
 
         try {
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
@@ -150,6 +151,14 @@
 
             await clickMenu('Doanh thu hợp nhất'); await delay(1500);
             await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            if (mode === 'LUYKE') {
+                let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
+                if (luyKeTab) { luyKeTab.click(); await delay(1500); }
+            } else {
+                let realtimeTab = Array.from(document.querySelectorAll('button')).find(b => b.innerText && b.innerText.trim() === 'Realtime' && b.offsetParent !== null);
+                if (realtimeTab) { realtimeTab.click(); await delay(1500); }
+            }
 
             let dtQuyDoiBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'DT quy đổi' && el.offsetParent !== null);
             if (dtQuyDoiBtn) { dtQuyDoiBtn.click(); await delay(1500); }
@@ -168,7 +177,7 @@
             }
             if (!loaded) throw new Error("Dữ liệu load chậm, thử lại nhé!");
 
-            let summaryData = { dtQd: "0", tiTrongTraGop: "0%" };
+            let summaryData = { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
             Array.from(document.querySelectorAll('div')).forEach(div => {
                 let text = div.innerText || "";
                 if (text.includes("DT quy đổi") && !text.includes("đường dẫn")) {
@@ -178,6 +187,19 @@
                 if (text.includes("Tỉ trọng trả góp")) {
                     let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
                     if (lines.length >= 2) summaryData.tiTrongTraGop = lines[1];
+                }
+                if (text.includes("DT dự kiến")) {
+                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                    let idx = lines.findIndex(l => l.includes("DT dự kiến"));
+                    if (idx !== -1) {
+                        for (let i = idx + 1; i < lines.length; i++) {
+                            // Lọc bỏ dấu chấm hỏi tooltip, lấy ra dòng chứa số thực tế
+                            if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
+                                summaryData.dtDuKien = lines[i];
+                                break;
+                            }
+                        }
+                    }
                 }
             });
 
@@ -235,6 +257,7 @@
             });
 
             tatVuTruLoading();
+            window.currentReportMode = mode;
             hienThiCommanderPanel(summaryData, groups);
 
         } catch (error) {
@@ -243,18 +266,31 @@
         }
     };
     // =========================================================================
-    // 3. RENDER BẢNG ĐIỀU KHIỂN & GIAO DIỆN CHUẨN MẪU V12
+    // 3. RENDER BẢNG ĐIỀU KHIỂN & GIAO DIỆN CHUẨN MẪU
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         window.currentParsedGroups = groups;
         window.currentSummaryData = summaryData;
         window.currentTimeMode = window.currentTimeMode || 'now';
+        let isLuyKe = window.currentReportMode === 'LUYKE';
 
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
 
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+
+        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay);
+        let missing = Math.max(0, masterTarget - dtVal);
+        let moiNgay = lamTronTamHoa(missing / remainingDays);
 
         let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
         let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
@@ -264,6 +300,61 @@
             return conf.visible !== false;
         });
         let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+        let headerStatsHtml = "";
+        if (isLuyKe) {
+            headerStatsHtml = `
+                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:15px;">
+                    <div class="stat-box" style="padding:6px 2px;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">LŨY KẾ/TARGET</div>
+                        <div style="font-size:13px; font-weight:950; color:#004a99;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div class="stat-box" style="padding:6px 2px;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">DỰ KIẾN</div>
+                        <div style="font-size:13px; font-weight:950; color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                    </div>
+                    <div class="stat-box" style="padding:6px 2px;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                        <div style="font-size:13px; font-weight:950; color:#dc3545;">${moiNgay}TR</div>
+                    </div>
+                    <div class="stat-box" style="padding:6px 2px;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
+                        <div style="font-size:13px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div class="stat-box" style="padding:6px 2px;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
+                        <div style="font-size:13px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            headerStatsHtml = `
+                <div class="mode-group" id="timeModeGroup">
+                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                </div>
+                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">⏰ REALTIME --:--</div>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
+                    <div class="stat-box">
+                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
+                        <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
+                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">% ĐẠT</div>
+                        <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
+                        <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
+                        <div style="font-size:18px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        }
 
         let div = document.createElement('div');
         div.id = 'dtht-commander-overlay';
@@ -318,7 +409,7 @@
                 <div style="background:#f0f2f5; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 BÁO CÁO REALTIME</h2>
+                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 BÁO CÁO ${isLuyKe ? 'LŨY KẾ THÁNG' : 'REALTIME'}</h2>
                         <div style="display:flex; gap:8px;">
                             <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">⚙️ CÀI ĐẶT</button>
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">❌ ĐÓNG</button>
@@ -326,34 +417,7 @@
                     </div>
 
                     <div id="capture-zone" style="background:#fff; padding:15px; border-radius:12px; border:2px solid #004a99;">
-
-                        <div class="mode-group" id="timeModeGroup">
-                            <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
-                            <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
-                            <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
-                        </div>
-
-                        <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">⏰ REALTIME --:--</div>
-
-                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
-                            <div class="stat-box">
-                                <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
-                                <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
-                            </div>
-                            <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
-                                <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">% ĐẠT</div>
-                                <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
-                            </div>
-                            <div class="stat-box">
-                                <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
-                                <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
-                            </div>
-                            <div class="stat-box">
-                                <div style="font-size:10px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                                <div style="font-size:18px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
-                            </div>
-                        </div>
-
+                        ${headerStatsHtml}
                         <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
                             ${gridHtml}
                         </div>
@@ -393,35 +457,25 @@
 
     window.generateTextReport = function() {
         let groups = window.currentParsedGroups || [];
-        let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%" };
+        let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
         let tMode = window.currentTimeMode || 'now';
+        let isLuyKe = window.currentReportMode === 'LUYKE';
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+
+        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
 
         let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
         let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
+
+        let dtDuKienVal = parseFloat(sum.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
 
         let pDT = masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0;
         let missing = Math.max(0, masterTarget - dtVal);
 
         let dtTr = lamTronTamHoa(dtVal); let tTr = lamTronTamHoa(masterTarget); let pTr = lamTronTamHoa(pDT); let tgTr = lamTronTamHoa(rawTgVal); let thTr = lamTronTamHoa(missing);
-
-        let pre = "", st = "", cauKet = "";
-        let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
-
-        if (tMode === 'now') {
-            pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
-            st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-            cauKet = "Nhận thông tin push số gấp";
-        } else if (tMode === 'morning') {
-            pre = `☀️ KẾT CA SÁNG: `;
-            st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-            cauKet = "Team ca chiều nhận thông tin push số";
-        } else {
-            pre = `🏁 TỔNG KẾT NGÀY: `;
-            st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-            cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
-        }
 
         let actG = groups.filter(g => {
             let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
@@ -429,30 +483,77 @@
         });
         let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
 
-        let txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
-
         let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
         let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
 
-        if(hG.length > 0) {
-            txt += `✅ NHÓM ĐẠT:\n`;
-            hG.forEach(g => {
-                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                let gNameShow = conf.nickname || g.name;
-                txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-            });
-            txt += `\n`;
-        }
-        if(lG.length > 0) {
-            txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
-            lG.forEach(g => {
-                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                let gNameShow = conf.nickname || g.name;
-                txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-            });
-        }
+        let txt = "";
 
-        txt += `\n🚀 ${cauKet} 🔥`;
+        if (isLuyKe) {
+            // MẪU NHẬN XÉT ĐỘC LẬP CHO LŨY KẾ THÁNG
+            txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
+            txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
+            txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
+            txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+            if(hG.length > 0) {
+                txt += `✅ NHÓM ĐẠT:\n`;
+                hG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+                txt += `\n`;
+            }
+            if(lG.length > 0) {
+                txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
+                lG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+            }
+            txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
+
+        } else {
+            // MẪU NHẬN XÉT ĐỘC LẬP CHO REALTIME
+            let pre = "", st = "", cauKet = "";
+            let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+
+            if (tMode === 'now') {
+                pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
+                st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Nhận thông tin push số gấp";
+            } else if (tMode === 'morning') {
+                pre = `☀️ KẾT CA SÁNG: `;
+                st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Team ca chiều nhận thông tin push số";
+            } else {
+                pre = `🏁 TỔNG KẾT NGÀY: `;
+                st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
+            }
+
+            txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+            if(hG.length > 0) {
+                txt += `✅ NHÓM ĐẠT:\n`;
+                hG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+                txt += `\n`;
+            }
+            if(lG.length > 0) {
+                txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
+                lG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+            }
+            txt += `\n🚀 ${cauKet} 🔥`;
+        }
 
         let txtArea = document.getElementById('lienText');
         if(txtArea) txtArea.value = txt;
@@ -464,6 +565,7 @@
 
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
         let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTarget = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
 
         let pnl = document.createElement('div');
         pnl.id = 'settings-panel-v31';
@@ -489,7 +591,10 @@
 
             <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
                 <label style="display:block; font-weight:900; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
-                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900;">
+                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px;">
+
+                <label style="display:block; font-weight:900; font-size:11px; color:#0284c7; margin-bottom:5px;">🎯 TARGET CẢ THÁNG (TR):</label>
+                <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:8px; border:2px solid #0284c7; border-radius:6px; font-weight:900;">
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
                     <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; cursor:pointer;">📥 XUẤT FILE</button>
@@ -511,7 +616,10 @@
     window.saveSettingsV31 = function() {
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
         let mt = parseFloat(document.getElementById('inpMasterTargetSet').value) || 304;
+        let mot = parseFloat(document.getElementById('inpMonthlyTargetSet').value) || 13014;
+
         localStorage.setItem('tamhoa_v31_masterTarget', mt);
+        localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
 
         document.querySelectorAll('#settings-panel-v31 .chk-item').forEach(item => {
             let name = item.querySelector('.vis-chk').getAttribute('data-name');
@@ -546,6 +654,7 @@
     window.exportConfigJson = function() {
         let data = {
             target: localStorage.getItem('tamhoa_v31_masterTarget'),
+            monthlyTarget: localStorage.getItem('tamhoa_v31_monthlyTarget'),
             configs: JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {}
         };
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
@@ -564,6 +673,7 @@
             try {
                 const imported = JSON.parse(e.target.result);
                 if(imported.target) localStorage.setItem('tamhoa_v31_masterTarget', imported.target);
+                if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
                 if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
                 alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
                 window.openSettingsV31();
@@ -575,11 +685,23 @@
     window.captureReportImg = function() {
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
         let groups = window.currentParsedGroups || [];
-        let summaryData = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%" };
-        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let summaryData = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+        let masterTarget = isLuyKe ? (parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014) : (parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304);
 
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+
+        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay);
+        let missing = Math.max(0, masterTarget - dtVal);
+        let moiNgay = lamTronTamHoa(missing / remainingDays);
+
         let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
         let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
 
@@ -615,28 +737,61 @@
                 </div>`;
         });
 
+        let exportHeaderHtml = "";
+        if (isLuyKe) {
+            exportHeaderHtml = `
+                <div style="text-align: center; color: #ffffff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:15px;">
+                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">LŨY KẾ/TARGET</div>
+                        <div style="font-size:13px; font-weight:950; color:#004a99;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">DỰ KIẾN</div>
+                        <div style="font-size:13px; font-weight:950; color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                    </div>
+                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                        <div style="font-size:13px; font-weight:950; color:#dc3545;">${moiNgay}TR</div>
+                    </div>
+                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">TRẢ GÓP</div>
+                        <div style="font-size:13px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div style="background:#fff; border:2px solid #004a99; border-radius:12px; padding:6px 2px; text-align:center;">
+                        <div style="font-size:8px; font-weight:900; color:#666; margin-bottom:2px;">NHÓM ĐẠT</div>
+                        <div style="font-size:13px; font-weight:950; color:#000;">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            exportHeaderHtml = `
+                <div style="text-align: center; color: #ffffff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">${document.getElementById('realtime-header')?.innerText || '⏰ REALTIME'}</div>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
+                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
+                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
+                        <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div style="background: ${percentTarget >= 100 ? '#e8f8f5' : '#ffffff'}; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
+                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">% ĐẠT</div>
+                        <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                    </div>
+                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
+                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">TRẢ GÓP</div>
+                        <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
+                        <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">NHÓM ĐẠT</div>
+                        <div style="font-size:18px; font-weight:950; color:#000000;">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        }
+
         let exportBox = document.createElement('div');
         exportBox.style.cssText = "position:fixed; top:-9999px; left:-9999px; width:680px; background:#ffffff; padding:15px; border-radius:12px; border:2px solid #004a99; font-family:Arial, Helvetica, sans-serif; color:#000000; font-weight:800;";
         exportBox.innerHTML = `
-            <div style="text-align: center; color: #ffffff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 950; border-radius: 8px; margin-bottom: 12px;">${document.getElementById('realtime-header')?.innerText || '⏰ REALTIME'}</div>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
-                <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                    <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">THỰC/TARGET (TR)</div>
-                    <div style="font-size:18px; font-weight:950; color:#d35400;">${lamTronTamHoa(dtVal)}/${lamTronTamHoa(masterTarget)}</div>
-                </div>
-                <div style="background: ${percentTarget >= 100 ? '#e8f8f5' : '#ffffff'}; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                    <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">% ĐẠT</div>
-                    <div style="font-size:18px; font-weight:950; color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
-                </div>
-                <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                    <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">TRẢ GÓP</div>
-                    <div style="font-size:18px; font-weight:950; color:#27ae60;">${roundedTraGop}</div>
-                </div>
-                <div style="background: #ffffff; padding: 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center;">
-                    <div style="font-size:10px; font-weight:900; color:#666666; margin-bottom:2px;">NHÓM ĐẠT</div>
-                    <div style="font-size:18px; font-weight:950; color:#000000;">${datCount}/${actG.length}</div>
-                </div>
-            </div>
+            ${exportHeaderHtml}
             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
                 ${gridHtml}
             </div>
@@ -664,7 +819,11 @@
         }).then(canvas => {
             exportBox.remove();
             const link = document.createElement('a');
-            link.download = `SKST_REALTIME_${new Date().toISOString().slice(0,10)}.png`;
+
+            // Xử lý đổi tên file chuẩn yêu cầu
+            let dateStr = new Date().toISOString().slice(0,10);
+            link.download = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+
             link.href = canvas.toDataURL("image/png");
             link.click();
         }).catch(err => {
