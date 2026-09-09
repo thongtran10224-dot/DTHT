@@ -79,10 +79,10 @@
         if (document.getElementById('btn-immortal-menu')) return;
         let btn = document.createElement('button');
         btn.id = 'btn-immortal-menu';
-        btn.innerHTML = '🚀';
-        btn.style.cssText = 'position:fixed; bottom:20px; right:20px; z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s;';
-        btn.onmouseover = () => btn.style.transform = "scale(1.1)";
-        btn.onmouseout = () => btn.style.transform = "scale(1)";
+        btn.innerHTML = '📊';
+        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s;';
+        btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
+        btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
         btn.onclick = hienThiMenuChinh;
         document.body.appendChild(btn);
     };
@@ -93,7 +93,7 @@
 
         let div = document.createElement('div');
         div.id = 'th-main-menu';
-        div.style.cssText = 'position:fixed; bottom:90px; right:20px; z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family:sans-serif;';
+        div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family:sans-serif;';
         div.innerHTML = `
             <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">🔥 REALTIME NGÀY</button>
