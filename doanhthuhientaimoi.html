@@ -2,7 +2,7 @@
 // @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.4 PRO
 // @namespace    http://tampermonkey.net/
 // @version      31.4
-// @description  Bản chuẩn V31.4: Thêm % hoàn thành inline vào ô tổng Lũy kế tháng, phân tầng 4 màu, Font Montserrat sang trọng.
+// @description  Bản chuẩn V31.4: Nâng cấp màu vàng tươi rực rỡ, phân tầng 4 màu, Font Montserrat sang trọng, chống lệch khung hoàn hảo.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -295,9 +295,9 @@
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
 
-        // Tính % hoàn thành riêng cho Lũy kế tháng và phân màu theo 4 mức
+        // Tính % hoàn thành riêng cho Lũy kế tháng và phân màu theo 4 mức (Vàng tươi #f1c40f)
         let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
-        let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#d4ac0d' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
+        let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#f1c40f' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
 
         let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
         let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
@@ -396,9 +396,9 @@
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
             .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
 
-            /* PHÂN TẦNG 4 MỨC MÀU (XANH - VÀNG - CAM - ĐỎ) KHÔNG KHUNG NỀN */
+            /* PHÂN TẦNG 4 MỨC MÀU (DÙNG VÀNG TƯƠI #f1c40f) KHÔNG KHUNG NỀN */
             .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-mid { color: #d4ac0d !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-mid { color: #f1c40f !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
             .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
             .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
 
@@ -419,7 +419,8 @@
             let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
 
             let pctBar = Math.min(100, Math.max(0, pRounded));
-            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#d4ac0d' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
+            // Cập nhật thanh bar màu vàng tươi #f1c40f
+            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
 
             gridHtml += `
                 <div class="group-card">
