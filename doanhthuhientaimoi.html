@@ -2,7 +2,7 @@
 // @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.4 PRO
 // @namespace    http://tampermonkey.net/
 // @version      31.4
-// @description  Bản chuẩn V31.4: Fix triệt để lỗi mất chữ nhận xét khi lưu cài đặt, bỏ box màu %, giữ nguyên chữ màu xanh/vàng/đỏ sắc nét.
+// @description  Bản chuẩn V31.4: Nâng cấp Font Montserrat sang trọng, UI/UX hiện đại, fix lỗi mất chữ khi lưu, chống lệch khung chuẩn xác 100%.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -10,6 +10,15 @@
 
 (function() {
     'use strict';
+
+    // Nhúng thẳng Font chữ "Montserrat" cao cấp từ Google Fonts vào hệ thống
+    if (!document.getElementById('font-montserrat')) {
+        const link = document.createElement('link');
+        link.id = 'font-montserrat';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
+        document.head.appendChild(link);
+    }
 
     // =========================================================================
     // 0. BỘ CÔNG CỤ LÕI & LUẬT LÀM TRÒN TAM HÒA
@@ -46,13 +55,13 @@
 
         if (!document.getElementById('rocket-style-permanent')) {
             const css = `
-                .skst-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; background: #050505 !important; z-index: 2147483647 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; color: white !important; overflow: hidden !important; pointer-events: all !important; }
+                .skst-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; background: #050505 !important; z-index: 2147483647 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; color: white !important; overflow: hidden !important; pointer-events: all !important; font-family: 'Montserrat', sans-serif !important; }
                 .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
                 .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
                 @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
                 .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
                 @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
-                .status-text { margin-top: 80px; font-family: -apple-system, sans-serif; font-size: 22px; letter-spacing: 4px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; text-align: center;}
+                .status-text { margin-top: 80px; font-size: 22px; letter-spacing: 2px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; text-align: center;}
             `;
             let style = document.createElement('style'); style.id = 'rocket-style-permanent'; style.innerHTML = css; document.head.appendChild(style);
         }
@@ -66,7 +75,7 @@
             bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
         }
         bgStars += '</div>';
-        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107;">[ ${modeText} ]</span></div>`;
+        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107; font-weight: 700;">[ ${modeText} ]</span></div>`;
         document.body.appendChild(div);
     }
 
@@ -81,7 +90,7 @@
         let btn = document.createElement('button');
         btn.id = 'btn-immortal-menu';
         btn.innerHTML = '📊';
-        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s;';
+        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
         btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
         btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
         btn.onclick = hienThiMenuChinh;
@@ -94,11 +103,11 @@
 
         let div = document.createElement('div');
         div.id = 'th-main-menu';
-        div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family:sans-serif;';
+        div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family: "Montserrat", sans-serif;';
         div.innerHTML = `
             <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
-            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">🔥 REALTIME NGÀY</button>
-            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-size:13px;">📈 LŨY KẾ THÁNG</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer; font-size:13px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:12px; border-radius:8px; font-weight:800; cursor:pointer; font-size:13px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
         `;
         document.body.appendChild(div);
     };
@@ -270,7 +279,6 @@
     // 3. RENDER BẢNG ĐIỀU KHIỂN & GIAO DIỆN CHUẨN MẪU TỪ V12
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
-        // [FIX QUAN TRỌNG]: Dọn dẹp sạch khung cũ trước khi vẽ khung mới (tránh kẹt ID lặp DOM)
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
 
@@ -309,7 +317,7 @@
         let headerStatsHtml = "";
         if (isLuyKe) {
             headerStatsHtml = `
-                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 950; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
                 <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-box" style="grid-column: span 2;">
                         <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
@@ -340,7 +348,7 @@
                     <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
                     <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
                 </div>
-                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 950; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase;">⏰ REALTIME --:--</div>
+                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
                 <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-box">
                         <div class="stat-label">THỰC / TARGET (TR)</div>
@@ -364,32 +372,32 @@
 
         let div = document.createElement('div');
         div.id = 'dtht-commander-overlay';
-        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;";
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
 
         const cssGoc = `
-            * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+            * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
             .th-container { padding: 10px; width: 100%; max-width: 680px; margin: 20px auto; position:relative; }
             .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
-            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 900; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
+            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
             .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
             #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; }
             .stats-grid { display: grid; gap: 8px; margin-bottom: 15px; }
             .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
-            .stat-label { font-size: 11px; font-weight: 950 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
-            .stat-val { font-size: 26px !important; font-weight: 950 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; }
+            .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
             .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-            .group-name { font-size: 13px !important; font-weight: 950 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
+            .group-name { font-size: 13px !important; font-weight: 800 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
             .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
-            .group-num { font-size: 18px !important; font-weight: 950 !important; color: #000; line-height: 1; }
+            .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
 
-            /* BỎ HOÀN TOÀN Ô MÀU, CHỈ DÙNG CHỮ MÀU THEO ĐÚNG TRẠNG THÁI */
-            .pct-high { color: #28a745 !important; font-weight: 950 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
-            .pct-mid { color: #d4ac0d !important; font-weight: 950 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
-            .pct-low { color: #dc3545 !important; font-weight: 950 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            /* BỎ HOÀN TOÀN Ô MÀU, DÙNG CHỮ MÀU SIÊU ĐẬM THEO TRẠNG THÁI CHUẨN MONTSERRAT */
+            .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-mid { color: #d4ac0d !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
 
-            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 900; height: 160px; margin-top: 15px; font-size: 12px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none;}
+            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
         `;
 
         let gridHtml = "";
@@ -428,8 +436,8 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
-                            <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">⚙️ CÀI ĐẶT</button>
-                            <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:900; cursor:pointer;">❌ ĐÓNG</button>
+                            <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
+                            <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
                         </div>
                     </div>
 
@@ -443,8 +451,8 @@
                     <textarea id="lienText" readonly></textarea>
 
                     <div style="display:flex; gap:10px; margin-top:15px;">
-                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">📋 COPY CHỮ</button>
-                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">📸 CHỤP ẢNH </button>
+                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
+                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
                     </div>
                 </div>
             </div>
@@ -584,7 +592,7 @@
 
         let pnl = document.createElement('div');
         pnl.id = 'settings-panel-v31';
-        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:500px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6);";
+        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:500px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
 
         let checklistHtml = '';
         (window.currentParsedGroups || []).forEach(g => {
@@ -592,8 +600,8 @@
             checklistHtml += `
                 <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; gap:8px;">
                     <span style="font-size:24px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
-                    <span style="font-size:11px; font-weight:900; flex:1;">${g.name}</span>
-                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:900; font-size:11px; text-transform:uppercase;">
+                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
+                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
                     <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
                 </div>`;
         });
@@ -605,15 +613,15 @@
             </div>
 
             <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-                <label style="display:block; font-weight:900; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
-                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px;">
+                <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
+                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
 
-                <label style="display:block; font-weight:900; font-size:11px; color:#0284c7; margin-bottom:5px;">🎯 TARGET CẢ THÁNG (TR):</label>
-                <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:8px; border:2px solid #0284c7; border-radius:6px; font-weight:900;">
+                <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:5px;">🎯 TARGET CẢ THÁNG (TR):</label>
+                <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:8px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-                    <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; cursor:pointer;">📥 XUẤT FILE</button>
-                    <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:900; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative;">
+                    <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
+                    <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
                         📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
                     </label>
                 </div>
@@ -623,7 +631,7 @@
                 ${checklistHtml}
             </div>
 
-            <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer;">LƯU LẠI ✅</button>
+            <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif;">LƯU LẠI ✅</button>
         `;
         document.body.appendChild(pnl);
     };
@@ -652,7 +660,7 @@
     window.openStickerPicker = function(gName) {
         let pop = document.createElement('div');
         pop.id = 'sticker-pop-v31';
-        pop.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:3px solid #004a99; padding:15px; border-radius:12px; z-index:2147483650; width:300px; max-height:300px; overflow-y:auto; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5);";
+        pop.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:3px solid #004a99; padding:15px; border-radius:12px; z-index:2147483650; width:300px; max-height:300px; overflow-y:auto; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); font-family: 'Montserrat', sans-serif;";
         pop.innerHTML = STICKERS.map(s => `<div style="font-size:28px; cursor:pointer; padding:5px;" onclick="window.selectSticker('${gName}', '${s}')">${s}</div>`).join('');
         document.body.appendChild(pop);
     };
@@ -712,8 +720,14 @@
             useCORS: true,
             backgroundColor: "#f0f2f5",
             onclone: (clonedDoc) => {
+                // Nhúng font vào file ảnh khi html2canvas bắt đầu chụp để chống mờ chữ
+                let fontLink = clonedDoc.createElement('link');
+                fontLink.rel = 'stylesheet';
+                fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
+                clonedDoc.head.appendChild(fontLink);
+
                 clonedDoc.querySelectorAll('link[rel="stylesheet"], style').forEach(el => {
-                    if (!el.innerText.includes('th-container') && !el.innerText.includes('capture-zone')) {
+                    if (!el.innerText.includes('th-container') && !el.innerText.includes('capture-zone') && el.id !== 'font-montserrat') {
                         el.remove();
                     }
                 });
