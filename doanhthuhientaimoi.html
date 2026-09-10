@@ -2,7 +2,7 @@
 // @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.4 PRO
 // @namespace    http://tampermonkey.net/
 // @version      31.4
-// @description  Bản chuẩn V31.4: Thêm mức màu Cam cho nhóm hàng (Xanh/Vàng/Cam/Đỏ), Font Montserrat sang trọng, chống lệch khung hoàn hảo.
+// @description  Bản chuẩn V31.4: Thêm % hoàn thành inline vào ô tổng Lũy kế tháng, phân tầng 4 màu, Font Montserrat sang trọng.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -295,6 +295,10 @@
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
 
+        // Tính % hoàn thành riêng cho Lũy kế tháng và phân màu theo 4 mức
+        let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+        let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#d4ac0d' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
+
         let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
         let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
 
@@ -321,7 +325,7 @@
                 <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-box" style="grid-column: span 2;">
                         <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
-                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-label">DỰ KIẾN</div>
@@ -409,7 +413,6 @@
             let fName = conf.nickname || g.name;
             let pRounded = lamTronTamHoa(g.p);
 
-            // Logic phân tầng 4 mức: >=100 (Xanh), >=75 (Vàng), >=40 (Cam), <40 (Đỏ)
             let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 75 ? "pct-mid" : (pRounded >= 40 ? "pct-orange" : "pct-low"));
 
             let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
