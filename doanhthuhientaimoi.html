@@ -2,7 +2,7 @@
 // @name         🚀 SIÊU TOOL TAM HÒA - REALTIME NGÀY & LŨY KẾ THÁNG V31.4 PRO
 // @namespace    http://tampermonkey.net/
 // @version      31.4
-// @description  Bản chuẩn V31.4: Nâng cấp Font Montserrat sang trọng, UI/UX hiện đại, fix lỗi mất chữ khi lưu, chống lệch khung chuẩn xác 100%.
+// @description  Bản chuẩn V31.4: Thêm mức màu Cam cho nhóm hàng (Xanh/Vàng/Cam/Đỏ), Font Montserrat sang trọng, chống lệch khung hoàn hảo.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -392,9 +392,10 @@
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
             .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
 
-            /* BỎ HOÀN TOÀN Ô MÀU, DÙNG CHỮ MÀU SIÊU ĐẬM THEO TRẠNG THÁI CHUẨN MONTSERRAT */
+            /* PHÂN TẦNG 4 MỨC MÀU (XANH - VÀNG - CAM - ĐỎ) KHÔNG KHUNG NỀN */
             .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
             .pct-mid { color: #d4ac0d !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
             .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
 
             #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
@@ -407,13 +408,15 @@
 
             let fName = conf.nickname || g.name;
             let pRounded = lamTronTamHoa(g.p);
-            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 50 ? "pct-mid" : "pct-low");
+
+            // Logic phân tầng 4 mức: >=100 (Xanh), >=75 (Vàng), >=40 (Cam), <40 (Đỏ)
+            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 75 ? "pct-mid" : (pRounded >= 40 ? "pct-orange" : "pct-low"));
 
             let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
             let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
 
             let pctBar = Math.min(100, Math.max(0, pRounded));
-            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 50 ? '#ffc107' : '#dc3545');
+            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#d4ac0d' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
 
             gridHtml += `
                 <div class="group-card">
@@ -720,7 +723,6 @@
             useCORS: true,
             backgroundColor: "#f0f2f5",
             onclone: (clonedDoc) => {
-                // Nhúng font vào file ảnh khi html2canvas bắt đầu chụp để chống mờ chữ
                 let fontLink = clonedDoc.createElement('link');
                 fontLink.rel = 'stylesheet';
                 fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
