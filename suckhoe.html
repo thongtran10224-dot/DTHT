@@ -1,0 +1,924 @@
+// ==UserScript==
+// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.1 PRO
+// @namespace    http://tampermonkey.net/
+// @version      32.1
+// @description  Bản chuẩn V32.1: Fix triệt để lỗi màu oklch bằng ignoreElements, bắt chuẩn % TT số âm.
+// @match        *://baocao.dienmayxanh.com/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    if (!document.getElementById('font-montserrat')) {
+        const link = document.createElement('link');
+        link.id = 'font-montserrat';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
+        document.head.appendChild(link);
+    }
+
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+    const STICKERS = ["📱","📲","📳","☎️","📞","📟","🖨️","💻","🖥️","🖱️","⌨️","🎧","🔋","📸","⌚","⚡","💰","💸","💲","💵","🏦","💳","👛","🏧","🛡️","📊","📉","🌐","📶","🚩","🕹️","🔊","🔥","📦"];
+
+    const lamTronTamHoa = (num) => {
+        let n = parseFloat(num);
+        if (isNaN(n)) return 0;
+        let absNum = Math.abs(n);
+        let result = (absNum > 0 && absNum < 1.5) ? 1 : Math.round(absNum);
+        return n < 0 ? -result : result;
+    };
+
+    const toSt = num => num.toString().split('').map(d => ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"][parseInt(d)] || d).join('');
+    const formatMoney = num => num.toLocaleString('en-US', {maximumFractionDigits: 0});
+
+    window.capNhatGioChot = function() {
+        const timeEl = document.getElementById('realtime-header');
+        if(timeEl) {
+            const now = new Date();
+            timeEl.innerText = '⏰ REALTIME ' + now.getHours() + ':' + (now.getMinutes()<10?'0':'') + now.getMinutes();
+        }
+    };
+
+    // =========================================================================
+    // 1. MÀN HÌNH CHỜ & MENU ĐIỀU HƯỚNG CHÍNH
+    // =========================================================================
+    let rocketInterval = null;
+
+    function hienThiVuTruLoading(modeText = "ĐANG KẾT NỐI BI") {
+        let oldOverlay = document.getElementById('master-loading-overlay');
+        if (oldOverlay) oldOverlay.remove();
+
+        if (!document.getElementById('rocket-style-permanent')) {
+            const css = `
+                .skst-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; background: #050505 !important; z-index: 2147483647 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; color: white !important; overflow: hidden !important; pointer-events: all !important; font-family: 'Montserrat', sans-serif !important; }
+                .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
+                .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
+                @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+                .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
+                @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+                .status-text { margin-top: 80px; font-size: 22px; letter-spacing: 2px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; text-align: center;}
+            `;
+            let style = document.createElement('style'); style.id = 'rocket-style-permanent'; style.innerHTML = css; document.head.appendChild(style);
+        }
+
+        let div = document.createElement('div');
+        div.id = 'master-loading-overlay';
+        div.className = 'skst-overlay';
+        let bgStars = '<div class="stars-bg">';
+        for(let i=0; i<60; i++) {
+            let size = Math.random() * 3 + 2;
+            bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
+        }
+        bgStars += '</div>';
+        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107; font-weight: 700;">[ ${modeText} ]</span></div>`;
+        document.body.appendChild(div);
+    }
+
+    function tatVuTruLoading() {
+        if (rocketInterval) { clearInterval(rocketInterval); rocketInterval = null; }
+        let load = document.getElementById('master-loading-overlay');
+        if(load) load.remove();
+    }
+
+    const taoNutBatTu = () => {
+        if (document.getElementById('btn-immortal-menu')) return;
+        let btn = document.createElement('button');
+        btn.id = 'btn-immortal-menu';
+        btn.innerHTML = '📊';
+        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
+        btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
+        btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
+        btn.onclick = hienThiMenuChinh;
+        document.body.appendChild(btn);
+    };
+
+    const hienThiMenuChinh = () => {
+        let old = document.getElementById('th-main-menu');
+        if (old) { old.remove(); return; }
+
+        let div = document.createElement('div');
+        div.id = 'th-main-menu';
+        div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family: "Montserrat", sans-serif;';
+        div.innerHTML = `
+            <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMCungKy();" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📊 SO SÁNH CÙNG KỲ</button>
+        `;
+        document.body.appendChild(div);
+    };
+
+    const chonBoLoc = async (labelText, keyword) => {
+        let mainWord = labelText.replace(' Chọn', '').trim();
+        let triggerBox = Array.from(document.querySelectorAll('button')).find(btn => (btn.innerText || '').includes(mainWord) && (btn.innerText || '').includes('Chọn') && btn.offsetParent !== null);
+        if (!triggerBox) return false;
+
+        triggerBox.click(); await delay(1000);
+
+        let searchInput = Array.from(document.querySelectorAll('input')).reverse().find(i => i.offsetParent !== null && i.type !== 'checkbox');
+        if (searchInput) {
+            searchInput.focus(); searchInput.value = keyword;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            searchInput.dispatchEvent(new Event('change', { bubbles: true }));
+            await delay(800);
+        }
+
+        let targetCheckbox = Array.from(document.querySelectorAll('input[type="checkbox"]')).find(chk => {
+            let text = (chk.closest('label, div, li') || chk.parentElement)?.innerText.trim() || '';
+            return text.includes(keyword) && chk.offsetParent !== null;
+        });
+
+        if (targetCheckbox) { targetCheckbox.click(); await delay(1500); return true; }
+        return false;
+    };
+
+    const clickMenu = async (menuText) => {
+        for(let attempts = 0; attempts < 10; attempts++) {
+            let target = Array.from(document.querySelectorAll('a, span, div, button, li')).find(el => el.innerText && el.innerText.trim() === menuText && el.offsetParent !== null);
+            if (target) { target.click(); return true; }
+            await delay(500);
+        }
+        return false;
+    };
+
+    // =========================================================================
+    // 2. LUỒNG REALTIME & LŨY KẾ CŨ
+    // =========================================================================
+    window.startFSM = async (mode = 'REALTIME') => {
+        let oldPanel = document.getElementById('dtht-commander-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        let modeTitle = mode === 'LUYKE' ? 'LŨY KẾ THÁNG' : 'REALTIME NGÀY';
+        hienThiVuTruLoading(`ĐANG HÚT SỐ ${modeTitle}`);
+
+        try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
+
+            await clickMenu('Doanh thu hợp nhất'); await delay(1500);
+            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            if (mode === 'LUYKE') {
+                let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
+                if (luyKeTab) { luyKeTab.click(); await delay(1500); }
+            } else {
+                let realtimeTab = Array.from(document.querySelectorAll('button')).find(b => b.innerText && b.innerText.trim() === 'Realtime' && b.offsetParent !== null);
+                if (realtimeTab) { realtimeTab.click(); await delay(1500); }
+            }
+
+            let dtQuyDoiBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'DT quy đổi' && el.offsetParent !== null);
+            if (dtQuyDoiBtn) { dtQuyDoiBtn.click(); await delay(1500); }
+
+            let thiDuaBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText && b.innerText.includes('Thi đua') && b.offsetParent !== null);
+            if (thiDuaBtn) { thiDuaBtn.click(); await delay(2000); }
+
+            let cardViewBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').trim() === 'Card' && b.offsetParent !== null);
+            if (cardViewBtn) { cardViewBtn.click(); await delay(1000); }
+
+            let loaded = false; let attemptsData = 0;
+            while (!loaded && attemptsData < 30) {
+                await delay(500);
+                if (document.body.innerText.includes("THỰC HIỆN") && document.body.innerText.includes("TARGET")) loaded = true;
+                attemptsData++;
+            }
+            if (!loaded) throw new Error("Dữ liệu load chậm, thử lại nhé!");
+
+            let summaryData = { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+            Array.from(document.querySelectorAll('div')).forEach(div => {
+                let text = div.innerText || "";
+                if (text.includes("DT quy đổi") && !text.includes("đường dẫn")) {
+                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                    if (lines.length >= 2) summaryData.dtQd = lines[1];
+                }
+                if (text.includes("Tỉ trọng trả góp")) {
+                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                    if (lines.length >= 2) summaryData.tiTrongTraGop = lines[1];
+                }
+                if (text.includes("DT dự kiến")) {
+                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+                    let idx = lines.findIndex(l => l.includes("DT dự kiến"));
+                    if (idx !== -1) {
+                        for (let i = idx + 1; i < lines.length; i++) {
+                            if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
+                                summaryData.dtDuKien = lines[i];
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            let groups = [];
+            let allCards = Array.from(document.querySelectorAll('div')).filter(card => {
+                return card.querySelector('span.line-clamp-3') &&
+                       card.innerText.includes('THỰC HIỆN') &&
+                       card.innerText.includes('TARGET');
+            });
+
+            let cardElements = allCards.filter(card => {
+                return !allCards.some(other => other !== card && card.contains(other));
+            });
+
+            cardElements.forEach(card => {
+                let nameEl = card.querySelector('span.line-clamp-3');
+                let name = nameEl ? (nameEl.getAttribute('title') || nameEl.innerText).trim() : "";
+                if (!name || name.includes("DOANH THU") || name.includes("TỔNG")) return;
+
+                let badgeSpan = Array.from(card.querySelectorAll('span')).find(s => s.innerText.trim() === 'SL' || s.innerText.trim() === 'DT');
+                let isSL = badgeSpan ? badgeSpan.innerText.trim() === 'SL' : card.innerText.includes("SL");
+
+                let p = 0;
+                let bigPctEl = card.querySelector('.text-xl');
+                if (bigPctEl) {
+                    let pVal = parseFloat(bigPctEl.innerText.replace('%', ''));
+                    if (!isNaN(pVal)) p = pVal;
+                }
+
+                let rawR = 0, rawT = 0;
+                let lines = card.innerText.split('\n').map(l => l.trim()).filter(Boolean);
+
+                let thIdx = lines.findIndex(l => l.toUpperCase().includes('THỰC HIỆN'));
+                if (thIdx !== -1 && thIdx + 1 < lines.length) {
+                    rawR = parseFloat(lines[thIdx + 1].replace(/,/g, '')) || 0;
+                }
+
+                let tgIdx = lines.findIndex(l => l.toUpperCase().includes('TARGET'));
+                if (tgIdx !== -1 && tgIdx + 1 < lines.length) {
+                    rawT = parseFloat(lines[tgIdx + 1].replace(/,/g, '')) || 0;
+                }
+
+                if (!groups.some(g => g.name === name)) {
+                    groups.push({ name, p, isSL, rawR, rawT });
+                }
+            });
+
+            groups.sort((a, b) => {
+                let pA = parseFloat(a.p), pB = parseFloat(b.p);
+                let validA = !isNaN(pA) && pA > 0;
+                let validB = !isNaN(pB) && pB > 0;
+                if (validA && !validB) return -1;
+                if (!validA && validB) return 1;
+                return (pB || 0) - (pA || 0);
+            });
+
+            tatVuTruLoading();
+            window.currentReportMode = mode;
+            hienThiCommanderPanel(summaryData, groups);
+
+        } catch (error) {
+            tatVuTruLoading();
+            alert("❌ Lỗi hệ thống: " + error.message);
+        }
+    };
+
+    // =========================================================================
+    // 3. MODULE ĐỘC LẬP: SO SÁNH CÙNG KỲ (TẦNG 2)
+    // =========================================================================
+    window.startFSMCungKy = async () => {
+        let oldPanel = document.getElementById('dtht-cungky-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        hienThiVuTruLoading("ĐANG LẤY SO SÁNH CÙNG KỲ");
+
+        try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
+
+            // Chuyển sang tab Doanh Thu Ngành Hàng BI
+            await clickMenu('Doanh Thu Ngành Hàng BI'); await delay(1500);
+            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            // Đợi Ant Design Table render
+            let tableLoaded = false; let attempts = 0;
+            while (!tableLoaded && attempts < 30) {
+                await delay(500);
+                if (document.querySelector('.ant-table-tbody')) tableLoaded = true;
+                attempts++;
+            }
+            if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
+
+            // Tự động mở rộng 5 nhóm trọng điểm theo data-row-key
+            let targetKeys = ['l1-1', 'l1-2', 'l1-3', 'l1-4', 'l1-10'];
+            for (let key of targetKeys) {
+                let row = document.querySelector(`tr[data-row-key="${key}"]`);
+                if (row) {
+                    let expandBtn = row.querySelector('.ant-table-row-expand-icon');
+                    if (expandBtn && !expandBtn.classList.contains('ant-table-row-expanded')) {
+                        expandBtn.click();
+                        await delay(800);
+                    }
+                }
+            }
+            await delay(1000);
+
+            // Quét dữ liệu bảng Ant Design
+            let rows = document.querySelectorAll('.ant-table-tbody > tr.ant-table-row');
+            let dataList = [];
+
+            rows.forEach(tr => {
+                let cells = tr.querySelectorAll('td');
+                if (cells.length < 8) return;
+
+               let name = cells[0].innerText.trim();
+let isIndent = tr.querySelector('.ant-table-row-indent.indent-level-1') !== null;
+let sl = parseFloat(cells[1].innerText.replace(/,/g, '')) || 0;
+let dtQd = parseFloat(cells[3].innerText.replace(/,/g, '')) || 0;
+
+let pctText = cells[7] ? cells[7].innerText.trim() : '0%';
+// Dùng Regex "lưới quét" tóm gọn mọi loại dấu trừ (phím cứng, toán học Unicode, mũi tên)
+let isNegative = /[-−–—▼↓\(\)]/.test(pctText);
+let pctMatch = pctText.match(/[\d\.]+/);
+let pctNum = pctMatch ? parseFloat(pctMatch[0]) : 0;
+let pctTt = isNegative ? -pctNum : pctNum;
+
+let chenhLechTien = dtQd * (pctTt / 100);
+let donGia = sl > 0 ? (dtQd * 1000000) / sl : 0;
+
+dataList.push({ name, isIndent, sl, dtQd, pctTt, chenhLechTien, donGia });
+            });
+
+            tatVuTruLoading();
+            hienThiCungKyPanel(dataList);
+
+        } catch (error) {
+            tatVuTruLoading();
+            alert("❌ Lỗi So Sánh Cùng Kỳ: " + error.message);
+        }
+    };
+
+    const hienThiCungKyPanel = (dataList) => {
+        let oldPanel = document.getElementById('dtht-cungky-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        let tableRowsHtml = '';
+        dataList.forEach(item => {
+            let prefix = item.isIndent ? '└ ' : '';
+            let rowStyle = item.isIndent ? 'background:#fafafa; font-size:11px;' : 'background:#fff; font-weight:800; font-size:12px;';
+            let moneyColor = item.chenhLechTien >= 0 ? '#28a745' : '#dc3545';
+let moneySign = item.chenhLechTien > 0 ? '+' : ''; // Nếu âm thì tự nó đã có dấu -
+let pctColor = item.pctTt >= 0 ? '#28a745' : '#dc3545';
+
+tableRowsHtml += `
+    <tr style="${rowStyle}">
+        <td style="padding:6px; border-bottom:1px solid #eee;">${prefix}${item.name}</td>
+        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.sl)}</td>
+        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.dtQd)}</td>
+        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; color:${moneyColor};">${moneySign}${formatMoney(item.chenhLechTien)}</td>
+        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:${pctColor};">${item.pctTt}%</td>
+        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${item.donGia > 0 ? formatMoney(item.donGia) : '-'}</td>
+    </tr>
+`;
+        });
+
+        let div = document.createElement('div');
+        div.id = 'dtht-cungky-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding: 20px 10px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+
+        div.innerHTML = `
+            <div style="width:100%; max-width:720px; margin:0 auto; background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h2 style="margin:0; color:#004a99; font-weight:900; font-size:16px;">📊 SO SÁNH CÙNG KỲ (BI)</h2>
+                    <button onclick="document.getElementById('dtht-cungky-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
+                </div>
+
+                <div id="capture-zone-cungky" style="background:#f0f2f5; padding:12px; border-radius:12px; border:2px solid #004a99; overflow-x:auto;">
+                    <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 14px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">📈 BẢNG CHI TIẾT SO SÁNH CÙNG KỲ</div>
+                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                        <thead>
+                            <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                <th style="padding:8px 6px; text-align:left;">Nhóm hàng</th>
+                                <th style="padding:8px 6px; text-align:right;">SL</th>
+                                <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                <th style="padding:8px 6px; text-align:right;">+/- Tiền</th>
+                                <th style="padding:8px 6px; text-align:right;">% TT</th>
+                                <th style="padding:8px 6px; text-align:right;">Đơn Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="window.captureCungKyImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH CÙNG KỲ</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+    };
+
+    window.captureCungKyImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone-cungky');
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = `CUNG_KY_${dateStr}.png`;
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            // FIX CỨNG LỖI OKLCH: Khóa đọc mọi thẻ style và link gốc trước khi render
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false; // Chỉ giữ lại font tool
+                    return true; // Dọn sạch rác CSS trang gốc
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    // =========================================================================
+    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ (GIỮ NGUYÊN BẢN CŨ)
+    // =========================================================================
+    const hienThiCommanderPanel = (summaryData, groups) => {
+        let oldPanel = document.getElementById('dtht-commander-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        window.currentParsedGroups = groups;
+        window.currentSummaryData = summaryData;
+        window.currentTimeMode = window.currentTimeMode || 'now';
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+
+        let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
+        let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+
+        let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+        let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#f1c40f' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
+
+        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay);
+        let missing = Math.max(0, masterTarget - dtVal);
+        let moiNgay = lamTronTamHoa(missing / remainingDays);
+
+        let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
+        let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
+
+        let actG = groups.filter(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
+            return conf.visible !== false;
+        });
+        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+        let headerStatsHtml = "";
+        if (isLuyKe) {
+            headerStatsHtml = `
+                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
+                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">DỰ KIẾN</div>
+                        <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                        <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                   <div class="stat-box">
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            headerStatsHtml = `
+                <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
+                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                </div>
+                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-box">
+                        <div class="stat-label">THỰC / TARGET (TR)</div>
+                        <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
+                        <div class="stat-label">% ĐẠT</div>
+                        <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let div = document.createElement('div');
+        div.id = 'dtht-commander-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+
+        const cssGoc = `
+            * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+            .th-container { padding: 10px; width: 100%; max-width: 680px; margin: 20px auto; position:relative; }
+            .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
+            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
+            .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
+            #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; }
+            .stats-grid { display: grid; gap: 8px; margin-bottom: 15px; }
+            .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
+            .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
+            .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+            .group-name { font-size: 13px !important; font-weight: 800 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
+            .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
+            .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
+            .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
+
+            .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-mid { color: #f1c40f !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+
+            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
+        `;
+
+        let gridHtml = "";
+        groups.forEach(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+            if (conf.visible === false) return;
+
+            let fName = conf.nickname || g.name;
+            let pRounded = lamTronTamHoa(g.p);
+            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 75 ? "pct-mid" : (pRounded >= 40 ? "pct-orange" : "pct-low"));
+
+            let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
+            let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
+
+            let pctBar = Math.min(100, Math.max(0, pRounded));
+            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
+
+            gridHtml += `
+                <div class="group-card">
+                    <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
+                    <div class="group-stats">
+                        <span class="group-num">${rDisp} / ${tDisp}</span>
+                        <span class="${pCl}">${pRounded}%</span>
+                    </div>
+                    <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
+                        <div style="width:${pctBar}%; background:${barColor}; height:100%;"></div>
+                    </div>
+                </div>`;
+        });
+
+        div.innerHTML = `
+            <style>${cssGoc}</style>
+            <div class="th-container">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
+                            <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
+                        </div>
+                    </div>
+
+                    <div id="capture-zone">
+                        ${headerStatsHtml}
+                        <div class="group-grid">
+                            ${gridHtml}
+                        </div>
+                    </div>
+
+                    <textarea id="lienText" readonly></textarea>
+
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
+                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+
+        if (window.capNhatGioChot) window.capNhatGioChot();
+        if (window.realtimeClockTimer) clearInterval(window.realtimeClockTimer);
+        window.realtimeClockTimer = setInterval(window.capNhatGioChot, 1000);
+
+        window.generateTextReport();
+    };
+
+    window.setTimeMode = function(tm, btnEl) {
+        window.currentTimeMode = tm;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) {
+            btnEl.classList.add('active');
+        } else {
+            event.target.classList.add('active');
+        }
+        window.generateTextReport();
+    };
+
+    window.generateTextReport = function() {
+        let groups = window.currentParsedGroups || [];
+        let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+        let tMode = window.currentTimeMode || 'now';
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+
+        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+
+        let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
+        let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
+
+        let dtDuKienVal = parseFloat(sum.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+        let pDT = masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0;
+        let missing = Math.max(0, masterTarget - dtVal);
+
+        let dtTr = lamTronTamHoa(dtVal); let tTr = lamTronTamHoa(masterTarget); let pTr = lamTronTamHoa(pDT); let tgTr = lamTronTamHoa(rawTgVal); let thTr = lamTronTamHoa(missing);
+
+        let actG = groups.filter(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
+            return conf.visible !== false;
+        });
+        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+        let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
+        let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
+
+        let txt = "";
+
+        if (isLuyKe) {
+            txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
+            txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
+            txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
+            txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+            if(hG.length > 0) {
+                txt += `✅ NHÓM ĐẠT:\n`;
+                hG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+                txt += `\n`;
+            }
+            if(lG.length > 0) {
+                txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
+                lG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+            }
+            txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
+
+        } else {
+            let pre = "", st = "", cauKet = "";
+            let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+
+            if (tMode === 'now') {
+                pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
+                st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Nhận thông tin push số gấp";
+            } else if (tMode === 'morning') {
+                pre = `☀️ KẾT CA SÁNG: `;
+                st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Team ca chiều nhận thông tin push số";
+            } else {
+                pre = `🏁 TỔNG KẾT NGÀY: `;
+                st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
+            }
+
+            txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+            if(hG.length > 0) {
+                txt += `✅ NHÓM ĐẠT:\n`;
+                hG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+                txt += `\n`;
+            }
+            if(lG.length > 0) {
+                txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
+                lG.forEach(g => {
+                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                    let gNameShow = conf.nickname || g.name;
+                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                });
+            }
+            txt += `\n🚀 ${cauKet} 🔥`;
+        }
+
+        let txtArea = document.getElementById('lienText');
+        if(txtArea) txtArea.value = txt;
+    };
+
+    window.openSettingsV31 = function() {
+        let oldPnl = document.getElementById('settings-panel-v31');
+        if (oldPnl) oldPnl.remove();
+
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTarget = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+
+        let pnl = document.createElement('div');
+        pnl.id = 'settings-panel-v31';
+        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:500px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
+
+        let checklistHtml = '';
+        (window.currentParsedGroups || []).forEach(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+            checklistHtml += `
+                <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; gap:8px;">
+                    <span style="font-size:24px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
+                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
+                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                    <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
+                </div>`;
+        });
+
+        pnl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0; color:#004a99; font-weight:900;">⚙️ CÀI ĐẶT HỆ THỐNG</h3>
+                <span style="cursor:pointer; font-size:22px;" onclick="document.getElementById('settings-panel-v31').remove()">✖</span>
+            </div>
+
+            <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+                <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
+                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
+
+                <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:5px;">🎯 TARGET CẢ THÁNG (TR):</label>
+                <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:8px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+                    <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
+                    <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
+                        📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
+                    </label>
+                </div>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
+                ${checklistHtml}
+            </div>
+
+            <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif;">LƯU LẠI ✅</button>
+        `;
+        document.body.appendChild(pnl);
+    };
+
+    window.saveSettingsV31 = function() {
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        let mt = parseFloat(document.getElementById('inpMasterTargetSet').value) || 304;
+        let mot = parseFloat(document.getElementById('inpMonthlyTargetSet').value) || 13014;
+
+        localStorage.setItem('tamhoa_v31_masterTarget', mt);
+        localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
+
+        document.querySelectorAll('#settings-panel-v31 .chk-item').forEach(item => {
+            let name = item.querySelector('.vis-chk').getAttribute('data-name');
+            let vis = item.querySelector('.vis-chk').checked;
+            let nick = item.querySelector('.nick-inp').value.trim().toUpperCase();
+            let stk = item.querySelector('span').innerText;
+            groupConfigs[name] = { visible: vis, sticker: stk, nickname: nick };
+        });
+        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
+        document.getElementById('settings-panel-v31').remove();
+
+        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+    };
+
+    window.openStickerPicker = function(gName) {
+        let pop = document.createElement('div');
+        pop.id = 'sticker-pop-v31';
+        pop.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:3px solid #004a99; padding:15px; border-radius:12px; z-index:2147483650; width:300px; max-height:300px; overflow-y:auto; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); font-family: 'Montserrat', sans-serif;";
+        pop.innerHTML = STICKERS.map(s => `<div style="font-size:28px; cursor:pointer; padding:5px;" onclick="window.selectSticker('${gName}', '${s}')">${s}</div>`).join('');
+        document.body.appendChild(pop);
+    };
+
+    window.selectSticker = function(gName, stk) {
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        if (!groupConfigs[gName]) groupConfigs[gName] = { visible: true, sticker: "📦", nickname: "" };
+        groupConfigs[gName].sticker = stk;
+        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
+        document.getElementById('sticker-pop-v31').remove();
+        window.openSettingsV31();
+    };
+
+    window.exportConfigJson = function() {
+        let data = {
+            target: localStorage.getItem('tamhoa_v31_masterTarget'),
+            monthlyTarget: localStorage.getItem('tamhoa_v31_monthlyTarget'),
+            configs: JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {}
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = `tamhoa_v31_config_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        alert("✅ Đã xuất cấu hình thành công!");
+    };
+
+    window.importConfigJson = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if(imported.target) localStorage.setItem('tamhoa_v31_masterTarget', imported.target);
+                if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
+                if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
+                alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
+                window.openSettingsV31();
+            } catch(err) { alert("❌ File lỗi hoặc sai định dạng!"); }
+        };
+        reader.readAsText(file);
+    };
+
+    window.captureReportImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone');
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            // FIX CỨNG LỖI OKLCH CHO TẦNG 1 (Áp dụng đồng bộ ignoreElements)
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false;
+                    if (element.innerHTML && element.innerHTML.includes('th-container')) return false;
+                    return true;
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    window.copyTextReport = function() {
+        const textarea = document.getElementById('lienText');
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            alert("✅ Đã Copy báo cáo text chuẩn Zalo!");
+        } catch (err) { alert("Lỗi Copy!"); }
+    };
+
+    setTimeout(taoNutBatTu, 2000);
+})();
