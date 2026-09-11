@@ -319,24 +319,24 @@
 
             rows.forEach(tr => {
                 let cells = tr.querySelectorAll('td');
-                if (cells.length < 8) return;
+                if (cells.length < 4) return;
 
-               let name = cells[0].innerText.trim();
-let isIndent = tr.querySelector('.ant-table-row-indent.indent-level-1') !== null;
-let sl = parseFloat(cells[1].innerText.replace(/,/g, '')) || 0;
-let dtQd = parseFloat(cells[3].innerText.replace(/,/g, '')) || 0;
+                let name = cells[0].innerText.trim();
+                let isIndent = tr.querySelector('.ant-table-row-indent.indent-level-1') !== null;
+                let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                let dtQd = parseFloat(cells[3]?.innerText.replace(/,/g, '')) || parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
 
-let pctText = cells[7] ? cells[7].innerText.trim() : '0%';
-// Dùng Regex "lưới quét" tóm gọn mọi loại dấu trừ (phím cứng, toán học Unicode, mũi tên)
-let isNegative = /[-−–—▼↓\(\)]/.test(pctText);
-let pctMatch = pctText.match(/[\d\.]+/);
-let pctNum = pctMatch ? parseFloat(pctMatch[0]) : 0;
-let pctTt = isNegative ? -pctNum : pctNum;
+                let pctCell = cells[7] || cells[cells.length - 1];
+                let pctText = pctCell ? pctCell.innerText.trim() : '0%';
+                let isNegative = /[-−–—▼↓\(\)]/.test(pctText);
+                let pctMatch = pctText.match(/[\d\.]+/);
+                let pctNum = pctMatch ? parseFloat(pctMatch[0]) : 0;
+                let pctTt = isNegative ? -pctNum : pctNum;
 
-let chenhLechTien = dtQd * (pctTt / 100);
-let donGia = sl > 0 ? (dtQd * 1000000) / sl : 0;
+                let chenhLechTien = dtQd * (pctTt / 100);
+                let donGia = sl > 0 ? (dtQd * 1000000) / sl : 0;
 
-dataList.push({ name, isIndent, sl, dtQd, pctTt, chenhLechTien, donGia });
+                dataList.push({ name, isIndent, sl, dtQd, pctTt, chenhLechTien, donGia });
             });
 
             tatVuTruLoading();
