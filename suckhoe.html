@@ -299,7 +299,7 @@
             }
             if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
 
-            // Tự động mở rộng 5 nhóm trọng điểm theo data-row-key
+            // Tự động mở rộng 5 nhóm trọng điểm theo data-row-key (có cơ chế chờ render chuẩn xác)
             let targetKeys = ['l1-1', 'l1-2', 'l1-3', 'l1-4', 'l1-10'];
             for (let key of targetKeys) {
                 let row = document.querySelector(`tr[data-row-key="${key}"]`);
@@ -307,11 +307,15 @@
                     let expandBtn = row.querySelector('.ant-table-row-expand-icon');
                     if (expandBtn && !expandBtn.classList.contains('ant-table-row-expanded')) {
                         expandBtn.click();
-                        await delay(800);
+                        let attempts = 0;
+                        while (!expandBtn.classList.contains('ant-table-row-expanded') && attempts < 12) {
+                            await delay(200);
+                            attempts++;
+                        }
                     }
                 }
             }
-            await delay(1000);
+            await delay(1500);
 
             // Quét dữ liệu bảng Ant Design
             let rows = document.querySelectorAll('.ant-table-tbody > tr.ant-table-row');
