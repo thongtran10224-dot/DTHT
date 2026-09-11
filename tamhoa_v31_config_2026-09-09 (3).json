@@ -1,0 +1,136 @@
+{
+  "target": "304",
+  "monthlyTarget": "13014",
+  "configs": {
+    "Bảo hiểm tổng": {
+      "visible": true,
+      "sticker": "🛡️",
+      "nickname": ""
+    },
+    "Bảo hiểm Thợ ĐMX": {
+      "visible": true,
+      "sticker": "🛡️",
+      "nickname": "HIỂM ĐMX"
+    },
+    "SIM MOBIFONE/VINAPHONE/SIM DMX": {
+      "visible": true,
+      "sticker": "🌐",
+      "nickname": "SIM MOBI/VINA"
+    },
+    "SIM tổng": {
+      "visible": true,
+      "sticker": "📶",
+      "nickname": ""
+    },
+    "OTT MANGO+, ICALLME -": {
+      "visible": true,
+      "sticker": "📉",
+      "nickname": "MANGO,ICALLME"
+    },
+    "VAS": {
+      "visible": true,
+      "sticker": "📊",
+      "nickname": ""
+    },
+    "TABLET ANDROID": {
+      "visible": true,
+      "sticker": "📲",
+      "nickname": ""
+    },
+    "Điện thoại realme": {
+      "visible": true,
+      "sticker": "📱",
+      "nickname": "REALME"
+    },
+    "Điện thoại Vivo": {
+      "visible": true,
+      "sticker": "📳",
+      "nickname": "VIVO"
+    },
+    "ĐIỆN THOẠI & TABLET ANDROID": {
+      "visible": true,
+      "sticker": "📱",
+      "nickname": "ĐIỆN THOẠI ANDROID"
+    },
+    "TRẢ CHẬM FECREDIT, SHINHAN, SAMSUNG FINANCE+": {
+      "visible": true,
+      "sticker": "🏦",
+      "nickname": "FECREDIT, SHINHAN"
+    },
+    "TRẢ CHẬM HOMECREDIT": {
+      "visible": true,
+      "sticker": "🏦",
+      "nickname": "HOMECREDIT"
+    },
+    "Vay tiền mặt": {
+      "visible": true,
+      "sticker": "💲",
+      "nickname": ""
+    },
+    "Ví trả sau": {
+      "visible": true,
+      "sticker": "👛",
+      "nickname": ""
+    },
+    "Camera": {
+      "visible": true,
+      "sticker": "📸",
+      "nickname": ""
+    },
+    "Cáp - Sạc": {
+      "visible": true,
+      "sticker": "⚡",
+      "nickname": ""
+    },
+    "Đồng hồ tháng 9": {
+      "visible": true,
+      "sticker": "📦",
+      "nickname": ""
+    },
+    "Phụ kiện IT và nhóm khác": {
+      "visible": true,
+      "sticker": "🖨️",
+      "nickname": "PK IT VÀ NHÓM KHÁC"
+    },
+    "PHỤ KIỆN CÔNG NGHỆ": {
+      "visible": true,
+      "sticker": "🕹️",
+      "nickname": "PK CÔNG NGHỆ"
+    },
+    "SẠC DỰ PHÒNG": {
+      "visible": true,
+      "sticker": "🔋",
+      "nickname": ""
+    },
+    "TAI NGHE": {
+      "visible": true,
+      "sticker": "🎧",
+      "nickname": ""
+    },
+    "Laptop (trừ Apple)": {
+      "visible": true,
+      "sticker": "💻",
+      "nickname": "LAPTOP"
+    },
+    "NẠP RÚT TIỀN TÀI KHOẢN NGÂN HÀNG": {
+      "visible": true,
+      "sticker": "💸",
+      "nickname": "NẠP RÚT TIỀN"
+    },
+    "MỞ THẺ TÍN DỤNG TPBANK EVO VÀ VPBANK MWG": {
+      "visible": true,
+      "sticker": "💳",
+      "nickname": "THẺ TÍN DỤNG TPBANK"
+    },
+    "ĐIỆN TỬ": {
+      "visible": false,
+      "sticker": "📦",
+      "nickname": ""
+    },
+    "Đồng hồ": {
+      "visible": true,
+      "sticker": "⌚",
+      "nickname": ""
+    }
+  }
+}
