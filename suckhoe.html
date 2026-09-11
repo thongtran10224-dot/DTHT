@@ -130,15 +130,15 @@
             return text.includes(keyword) && chk.offsetParent !== null;
         });
 
-        if (targetCheckbox) { targetCheckbox.click(); await delay(1500); return true; }
-        return false;
-    };
-
-    const clickMenu = async (menuText) => {
-        for(let attempts = 0; attempts < 10; attempts++) {
-            let target = Array.from(document.querySelectorAll('a, span, div, button, li')).find(el => el.innerText && el.innerText.trim() === menuText && el.offsetParent !== null);
-            if (target) { target.click(); return true; }
-            await delay(500);
+        if (targetCheckbox) { 
+            if (!targetCheckbox.checked) {
+                targetCheckbox.click(); 
+                await delay(1500); 
+            } else {
+                triggerBox.click();
+                await delay(800);
+            }
+            return true; 
         }
         return false;
     };
@@ -159,6 +159,10 @@
 
             await clickMenu('Doanh thu hợp nhất'); await delay(1500);
             await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            // Ép hệ thống gọi lại API lấy dữ liệu mới nhất (chống lưu cache cũ khi chạy lần 2)
+            let refreshBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (refreshBtn) { refreshBtn.click(); await delay(2000); }
 
             if (mode === 'LUYKE') {
                 let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
