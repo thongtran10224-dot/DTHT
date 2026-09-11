@@ -143,6 +143,15 @@
         return false;
     };
 
+    const clickMenu = async (menuText) => {
+        for(let attempts = 0; attempts < 10; attempts++) {
+            let target = Array.from(document.querySelectorAll('a, span, div, button, li')).find(el => el.innerText && el.innerText.trim() === menuText && el.offsetParent !== null);
+            if (target) { target.click(); return true; }
+            await delay(500);
+        }
+        return false;
+    };
+
     // =========================================================================
     // 2. LUỒNG REALTIME & LŨY KẾ CŨ
     // =========================================================================
