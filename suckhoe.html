@@ -299,18 +299,21 @@
             }
             if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
 
-            // Tự động mở rộng 5 nhóm trọng điểm theo data-row-key (có cơ chế chờ render chuẩn xác)
+            // Tự động mở rộng 5 nhóm trọng điểm (fix chuẩn class nhận diện trạng thái mở/đóng của Ant Design)
             let targetKeys = ['l1-1', 'l1-2', 'l1-3', 'l1-4', 'l1-10'];
             for (let key of targetKeys) {
                 let row = document.querySelector(`tr[data-row-key="${key}"]`);
                 if (row) {
                     let expandBtn = row.querySelector('.ant-table-row-expand-icon');
-                    if (expandBtn && !expandBtn.classList.contains('ant-table-row-expanded')) {
-                        expandBtn.click();
-                        let attempts = 0;
-                        while (!expandBtn.classList.contains('ant-table-row-expanded') && attempts < 12) {
-                            await delay(200);
-                            attempts++;
+                    if (expandBtn) {
+                        let isExpanded = expandBtn.classList.contains('ant-table-row-expand-icon-expanded') || expandBtn.classList.contains('ant-table-row-expanded');
+                        if (!isExpanded) {
+                            expandBtn.click();
+                            let attempts = 0;
+                            while (!expandBtn.classList.contains('ant-table-row-expand-icon-expanded') && attempts < 12) {
+                                await delay(200);
+                                attempts++;
+                            }
                         }
                     }
                 }
