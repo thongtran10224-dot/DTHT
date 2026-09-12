@@ -130,15 +130,15 @@
             return text.includes(keyword) && chk.offsetParent !== null;
         });
 
-        if (targetCheckbox) { 
+        if (targetCheckbox) {
             if (!targetCheckbox.checked) {
-                targetCheckbox.click(); 
-                await delay(1500); 
+                targetCheckbox.click();
+                await delay(1500);
             } else {
                 triggerBox.click();
                 await delay(800);
             }
-            return true; 
+            return true;
         }
         return false;
     };
@@ -197,23 +197,22 @@
             let summaryData = { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
             Array.from(document.querySelectorAll('div')).forEach(div => {
                 let text = div.innerText || "";
-                if (text.includes("DT quy đổi") && !text.includes("đường dẫn")) {
-                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-                    if (lines.length >= 2) summaryData.dtQd = lines[1];
+                let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+                if (lines.includes("DT quy đổi") && !lines.includes("đường dẫn")) {
+                    let idx = lines.indexOf("DT quy đổi");
+                    if (idx + 1 < lines.length) summaryData.dtQd = lines[idx + 1];
                 }
-                if (text.includes("Tỉ trọng trả góp")) {
-                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-                    if (lines.length >= 2) summaryData.tiTrongTraGop = lines[1];
+                if (lines.includes("Tỉ trọng trả góp")) {
+                    let idx = lines.indexOf("Tỉ trọng trả góp");
+                    if (idx + 1 < lines.length) summaryData.tiTrongTraGop = lines[idx + 1];
                 }
-                if (text.includes("DT dự kiến")) {
-                    let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-                    let idx = lines.findIndex(l => l.includes("DT dự kiến"));
-                    if (idx !== -1) {
-                        for (let i = idx + 1; i < lines.length; i++) {
-                            if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
-                                summaryData.dtDuKien = lines[i];
-                                break;
-                            }
+                if (lines.includes("DT dự kiến")) {
+                    let idx = lines.indexOf("DT dự kiến");
+                    for (let i = idx + 1; i < lines.length; i++) {
+                        if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
+                            summaryData.dtDuKien = lines[i];
+                            break;
                         }
                     }
                 }
