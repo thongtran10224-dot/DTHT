@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.2 PRO
-// @namespace    http://tampermonkey.net/
-// @version      32.2
-// @description  Bản chuẩn V32.2: Fix lỗi đọc nhầm tab mới, tự động đá văng về trang chủ để refresh số realtime mượt mà.
-// @match        *://baocao.dienmayxanh.com/*
-// @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
-// @grant        none
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.3 PRO
+// @namespace   http://tampermonkey.net/
+// @version     32.3
+// @description Bản chuẩn V32.3: Nâng cấp giao diện bảng nhân viên rộng rãi, rõ nét, huy chương Top 1-2-3 cực đỉnh.
+// @match       *://baocao.dienmayxanh.com/*
+// @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
+// @grant       none
 // ==/UserScript==
 
 (function() {
@@ -106,6 +106,7 @@
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMCungKy();" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📊 SO SÁNH CÙNG KỲ</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMNhanVien();" style="background:#8e44ad; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">👥 SỨC KHỎE NHÂN VIÊN</button>
         `;
         document.body.appendChild(div);
     };
@@ -289,7 +290,232 @@
     };
 
     // =========================================================================
-    // 3. MODULE ĐỘC LẬP: SO SÁNH CÙNG KỲ (TẦNG 2)
+    // 3. MODULE SỨC KHỎE NHÂN VIÊN (LẤY FULL TÊN ĐẦY ĐỦ)
+    // =========================================================================
+    window.startFSMNhanVien = async () => {
+        let currentUrl = window.location.href.split('?')[0];
+        if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
+            localStorage.setItem('tamhoa_pending_nv', '1');
+            window.location.href = 'https://baocao.dienmayxanh.com/';
+            return;
+        }
+
+        let oldPanel = document.getElementById('dtht-nhanvien-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        hienThiVuTruLoading("ĐANG LẤY SỨC KHỎE NHÂN VIÊN");
+
+        try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
+
+            await clickMenu('Doanh thu hợp nhất'); await delay(1500);
+            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
+            if (luyKeTab) { luyKeTab.click(); await delay(1500); }
+
+            let dtQuyDoiBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'DT quy đổi' && el.offsetParent !== null);
+            if (dtQuyDoiBtn) { dtQuyDoiBtn.click(); await delay(1500); }
+
+            let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
+            if (nhanVienBtn) { nhanVienBtn.click(); await delay(1500); }
+
+            let traGopBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Trả góp' && el.offsetParent !== null);
+            if (traGopBtn && !traGopBtn.classList.contains('active')) { traGopBtn.click(); await delay(1500); }
+
+            let tableLoaded = false; let attempts = 0;
+            while (!tableLoaded && attempts < 30) {
+                await delay(500);
+                if (document.querySelector('table') || document.querySelectorAll('tr').length > 5) tableLoaded = true;
+                attempts++;
+            }
+            await delay(1000);
+
+            let paginationItems = document.querySelectorAll('.ant-pagination-item');
+            let rowMap = new Map();
+
+            const collectRows = () => {
+                document.querySelectorAll('tr').forEach(tr => {
+                    let cells = tr.querySelectorAll('td, th');
+                    if (cells.length < 5) return;
+                    let rawName = cells[0].innerText.trim();
+                    if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng")) return;
+                    if (!rowMap.has(rawName)) rowMap.set(rawName, tr);
+                });
+            };
+
+            if (paginationItems.length > 1) {
+                for (let i = 0; i < paginationItems.length; i++) {
+                    paginationItems[i].click();
+                    await delay(600);
+                    collectRows();
+                }
+                paginationItems[0].click();
+                await delay(400);
+            } else {
+                collectRows();
+            }
+
+            let nvList = [];
+            let allStoredNames = [];
+            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+
+            rowMap.forEach((tr, rawName) => {
+                allStoredNames.push(rawName);
+                if (!nvConfigs[rawName]) {
+                    nvConfigs[rawName] = { visible: true, nickname: '' };
+                }
+            });
+            localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+            localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
+
+            rowMap.forEach((tr, rawName) => {
+                let cells = tr.querySelectorAll('td, th');
+                if (cells.length < 5) return;
+
+                let conf = nvConfigs[rawName] || { visible: true, nickname: '' };
+                if (conf.visible === false) return;
+
+                let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
+                let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
+                let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
+                let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
+
+                let displayName = conf.nickname || rawName;
+                nvList.push({ name: displayName, rawName: rawName, sl, dtQd, dt, dtTg, pctTg });
+            });
+
+            window.currentRawNvList = [...nvList];
+
+            nvList = nvList.filter(nv => {
+                let conf = nvConfigs[nv.rawName] || { visible: true };
+                return conf.visible !== false;
+            }).map(nv => {
+                let conf = nvConfigs[nv.rawName] || {};
+                return { ...nv, name: conf.nickname || nv.rawName };
+            });
+
+            nvList.sort((a, b) => b.dtQd - a.dtQd);
+            window.currentParsedNvList = nvList;
+
+            let totalNv = nvList.length;
+            nvList.forEach((nv, idx) => {
+                if (idx < 5) nv.tier = 'green';
+                else if (idx < totalNv - 3) nv.tier = 'yellow';
+                else nv.tier = 'red';
+            });
+
+            tatVuTruLoading();
+            hienThiNhanVienPanel(nvList);
+
+        } catch (error) {
+            tatVuTruLoading();
+            alert("❌ Lỗi Sức Khỏe Nhân Viên: " + error.message);
+        }
+    };
+
+    const hienThiNhanVienPanel = (nvList) => {
+        let oldPanel = document.getElementById('dtht-nhanvien-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        let tableRowsHtml = '';
+        nvList.forEach((nv, index) => {
+            let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
+            let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
+            let rankStyle = index < 3 ? 'font-size:24px; text-align:center;' : 'font-size:17px; font-weight:900; text-align:center; color:#333;';
+
+            tableRowsHtml += `
+                <tr style="background:${rowBg}; font-size:17px;">
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:17px; color:#111;">${nv.name}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.sl)}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99; font-size:18px;">${formatMoney(nv.dtQd)}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.dt)}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.dtTg)}</td>
+                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; font-size:17px;">${nv.pctTg}</td>
+                </tr>
+            `;
+        });
+
+        let div = document.createElement('div');
+        div.id = 'dtht-nhanvien-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding: 10px 5px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+
+        div.innerHTML = `
+            <div style="width:100%; max-width:960px; margin:0 auto; background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">👥 SỨC KHỎE NHÂN VIÊN (LŨY KẾ)</h2>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="window.openSettingsV31('nv')" style="background:#6c757d; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px;">⚙️ CÀI ĐẶT</button>
+                        <button onclick="document.getElementById('dtht-nhanvien-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px;">❌ ĐÓNG</button>
+                    </div>
+                </div>
+
+                <div id="capture-zone-nhanvien" style="background:#f0f2f5; padding:15px; border-radius:12px; border:2px solid #004a99; overflow-x:auto;">
+                    <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🏆 BẢNG XẾP HẠNG DOANH THU NHÂN SỰ</div>
+                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                        <thead>
+                            <tr style="background:#004a99; color:#fff; font-size:13px; font-weight:900;">
+                                <th style="padding:10px 8px; text-align:center; width:55px;">Top</th>
+                                <th style="padding:10px 8px; text-align:left;">Nhân viên</th>
+                                <th style="padding:10px 8px; text-align:right;">SL</th>
+                                <th style="padding:10px 8px; text-align:right;">DTQĐ</th>
+                                <th style="padding:10px 8px; text-align:right;">DT</th>
+                                <th style="padding:10px 8px; text-align:right;">DT Trả góp</th>
+                                <th style="padding:10px 8px; text-align:right;">% TG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="window.captureNhanVienImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:14px; border-radius:8px; font-weight:900; font-size: 15px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH NHÂN VIÊN</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+    };
+
+    window.captureNhanVienImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone-nhanvien');
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = `SK_NHAN_VIEN_${dateStr}.png`;
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false;
+                    return true;
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    // =========================================================================
+    // 4. MODULE SO SÁNH CÙNG KỲ
     // =========================================================================
     window.startFSMCungKy = async () => {
         let oldPanel = document.getElementById('dtht-cungky-overlay');
@@ -462,7 +688,7 @@
     };
 
     // =========================================================================
-    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
+    // 5. RENDER GIAO DIỆN REALTIME & LŨY KẾ
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         let oldPanel = document.getElementById('dtht-commander-overlay');
@@ -604,7 +830,7 @@
             let pctBar = Math.min(100, Math.max(0, pRounded));
             let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
 
-           let flagIcon = (g.rawT > 0 && g.rawR >= g.rawT) ? '🏁' : '';
+            let flagIcon = (g.rawT > 0 && g.rawR >= g.rawT) ? '🏁' : '';
             gridHtml += `
                 <div class="group-card">
                     <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
@@ -626,7 +852,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
-                            <button onclick="window.openSettingsV31()" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
+                            <button onclick="window.openSettingsV31('group')" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
                         </div>
                     </div>
@@ -769,7 +995,7 @@
         if(txtArea) txtArea.value = txt;
     };
 
-    window.openSettingsV31 = function() {
+    window.openSettingsV31 = function(context = 'group') {
         let oldPnl = document.getElementById('settings-panel-v31');
         if (oldPnl) oldPnl.remove();
 
@@ -782,16 +1008,40 @@
         pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:500px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
 
         let checklistHtml = '';
-        (window.currentParsedGroups || []).forEach(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
-            checklistHtml += `
-                <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; gap:8px;">
-                    <span style="font-size:24px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
-                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
-                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
-                    <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
-                </div>`;
-        });
+        let nvChecklistHtml = '';
+
+        if (context === 'group') {
+            let groupsTootip = window.currentParsedGroups;
+            if (!groupsTootip || groupsTootip.length === 0) {
+                let storedGroupNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_group_names')) || [];
+                groupsTootip = storedGroupNames.map(name => ({ name }));
+            }
+            groupsTootip.forEach(g => {
+                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+                checklistHtml += `
+                    <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; gap:8px;">
+                        <span style="font-size:24px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
+                        <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
+                        <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                        <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
+                    </div>`;
+            });
+        } else {
+            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+            let allNvNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_nv_names')) || [];
+            if (allNvNames.length === 0 && window.currentParsedNvList) {
+                allNvNames = window.currentParsedNvList.map(nv => nv.rawName || nv.name);
+            }
+            allNvNames.forEach(name => {
+                let conf = nvConfigs[name] || { visible: true, nickname: '' };
+                nvChecklistHtml += `
+                    <div class="chk-nv-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
+                        <span style="font-size:11px; font-weight:800; width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</span>
+                        <input type="text" class="nick-nv-inp" data-name="${name}" value="${conf.nickname}" placeholder="Tên hiển thị..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                        <input type="checkbox" class="vis-nv-chk" data-name="${name}" ${conf.visible !== false ? 'checked' : ''}>
+                    </div>`;
+            });
+        }
 
         pnl.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -799,6 +1049,7 @@
                 <span style="cursor:pointer; font-size:22px;" onclick="document.getElementById('settings-panel-v31').remove()">✖</span>
             </div>
 
+            ${context === 'group' ? `
             <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
                 <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
                 <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
@@ -813,10 +1064,15 @@
                     </label>
                 </div>
             </div>
-
-            <div style="flex:1; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
+            <div style="max-height:220px; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
                 ${checklistHtml}
             </div>
+            ` : `
+            <div style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
+                <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:8px; text-align:center;">👥 QUẢN LÝ NHÂN SỰ SIÊU THỊ</div>
+                ${nvChecklistHtml}
+            </div>
+            `}
 
             <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif;">LƯU LẠI ✅</button>
         `;
@@ -825,11 +1081,17 @@
 
     window.saveSettingsV31 = function() {
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let mt = parseFloat(document.getElementById('inpMasterTargetSet').value) || 304;
-        let mot = parseFloat(document.getElementById('inpMonthlyTargetSet').value) || 13014;
 
-        localStorage.setItem('tamhoa_v31_masterTarget', mt);
-        localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
+        let mtInput = document.getElementById('inpMasterTargetSet');
+        if (mtInput) {
+            let mt = parseFloat(mtInput.value) || 304;
+            localStorage.setItem('tamhoa_v31_masterTarget', mt);
+        }
+        let motInput = document.getElementById('inpMonthlyTargetSet');
+        if (motInput) {
+            let mot = parseFloat(motInput.value) || 13014;
+            localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
+        }
 
         document.querySelectorAll('#settings-panel-v31 .chk-item').forEach(item => {
             let name = item.querySelector('.vis-chk').getAttribute('data-name');
@@ -839,9 +1101,41 @@
             groupConfigs[name] = { visible: vis, sticker: stk, nickname: nick };
         });
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
+
+        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+        document.querySelectorAll('#settings-panel-v31 .chk-nv-item').forEach(item => {
+            let name = item.querySelector('.vis-nv-chk').getAttribute('data-name');
+            let vis = item.querySelector('.vis-nv-chk').checked;
+            let nick = item.querySelector('.nick-nv-inp').value.trim().toUpperCase();
+            nvConfigs[name] = { visible: vis, nickname: nick };
+        });
+        localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+
         document.getElementById('settings-panel-v31').remove();
 
-        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+        if (document.getElementById('dtht-nhanvien-overlay')) {
+            if (window.currentRawNvList) {
+                let filtered = window.currentRawNvList.filter(nv => {
+                    let conf = nvConfigs[nv.rawName] || { visible: true };
+                    return conf.visible !== false;
+                }).map(nv => {
+                    let conf = nvConfigs[nv.rawName] || {};
+                    return { ...nv, name: conf.nickname || nv.rawName };
+                });
+                filtered.sort((a, b) => b.dtQd - a.dtQd);
+                let totalNv = filtered.length;
+                filtered.forEach((nv, idx) => {
+                    if (idx < 5) nv.tier = 'green';
+                    else if (idx < totalNv - 3) nv.tier = 'yellow';
+                    else nv.tier = 'red';
+                });
+                hienThiNhanVienPanel(filtered);
+            } else {
+                window.startFSMNhanVien();
+            }
+        } else {
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+        }
     };
 
     window.openStickerPicker = function(gName) {
@@ -858,7 +1152,7 @@
         groupConfigs[gName].sticker = stk;
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
         document.getElementById('sticker-pop-v31').remove();
-        window.openSettingsV31();
+        window.openSettingsV31('group');
     };
 
     window.exportConfigJson = function() {
@@ -886,7 +1180,7 @@
                 if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
                 if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
                 alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
-                window.openSettingsV31();
+                window.openSettingsV31('group');
             } catch(err) { alert("❌ File lỗi hoặc sai định dạng!"); }
         };
         reader.readAsText(file);
@@ -944,6 +1238,11 @@
         if (pendingMode) {
             localStorage.removeItem('tamhoa_pending_mode');
             setTimeout(() => { window.startFSM(pendingMode); }, 1500);
+        }
+        let pendingNv = localStorage.getItem('tamhoa_pending_nv');
+        if (pendingNv) {
+            localStorage.removeItem('tamhoa_pending_nv');
+            setTimeout(() => { window.startFSMNhanVien(); }, 1500);
         }
     }, 2000);
 })();
