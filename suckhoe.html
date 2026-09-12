@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.1 PRO
+// @name         🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.2 PRO
 // @namespace    http://tampermonkey.net/
-// @version      32.1
-// @description  Bản chuẩn V32.1: Fix triệt để lỗi màu oklch bằng ignoreElements, bắt chuẩn % TT số âm.
+// @version      32.2
+// @description  Bản chuẩn V32.2: Fix lỗi đọc nhầm tab mới, tự động đá văng về trang chủ để refresh số realtime mượt mà.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -153,9 +153,16 @@
     };
 
     // =========================================================================
-    // 2. LUỒNG REALTIME & LŨY KẾ CŨ
+    // 2. LUỒNG REALTIME & LŨY KẾ ĐÃ TỐI ƯU
     // =========================================================================
     window.startFSM = async (mode = 'REALTIME') => {
+        let currentUrl = window.location.href.split('?')[0];
+        if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
+            localStorage.setItem('tamhoa_pending_mode', mode);
+            window.location.href = 'https://baocao.dienmayxanh.com/';
+            return;
+        }
+
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
 
@@ -165,9 +172,6 @@
         try {
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
             if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
-
-            let taiLaiBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.includes('Tải lại') && el.offsetParent !== null);
-            if (taiLaiBtn) { taiLaiBtn.click(); await delay(2500); }
 
             await clickMenu('Doanh thu hợp nhất'); await delay(1500);
             await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
@@ -297,11 +301,9 @@
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
             if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
 
-            // Chuyển sang tab Doanh Thu Ngành Hàng BI
             await clickMenu('Doanh Thu Ngành Hàng BI'); await delay(1500);
             await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
 
-            // Đợi Ant Design Table render
             let tableLoaded = false; let attempts = 0;
             while (!tableLoaded && attempts < 30) {
                 await delay(500);
@@ -310,7 +312,6 @@
             }
             if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
 
-            // Tự động mở rộng 5 nhóm trọng điểm (fix chuẩn class nhận diện trạng thái mở/đóng của Ant Design)
             let targetKeys = ['l1-1', 'l1-2', 'l1-3', 'l1-4', 'l1-10'];
             for (let key of targetKeys) {
                 let row = document.querySelector(`tr[data-row-key="${key}"]`);
@@ -331,7 +332,6 @@
             }
             await delay(1500);
 
-            // Quét dữ liệu bảng Ant Design
             let rows = document.querySelectorAll('.ant-table-tbody > tr.ant-table-row');
             let dataList = [];
 
@@ -375,19 +375,19 @@
             let prefix = item.isIndent ? '└ ' : '';
             let rowStyle = item.isIndent ? 'background:#fafafa; font-size:11px;' : 'background:#fff; font-weight:800; font-size:12px;';
             let moneyColor = item.chenhLechTien >= 0 ? '#28a745' : '#dc3545';
-let moneySign = item.chenhLechTien > 0 ? '+' : ''; // Nếu âm thì tự nó đã có dấu -
-let pctColor = item.pctTt >= 0 ? '#28a745' : '#dc3545';
+            let moneySign = item.chenhLechTien > 0 ? '+' : '';
+            let pctColor = item.pctTt >= 0 ? '#28a745' : '#dc3545';
 
-tableRowsHtml += `
-    <tr style="${rowStyle}">
-        <td style="padding:6px; border-bottom:1px solid #eee;">${prefix}${item.name}</td>
-        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.sl)}</td>
-        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.dtQd)}</td>
-        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; color:${moneyColor};">${moneySign}${formatMoney(item.chenhLechTien)}</td>
-        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:${pctColor};">${item.pctTt}%</td>
-        <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${item.donGia > 0 ? formatMoney(item.donGia) : '-'}</td>
-    </tr>
-`;
+            tableRowsHtml += `
+                <tr style="${rowStyle}">
+                    <td style="padding:6px; border-bottom:1px solid #eee;">${prefix}${item.name}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.sl)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.dtQd)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; color:${moneyColor};">${moneySign}${formatMoney(item.chenhLechTien)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:${pctColor};">${item.pctTt}%</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${item.donGia > 0 ? formatMoney(item.donGia) : '-'}</td>
+                </tr>
+            `;
         });
 
         let div = document.createElement('div');
@@ -441,11 +441,10 @@ tableRowsHtml += `
             scale: 3,
             useCORS: true,
             backgroundColor: "#f0f2f5",
-            // FIX CỨNG LỖI OKLCH: Khóa đọc mọi thẻ style và link gốc trước khi render
             ignoreElements: (element) => {
                 if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
-                    if (element.id === 'font-montserrat') return false; // Chỉ giữ lại font tool
-                    return true; // Dọn sạch rác CSS trang gốc
+                    if (element.id === 'font-montserrat') return false;
+                    return true;
                 }
                 return false;
             }
@@ -463,7 +462,7 @@ tableRowsHtml += `
     };
 
     // =========================================================================
-    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ (GIỮ NGUYÊN BẢN CŨ)
+    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         let oldPanel = document.getElementById('dtht-commander-overlay');
@@ -905,7 +904,6 @@ tableRowsHtml += `
             scale: 3,
             useCORS: true,
             backgroundColor: "#f0f2f5",
-            // FIX CỨNG LỖI OKLCH CHO TẦNG 1 (Áp dụng đồng bộ ignoreElements)
             ignoreElements: (element) => {
                 if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
                     if (element.id === 'font-montserrat') return false;
@@ -938,5 +936,12 @@ tableRowsHtml += `
         } catch (err) { alert("Lỗi Copy!"); }
     };
 
-    setTimeout(taoNutBatTu, 2000);
+    setTimeout(() => {
+        taoNutBatTu();
+        let pendingMode = localStorage.getItem('tamhoa_pending_mode');
+        if (pendingMode) {
+            localStorage.removeItem('tamhoa_pending_mode');
+            setTimeout(() => { window.startFSM(pendingMode); }, 1500);
+        }
+    }, 2000);
 })();
