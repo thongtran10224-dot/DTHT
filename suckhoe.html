@@ -604,11 +604,13 @@
             let pctBar = Math.min(100, Math.max(0, pRounded));
             let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
 
+           let flagIcon = (g.rawT > 0 && g.rawR >= g.rawT) ? '🏁' : '';
             gridHtml += `
                 <div class="group-card">
                     <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
                     <div class="group-stats">
                         <span class="group-num">${rDisp} / ${tDisp}</span>
+                        <span style="font-size: 14px;">${flagIcon}</span>
                         <span class="${pCl}">${pRounded}%</span>
                     </div>
                     <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
