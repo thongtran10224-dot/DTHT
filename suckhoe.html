@@ -166,6 +166,9 @@
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
             if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
 
+            let taiLaiBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.includes('Tải lại') && el.offsetParent !== null);
+            if (taiLaiBtn) { taiLaiBtn.click(); await delay(2500); }
+
             await clickMenu('Doanh thu hợp nhất'); await delay(1500);
             await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
 
