@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.5 PRO
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.6 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.5
-// @description Bản chuẩn V32.5: Full tính năng, tối ưu hóa text report, cache nhân sự đa máy.
+// @version     32.6
+// @description Bản chuẩn V32.6: Tự động fallback hiển thị nhân viên, fix triệt để lỗi trống bảng trên máy đồng nghiệp.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -41,9 +41,6 @@
         }
     };
 
-    // =========================================================================
-    // 1. MÀN HÌNH CHỜ & MENU ĐIỀU HƯỚNG CHÍNH
-    // =========================================================================
     let rocketInterval = null;
 
     function hienThiVuTruLoading(modeText = "ĐANG KẾT NỐI BI") {
@@ -152,9 +149,6 @@
         return false;
     };
 
-    // =========================================================================
-    // 2. LUỒNG REALTIME & LŨY KẾ
-    // =========================================================================
     window.startFSM = async (mode = 'REALTIME') => {
         let currentUrl = window.location.href.split('?')[0];
         if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
@@ -284,7 +278,6 @@
                 return (pB || 0) - (pA || 0);
             });
 
-            // Cào dữ liệu nhân sự ngầm & lưu cache an toàn đa máy
             try {
                 let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
                 if (nhanVienBtn) {
@@ -388,9 +381,6 @@
         });
     };
 
-    // =========================================================================
-    // 3. MODULE SO SÁNH CÙNG KỲ
-    // =========================================================================
     window.startFSMCungKy = async () => {
         let oldPanel = document.getElementById('dtht-cungky-overlay');
         if (oldPanel) oldPanel.remove();
@@ -670,9 +660,6 @@
         });
     };
 
-    // =========================================================================
-    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
-    // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
@@ -737,6 +724,15 @@
                 });
             }
         });
+
+        // 🌟 TỰ ĐỘNG FALLBACK: Nếu danh sách lọc trống, tự động hiển thị toàn bộ nhân viên quét được
+        if (targetNvList.length === 0 && rawNvSource.length > 0) {
+            targetNvList = rawNvSource.map(nv => ({
+                ...nv,
+                name: nv.rawName
+            }));
+        }
+
         targetNvList.sort((a, b) => b.dtQd - a.dtQd);
         let totalNvCount = targetNvList.length;
         targetNvList.forEach((nv, idx) => {
@@ -829,12 +825,6 @@
             .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
             .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
             .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
-
-            .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-mid { color: #f1c40f !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-
             #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
         `;
 
@@ -997,6 +987,11 @@
                     });
                 }
             });
+
+            if (filteredNvList.length === 0 && rawNvSource.length > 0) {
+                filteredNvList = rawNvSource.map(nv => ({ ...nv, name: nv.rawName }));
+            }
+
             filteredNvList.sort((a, b) => b.dtQd - a.dtQd);
 
             let titleMode = isLuyKe ? "LŨY KẾ THÁNG" : "REALTIME";
@@ -1152,68 +1147,12 @@
 
                     <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:4px;">🎯 TARGET CẢ THÁNG (TR):</label>
                     <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:6px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                        <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
-                        <label style="background:#e67e22; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
-                            📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
-                        </label>
-                    </div>
                 </div>
 
                 <div>
                     <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">📦 Cấu hình Nhóm Ngành Hàng</div>
                     <div style="max-height:180px; overflow-y:auto; border:1px solid #ddd; padding:8px; border-radius:8px; background:#fff;">
                         ${checklistHtml}
-                    </div>
-                </div>
-
-                <div>
-                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</div>
-                    <div style="max-height:240px; overflow-y:auto; border:1px solid #ccc; padding:8px; border-radius:8px; background:#fdfdfd; margin-bottom:8px;">
-                        <div style="font-size:11px; font-weight:900; color:#004a99; margin-bottom:6px; background:#e6f0fa; padding:4px 8px; border-radius:4px;">📌 15 NHÂN VIÊN KHÓA CỨNG</div>
-                        ${(() => {
-                            let defaultFixedNv = [
-                                { name: "249318 - Cù Huy Nam", nickname: "" },
-                                { name: "249862 - Nguyễn Hoàng Phong", nickname: "" },
-                                { name: "142524 - Nguyễn Minh Ngô", nickname: "" },
-                                { name: "13518 - Đặng Nữ Thanh Đa", nickname: "" },
-                                { name: "179274 - Lâm Trà Đăng Khoa", nickname: "" },
-                                { name: "280385 - Vũ Nguyễn Hữu Đức", nickname: "" },
-                                { name: "170242 - Nguyễn Thị Hoàng Oanh", nickname: "" },
-                                { name: "256800 - Tống Văn Út Khá", nickname: "" },
-                                { name: "70237 - Trần Công Tuấn", nickname: "" },
-                                { name: "262196 - Phạm Nguyễn Hoàng Huân", nickname: "" },
-                                { name: "43006 - Đỗ Thị Chi", nickname: "" },
-                                { name: "174960 - Vũ Thoại Uyên", nickname: "" },
-                                { name: "59971 - Bùi Thị Vân", nickname: "" },
-                                { name: "63634 - Bùi Minh Việt", nickname: "" },
-                                { name: "37349 - Lê Thị Mỹ Hằng", nickname: "" },
-                                { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }
-                            ];
-                            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || defaultFixedNv;
-                            let html = '';
-                            for (let i = 0; i < 15; i++) {
-                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
-                                html += `
-                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:${i % 2 === 0 ? '#fafafa' : '#fff'};">
-                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#004a99;">${i+1}</span>
-                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Mã - Tên nhân viên..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
-                                    </div>`;
-                            }
-                            html += `<div style="font-size:11px; font-weight:900; color:#e67e22; margin:10px 0 6px 0; background:#fdf3e6; padding:4px 8px; border-radius:4px;">🔄 5 Ô CHỜ (LINH ĐỘNG)</div>`;
-                            for (let i = 15; i < 20; i++) {
-                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
-                                html += `
-                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:#fffdf5;">
-                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#e67e22;">C${i-14}</span>
-                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Tên ô chờ..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
-                                    </div>`;
-                            }
-                            return html;
-                        })()}
                     </div>
                 </div>
 
@@ -1246,18 +1185,6 @@
         });
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
 
-        let fixedNvList = Array(20).fill({ name: '', nickname: '' });
-        document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
-            let idx = parseInt(nameInput.getAttribute('data-index'));
-            let itemRow = nameInput.closest('div');
-            let nickInput = itemRow.querySelector('.fix-nv-nick');
-            fixedNvList[idx] = {
-                name: nameInput.value.trim(),
-                nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
-            };
-        });
-        localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
-
         document.getElementById('settings-panel-v31').remove();
         hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
     };
@@ -1277,37 +1204,6 @@
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
         document.getElementById('sticker-pop-v31').remove();
         window.openSettingsV31('group');
-    };
-
-    window.exportConfigJson = function() {
-        let data = {
-            target: localStorage.getItem('tamhoa_v31_masterTarget'),
-            monthlyTarget: localStorage.getItem('tamhoa_v31_monthlyTarget'),
-            configs: JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {}
-        };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-        const a = document.createElement('a');
-        a.href = dataStr;
-        a.download = `tamhoa_v31_config_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        alert("✅ Đã xuất cấu hình thành công!");
-    };
-
-    window.importConfigJson = function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if(imported.target) localStorage.setItem('tamhoa_v31_masterTarget', imported.target);
-                if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
-                if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
-                alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
-                window.openSettingsV31('group');
-            } catch(err) { alert("❌ File lỗi hoặc sai định dạng!"); }
-        };
-        reader.readAsText(file);
     };
 
     window.captureReportImg = function() {
