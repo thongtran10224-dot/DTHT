@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.3 PRO
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.4 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.3
-// @description Bản chuẩn V32.3: Nâng cấp giao diện bảng nhân viên rộng rãi, rõ nét, huy chương Top 1-2-3 cực đỉnh.
+// @version     32.4
+// @description Bản chuẩn V32.4: Nâng cấp giao diện bảng nhân viên rộng rãi, rõ nét, huy chương Top 1-2-3 cực đỉnh.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -106,7 +106,6 @@
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMCungKy();" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📊 SO SÁNH CÙNG KỲ</button>
-            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMNhanVien();" style="background:#8e44ad; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">👥 SỨC KHỎE NHÂN VIÊN</button>
         `;
         document.body.appendChild(div);
     };
@@ -270,7 +269,7 @@
                 }
             });
 
-            groups.sort((a, b) => {
+           groups.sort((a, b) => {
                 let pA = parseFloat(a.p), pB = parseFloat(b.p);
                 let validA = !isNaN(pA) && pA > 0;
                 let validB = !isNaN(pB) && pB > 0;
@@ -279,208 +278,80 @@
                 return (pB || 0) - (pA || 0);
             });
 
+            let nvListResult = [];
+            try {
+                let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
+                if (nhanVienBtn) {
+                    nhanVienBtn.click();
+                    await delay(1500);
+                    let paginationItems = document.querySelectorAll('.ant-pagination-item');
+                    let rowMap = new Map();
+                    const collectRows = () => {
+                        document.querySelectorAll('tr').forEach(tr => {
+                            let cells = tr.querySelectorAll('td, th');
+                            if (cells.length < 5) return;
+                            let rawName = cells[0].innerText.trim();
+                            if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng")) return;
+                            if (!rowMap.has(rawName)) rowMap.set(rawName, tr);
+                        });
+                    };
+                    if (paginationItems.length > 1) {
+                        for (let i = 0; i < paginationItems.length; i++) {
+                            paginationItems[i].click();
+                            await delay(600);
+                            collectRows();
+                        }
+                        paginationItems[0].click();
+                        await delay(400);
+                    } else {
+                        collectRows();
+                    }
+
+                    let rawList = [];
+                    let allStoredNames = [];
+                    let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+
+                    rowMap.forEach((tr, rawName) => {
+                        allStoredNames.push(rawName);
+                        if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
+
+                        let cells = tr.querySelectorAll('td, th');
+                        if (cells.length >= 5) {
+                            let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                            let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
+                            let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
+                            let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
+                            let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
+                            rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
+                        }
+                    });
+                    localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+                    localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
+
+                    if (mode === 'REALTIME') {
+                        window.currentRawRealtimeNvList = rawList;
+                    } else {
+                        window.currentRawLuyKeNvList = rawList;
+                    }
+                }
+            } catch(e) {}
+
+            if (mode === 'REALTIME') {
+                window.currentRealtimeNvList = nvListResult;
+            } else {
+                window.currentLuyKeNvList = nvListResult;
+            }
+
             tatVuTruLoading();
             window.currentReportMode = mode;
             hienThiCommanderPanel(summaryData, groups);
-
         } catch (error) {
             tatVuTruLoading();
             alert("❌ Lỗi hệ thống: " + error.message);
         }
     };
 
-    // =========================================================================
-    // 3. MODULE SỨC KHỎE NHÂN VIÊN (LẤY FULL TÊN ĐẦY ĐỦ)
-    // =========================================================================
-    window.startFSMNhanVien = async () => {
-        let currentUrl = window.location.href.split('?')[0];
-        if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
-            localStorage.setItem('tamhoa_pending_nv', '1');
-            window.location.href = 'https://baocao.dienmayxanh.com/';
-            return;
-        }
-
-        let oldPanel = document.getElementById('dtht-nhanvien-overlay');
-        if (oldPanel) oldPanel.remove();
-
-        hienThiVuTruLoading("ĐANG LẤY SỨC KHỎE NHÂN VIÊN");
-
-        try {
-            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
-            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
-
-            await clickMenu('Doanh thu hợp nhất'); await delay(1500);
-            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
-
-            let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
-            if (luyKeTab) { luyKeTab.click(); await delay(1500); }
-
-            let dtQuyDoiBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'DT quy đổi' && el.offsetParent !== null);
-            if (dtQuyDoiBtn) { dtQuyDoiBtn.click(); await delay(1500); }
-
-            let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
-            if (nhanVienBtn) { nhanVienBtn.click(); await delay(1500); }
-
-            let traGopBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Trả góp' && el.offsetParent !== null);
-            if (traGopBtn && !traGopBtn.classList.contains('active')) { traGopBtn.click(); await delay(1500); }
-
-            let tableLoaded = false; let attempts = 0;
-            while (!tableLoaded && attempts < 30) {
-                await delay(500);
-                if (document.querySelector('table') || document.querySelectorAll('tr').length > 5) tableLoaded = true;
-                attempts++;
-            }
-            await delay(1000);
-
-            let paginationItems = document.querySelectorAll('.ant-pagination-item');
-            let rowMap = new Map();
-
-            const collectRows = () => {
-                document.querySelectorAll('tr').forEach(tr => {
-                    let cells = tr.querySelectorAll('td, th');
-                    if (cells.length < 5) return;
-                    let rawName = cells[0].innerText.trim();
-                    if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng")) return;
-                    if (!rowMap.has(rawName)) rowMap.set(rawName, tr);
-                });
-            };
-
-            if (paginationItems.length > 1) {
-                for (let i = 0; i < paginationItems.length; i++) {
-                    paginationItems[i].click();
-                    await delay(600);
-                    collectRows();
-                }
-                paginationItems[0].click();
-                await delay(400);
-            } else {
-                collectRows();
-            }
-
-            let nvList = [];
-            let allStoredNames = [];
-            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-
-            rowMap.forEach((tr, rawName) => {
-                allStoredNames.push(rawName);
-                if (!nvConfigs[rawName]) {
-                    nvConfigs[rawName] = { visible: true, nickname: '' };
-                }
-            });
-            localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
-            localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
-
-            rowMap.forEach((tr, rawName) => {
-                let cells = tr.querySelectorAll('td, th');
-                if (cells.length < 5) return;
-
-                let conf = nvConfigs[rawName] || { visible: true, nickname: '' };
-                if (conf.visible === false) return;
-
-                let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
-                let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
-                let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
-                let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
-                let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
-
-                let displayName = conf.nickname || rawName;
-                nvList.push({ name: displayName, rawName: rawName, sl, dtQd, dt, dtTg, pctTg });
-            });
-
-            window.currentRawNvList = [...nvList];
-
-            nvList = nvList.filter(nv => {
-                let conf = nvConfigs[nv.rawName] || { visible: true };
-                return conf.visible !== false;
-            }).map(nv => {
-                let conf = nvConfigs[nv.rawName] || {};
-                return { ...nv, name: conf.nickname || nv.rawName };
-            });
-
-            nvList.sort((a, b) => b.dtQd - a.dtQd);
-            window.currentParsedNvList = nvList;
-
-            let totalNv = nvList.length;
-            nvList.forEach((nv, idx) => {
-                if (idx < 5) nv.tier = 'green';
-                else if (idx < totalNv - 3) nv.tier = 'yellow';
-                else nv.tier = 'red';
-            });
-
-            tatVuTruLoading();
-            hienThiNhanVienPanel(nvList);
-
-        } catch (error) {
-            tatVuTruLoading();
-            alert("❌ Lỗi Sức Khỏe Nhân Viên: " + error.message);
-        }
-    };
-
-    const hienThiNhanVienPanel = (nvList) => {
-        let oldPanel = document.getElementById('dtht-nhanvien-overlay');
-        if (oldPanel) oldPanel.remove();
-
-        let tableRowsHtml = '';
-        nvList.forEach((nv, index) => {
-            let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
-            let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
-            let rankStyle = index < 3 ? 'font-size:24px; text-align:center;' : 'font-size:17px; font-weight:900; text-align:center; color:#333;';
-
-            tableRowsHtml += `
-                <tr style="background:${rowBg}; font-size:17px;">
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:17px; color:#111;">${nv.name}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.sl)}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99; font-size:18px;">${formatMoney(nv.dtQd)}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.dt)}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; font-size:17px;">${formatMoney(nv.dtTg)}</td>
-                    <td style="padding:18px 10px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; font-size:17px;">${nv.pctTg}</td>
-                </tr>
-            `;
-        });
-
-        let div = document.createElement('div');
-        div.id = 'dtht-nhanvien-overlay';
-        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding: 10px 5px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
-
-        div.innerHTML = `
-            <div style="width:100%; max-width:960px; margin:0 auto; background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">👥 SỨC KHỎE NHÂN VIÊN (LŨY KẾ)</h2>
-                    <div style="display:flex; gap:10px;">
-                        <button onclick="window.openSettingsV31('nv')" style="background:#6c757d; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px;">⚙️ CÀI ĐẶT</button>
-                        <button onclick="document.getElementById('dtht-nhanvien-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px;">❌ ĐÓNG</button>
-                    </div>
-                </div>
-
-                <div id="capture-zone-nhanvien" style="background:#f0f2f5; padding:15px; border-radius:12px; border:2px solid #004a99; overflow-x:auto;">
-                    <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🏆 BẢNG XẾP HẠNG DOANH THU NHÂN SỰ</div>
-                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
-                        <thead>
-                            <tr style="background:#004a99; color:#fff; font-size:13px; font-weight:900;">
-                                <th style="padding:10px 8px; text-align:center; width:55px;">Top</th>
-                                <th style="padding:10px 8px; text-align:left;">Nhân viên</th>
-                                <th style="padding:10px 8px; text-align:right;">SL</th>
-                                <th style="padding:10px 8px; text-align:right;">DTQĐ</th>
-                                <th style="padding:10px 8px; text-align:right;">DT</th>
-                                <th style="padding:10px 8px; text-align:right;">DT Trả góp</th>
-                                <th style="padding:10px 8px; text-align:right;">% TG</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button onclick="window.captureNhanVienImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:14px; border-radius:8px; font-weight:900; font-size: 15px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH NHÂN VIÊN</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(div);
-    };
-
+    
     window.captureNhanVienImg = function() {
         let btn = event.target;
         let oldText = btn.innerText;
@@ -646,14 +517,122 @@
                     </table>
                 </div>
 
+                <textarea id="cungkyText" readonly style="background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 140px; margin-top: 15px; font-size: 12px; padding: 10px; border-radius: 8px; width: 100%; line-height: 1.4; resize: none; font-family: 'Montserrat', sans-serif;"></textarea>
+
                 <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="window.copyCungKyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
                     <button onclick="window.captureCungKyImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH CÙNG KỲ</button>
                 </div>
             </div>
         `;
         document.body.appendChild(div);
+        window.generateCungKyTextReport(dataList);
     };
+window.generateCungKyTextReport = function(dataList) {
+        let groupsMap = {};
+        let currentParent = null;
 
+        dataList.forEach(item => {
+            if (!item.isIndent) {
+                currentParent = item.name.trim();
+                groupsMap[currentParent] = { parent: item, subs: [] };
+            } else if (currentParent && groupsMap[currentParent]) {
+                if (item.dtQd > 0 || item.sl > 0 || item.chenhLechTien !== 0) {
+                    groupsMap[currentParent].subs.push(item);
+                }
+            }
+        });
+
+        // 5 nhóm chủ lực ép buộc lên đầu theo đúng thứ tự
+        let priorityKeywords = ["viễn thông", "laptop", "apple", "phụ kiện", "avapos"];
+        let allParentNames = Object.keys(groupsMap);
+
+        allParentNames.sort((a, b) => {
+            let lowerA = a.toLowerCase();
+            let lowerB = b.toLowerCase();
+            let idxA = priorityKeywords.findIndex(p => lowerA.includes(p));
+            let idxB = priorityKeywords.findIndex(p => lowerB.includes(p));
+
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return 0;
+        });
+
+        // Các hàm hỗ trợ làm sạch và rút gọn số liệu
+        const formatCleanMoney = (val) => {
+            let n = parseFloat(val) || 0;
+            if (Math.abs(n) >= 1000) {
+                return (n / 1000).toFixed(1).replace('.', ',') + ' tỷ';
+            }
+            return lamTronTamHoa(n) + 'TR';
+        };
+
+        const formatCleanDiff = (val) => {
+            let n = parseFloat(val) || 0;
+            let sign = n > 0 ? '+' : '';
+            if (Math.abs(n) >= 1000) {
+                return sign + (n / 1000).toFixed(1).replace('.', ',') + ' tỷ';
+            }
+            return sign + lamTronTamHoa(n) + 'TR';
+        };
+
+        const formatCleanDonGia = (val) => {
+            let n = parseFloat(val) || 0;
+            if (n <= 0) return '';
+            let tr = n / 1000000;
+            let formatted = tr.toFixed(1).replace('.', ',');
+            if (formatted.endsWith(',0')) {
+                formatted = formatted.slice(0, -2);
+            }
+            return ` | ĐG: ${formatted}TR`;
+        };
+
+        let txt = `📊 BÁO CÁO SO SÁNH CÙNG KỲ:\n\n`;
+
+        allParentNames.forEach(pName => {
+            let group = groupsMap[pName];
+            let item = group.parent;
+
+            let sticker = "📦";
+            let lowerName = pName.toLowerCase();
+            if (lowerName.includes("viễn thông")) sticker = "📱";
+            else if (lowerName.includes("laptop")) sticker = "💻";
+            else if (lowerName.includes("apple")) sticker = "🍎";
+            else if (lowerName.includes("phụ kiện") || lowerName.includes("đồng hồ")) sticker = "⌚";
+            else if (lowerName.includes("avapos")) sticker = "💳";
+
+            let trendIcon = item.chenhLechTien > 0 ? "🟢" : (item.chenhLechTien < 0 ? "🔴" : "⚪");
+            let diffStr = formatCleanDiff(item.chenhLechTien);
+            let donGiaStr = formatCleanDonGia(item.donGia);
+
+            txt += `${sticker} ${pName.toUpperCase()}: ${formatCleanMoney(item.dtQd)} (${trendIcon} ${diffStr} | ${item.pctTt}%)${donGiaStr}\n`;
+
+            group.subs.forEach(sub => {
+                let subTrend = sub.chenhLechTien > 0 ? "🟢" : (sub.chenhLechTien < 0 ? "🔴" : "⚪");
+                let subDiffStr = formatCleanDiff(sub.chenhLechTien);
+                let subDonGiaStr = formatCleanDonGia(sub.donGia);
+                let cleanSubName = sub.name.replace(/^L\s+/, "").trim();
+                txt += `  - ${cleanSubName}: ${formatCleanMoney(sub.dtQd)} (${subTrend} ${subDiffStr} | ${sub.pctTt}%)${subDonGiaStr}\n`;
+            });
+            txt += `\n`;
+        });
+
+        let txtArea = document.getElementById('cungkyText');
+        if (txtArea) txtArea.value = txt.trim();
+    };
+window.copyCungKyTextReport = function() {
+        const textarea = document.getElementById('cungkyText');
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            alert("✅ Đã Copy báo cáo Cùng kỳ chuẩn Zalo!");
+        } catch (err) {
+            alert("❌ Lỗi Copy!");
+        }
+    };
     window.captureCungKyImg = function() {
         let btn = event.target;
         let oldText = btn.innerText;
@@ -730,6 +709,50 @@
         let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
 
         let headerStatsHtml = "";
+        window.currentCommanderView = window.currentCommanderView || 'groups';
+        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+        let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || []) : (window.currentRawRealtimeNvList || []);
+        let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
+
+        // Lọc ra danh sách các tên hợp lệ từ 15 nhân viên cố định & ô chờ (bỏ qua dòng trống)
+        let validNamesMap = new Map();
+        fixedNvConfigs.forEach(item => {
+            if (item && item.name && item.name.trim() !== '') {
+                let cleanName = item.name.trim();
+                validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
+            }
+        });
+
+        // Chỉ lấy những nhân sự nằm trong danh sách đã cấu hình của ông
+        let targetNvList = [];
+        rawNvSource.forEach(nv => {
+            let raw = nv.rawName ? nv.rawName.trim() : '';
+            // Kiểm tra xem rawName có khớp với danh sách cố định hay không (so khớp tương đối hoặc tuyệt đối)
+            let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
+            if (matchedKey) {
+                let customName = validNamesMap.get(matchedKey);
+                targetNvList.push({
+                    ...nv,
+                    name: customName || raw
+                });
+            }
+        });
+        targetNvList.sort((a, b) => b.dtQd - a.dtQd);
+        let totalNvCount = targetNvList.length;
+        targetNvList.forEach((nv, idx) => {
+            if (idx < 5) nv.tier = 'green';
+            else if (idx < totalNvCount - 3) nv.tier = 'yellow';
+            else nv.tier = 'red';
+        });
+        let nvButtonLabel = isLuyKe ? "👥 NHÂN VIÊN LŨY KẾ" : "👥 NHÂN VIÊN REALTIME";
+
+        let viewSwitchHtml = `
+            <div style="display:flex; gap:6px; margin-bottom:12px;" data-html2canvas-ignore="true">
+                <button onclick="window.setCommanderView('groups', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'groups' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'groups' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">📦 NHÓM NGÀNH HÀNG</button>
+                <button onclick="window.setCommanderView('nv', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'nv' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'nv' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">${nvButtonLabel}</button>
+            </div>
+        `;
+
         if (isLuyKe) {
             headerStatsHtml = `
                 <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
@@ -857,13 +880,49 @@
                         </div>
                     </div>
 
+                    ${viewSwitchHtml}
                     <div id="capture-zone">
                         ${headerStatsHtml}
-                        <div class="group-grid">
-                            ${gridHtml}
-                        </div>
+                        ${window.currentCommanderView === 'nv' && targetNvList.length > 0 ? (() => {
+                            let nvRowsHtml = '';
+                            targetNvList.forEach((nv, index) => {
+                                let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
+                                let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
+                                let rankStyle = index < 3 ? 'font-size:20px; text-align:center;' : 'font-size:13px; font-weight:900; text-align:center; color:#333;';
+                                nvRowsHtml += `
+                                    <tr style="background:${rowBg}; font-size:13px;">
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dtTg)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900;">${nv.pctTg}</td>
+                                    </tr>
+                                `;
+                            });
+                            let titleNvLabel = isLuyKe ? '🏆 SỨC KHỎE NHÂN VIÊN LŨY KẾ' : '🏆 SỨC KHỎE NHÂN VIÊN REALTIME';
+                            return `
+                                <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">${titleNvLabel}</div>
+                                <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                                    <thead>
+                                        <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                            <th style="padding:8px 6px; text-align:center; width:45px;">Top</th>
+                                            <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
+                                            <th style="padding:8px 6px; text-align:right;">SL</th>
+                                            <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                            <th style="padding:8px 6px; text-align:right;">DT</th>
+                                            <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
+                                            <th style="padding:8px 6px; text-align:right;">%TG</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${nvRowsHtml}
+                                    </tbody>
+                                </table>
+                            `;
+                        })() : `<div class="group-grid">${gridHtml}</div>`}
                     </div>
-
                     <textarea id="lienText" readonly></textarea>
 
                     <div style="display:flex; gap:10px; margin-top:15px;">
@@ -893,109 +952,164 @@
         window.generateTextReport();
     };
 
+    window.setCommanderView = function(view, btnEl) {
+        window.currentCommanderView = view;
+        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+    };
+
     window.generateTextReport = function() {
-        let groups = window.currentParsedGroups || [];
-        let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
-        let tMode = window.currentTimeMode || 'now';
         let isLuyKe = window.currentReportMode === 'LUYKE';
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-
-        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
-        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
-
-        let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
-        let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
-
-        let dtDuKienVal = parseFloat(sum.dtDuKien.replace(/,/g, '')) || 0;
-        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
-
-        let pDT = masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0;
-        let missing = Math.max(0, masterTarget - dtVal);
-
-        let dtTr = lamTronTamHoa(dtVal); let tTr = lamTronTamHoa(masterTarget); let pTr = lamTronTamHoa(pDT); let tgTr = lamTronTamHoa(rawTgVal); let thTr = lamTronTamHoa(missing);
-
-        let actG = groups.filter(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
-            return conf.visible !== false;
-        });
-        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
-
-        let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
-        let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
-
+        let isNvView = window.currentCommanderView === 'nv';
         let txt = "";
 
-        if (isLuyKe) {
-            txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
-            txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
-            txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
-            txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+        if (isNvView) {
+            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+            let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || []) : (window.currentRawRealtimeNvList || []);
+            let targetNvList = rawNvSource.filter(nv => {
+                let conf = nvConfigs[nv.rawName] || { visible: true };
+                return conf.visible !== false;
+            }).map(nv => {
+                let conf = nvConfigs[nv.rawName] || {};
+                return { ...nv, name: conf.nickname || nv.rawName };
+            });
 
-            if(hG.length > 0) {
-                txt += `✅ NHÓM ĐẠT:\n`;
-                hG.forEach(g => {
-                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                    let gNameShow = conf.nickname || g.name;
-                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-                });
-                txt += `\n`;
-            }
-            if(lG.length > 0) {
-                txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
-                lG.forEach(g => {
-                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                    let gNameShow = conf.nickname || g.name;
-                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-                });
-            }
-            txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
+            // Lọc theo danh sách 15 nhân viên khóa cứng và ô chờ đã cài đặt
+            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
+            let validNamesMap = new Map();
+            fixedNvConfigs.forEach(item => {
+                if (item && item.name && item.name.trim() !== '') {
+                    let cleanName = item.name.trim();
+                    validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
+                }
+            });
+
+            let filteredNvList = [];
+            targetNvList.forEach(nv => {
+                let raw = nv.rawName ? nv.rawName.trim() : '';
+                let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
+                if (matchedKey) {
+                    let customName = validNamesMap.get(matchedKey);
+                    filteredNvList.push({
+                        ...nv,
+                        name: customName || raw
+                    });
+                }
+            });
+            filteredNvList.sort((a, b) => b.dtQd - a.dtQd);
+
+            let titleMode = isLuyKe ? "LŨY KẾ THÁNG" : "REALTIME";
+            txt = `🏆 BÁO CÁO SỨC KHỎE NHÂN SỰ (${titleMode}):\n\n`;
+            filteredNvList.forEach((nv, idx) => {
+                let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉`" : `Top ${idx + 1}`));
+                // Thay ký tự ` thành khoảng trắng cho chuẩn
+                rank = rank.replace('`','');
+                txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
+            });
+            txt += `\n🔥 Team tiếp tục nỗ lực bứt phá số nhé! 🔥`;
 
         } else {
-            let pre = "", st = "", cauKet = "";
-            let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+            let groups = window.currentParsedGroups || [];
+            let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+            let tMode = window.currentTimeMode || 'now';
+            let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
 
-            if (tMode === 'now') {
-                pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
-                st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-                cauKet = "Nhận thông tin push số gấp";
-            } else if (tMode === 'morning') {
-                pre = `☀️ KẾT CA SÁNG: `;
-                st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-                cauKet = "Team ca chiều nhận thông tin push số";
+            let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+            let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+            let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+
+            let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
+            let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
+            let dtDuKienVal = parseFloat(sum.dtDuKien.replace(/,/g, '')) || 0;
+            let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+            let pDT = masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0;
+            let missing = Math.max(0, masterTarget - dtVal);
+
+            let dtTr = lamTronTamHoa(dtVal);
+            let tTr = lamTronTamHoa(masterTarget);
+            let pTr = lamTronTamHoa(pDT);
+            let tgTr = lamTronTamHoa(rawTgVal);
+            let thTr = lamTronTamHoa(missing);
+
+            let actG = groups.filter(g => {
+                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
+                return conf.visible !== false;
+            });
+            let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+            let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
+            let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
+
+            if (isLuyKe) {
+                txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
+                txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
+                txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
+                txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+                if(hG.length > 0) {
+                    txt += `✅ NHÓM ĐẠT:\n`;
+                    hG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                    txt += `\n`;
+                }
+                if(lG.length > 0) {
+                    txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
+                    lG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                }
+                txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
+
             } else {
-                pre = `🏁 TỔNG KẾT NGÀY: `;
-                st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
-                cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
-            }
+                let pre = "", st = "", cauKet = "";
+                let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
 
-            txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+                if (tMode === 'now') {
+                    pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
+                    st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Nhận thông tin push số gấp";
+                } else if (tMode === 'morning') {
+                    pre = `☀️ KẾT CA SÁNG: `;
+                    st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Team ca chiều nhận thông tin push số";
+                } else {
+                    pre = `🏁 TỔNG KẾT NGÀY: `;
+                    st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
+                }
 
-            if(hG.length > 0) {
-                txt += `✅ NHÓM ĐẠT:\n`;
-                hG.forEach(g => {
-                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                    let gNameShow = conf.nickname || g.name;
-                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-                });
-                txt += `\n`;
+                txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+                if(hG.length > 0) {
+                    txt += `✅ NHÓM ĐẠT:\n`;
+                    hG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                    txt += `\n`;
+                }
+                if(lG.length > 0) {
+                    txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
+                    lG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                }
+                txt += `\n🚀 ${cauKet} 🔥`;
             }
-            if(lG.length > 0) {
-                txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
-                lG.forEach(g => {
-                    let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                    let gNameShow = conf.nickname || g.name;
-                    txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
-                });
-            }
-            txt += `\n🚀 ${cauKet} 🔥`;
         }
 
         let txtArea = document.getElementById('lienText');
         if(txtArea) txtArea.value = txt;
     };
-
-    window.openSettingsV31 = function(context = 'group') {
+    window.openSettingsV31 = function() {
         let oldPnl = document.getElementById('settings-panel-v31');
         if (oldPnl) oldPnl.remove();
 
@@ -1005,76 +1119,123 @@
 
         let pnl = document.createElement('div');
         pnl.id = 'settings-panel-v31';
-        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:500px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
+        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:550px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
 
         let checklistHtml = '';
-        let nvChecklistHtml = '';
-
-        if (context === 'group') {
-            let groupsTootip = window.currentParsedGroups;
-            if (!groupsTootip || groupsTootip.length === 0) {
-                let storedGroupNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_group_names')) || [];
-                groupsTootip = storedGroupNames.map(name => ({ name }));
-            }
-            groupsTootip.forEach(g => {
-                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
-                checklistHtml += `
-                    <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; gap:8px;">
-                        <span style="font-size:24px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
-                        <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
-                        <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:120px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
-                        <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
-                    </div>`;
-            });
-        } else {
-            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-            let allNvNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_nv_names')) || [];
-            if (allNvNames.length === 0 && window.currentParsedNvList) {
-                allNvNames = window.currentParsedNvList.map(nv => nv.rawName || nv.name);
-            }
-            allNvNames.forEach(name => {
-                let conf = nvConfigs[name] || { visible: true, nickname: '' };
-                nvChecklistHtml += `
-                    <div class="chk-nv-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
-                        <span style="font-size:11px; font-weight:800; width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</span>
-                        <input type="text" class="nick-nv-inp" data-name="${name}" value="${conf.nickname}" placeholder="Tên hiển thị..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
-                        <input type="checkbox" class="vis-nv-chk" data-name="${name}" ${conf.visible !== false ? 'checked' : ''}>
-                    </div>`;
-            });
+        let groupsTootip = window.currentParsedGroups;
+        if (!groupsTootip || groupsTootip.length === 0) {
+            let storedGroupNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_group_names')) || [];
+            groupsTootip = storedGroupNames.map(name => ({ name }));
         }
+        groupsTootip.forEach(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+            checklistHtml += `
+                <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
+                    <span style="font-size:22px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
+                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
+                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                    <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
+                </div>`;
+        });
+
+        let nvChecklistHtml = '';
+        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+        let allNvNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_nv_names')) || [];
+        if (allNvNames.length === 0 && window.currentParsedNvList) {
+            allNvNames = window.currentParsedNvList.map(nv => nv.rawName || nv.name);
+        }
+        allNvNames.forEach(name => {
+            let conf = nvConfigs[name] || { visible: true, nickname: '' };
+            nvChecklistHtml += `
+                <div class="chk-nv-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
+                    <span style="font-size:11px; font-weight:800; width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</span>
+                    <input type="text" class="nick-nv-inp" data-name="${name}" value="${conf.nickname}" placeholder="Tên hiển thị..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                    <input type="checkbox" class="vis-nv-chk" data-name="${name}" ${conf.visible !== false ? 'checked' : ''}>
+                </div>`;
+        });
 
         pnl.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; color:#004a99; font-weight:900;">⚙️ CÀI ĐẶT HỆ THỐNG</h3>
+                <h3 style="margin:0; color:#004a99; font-weight:900; font-size:15px;">⚙️ CÀI ĐẶT HỆ THỐNG CHUNG</h3>
                 <span style="cursor:pointer; font-size:22px;" onclick="document.getElementById('settings-panel-v31').remove()">✖</span>
             </div>
 
-            ${context === 'group' ? `
-            <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-                <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:5px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
-                <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:8px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:8px; font-family: 'Montserrat', sans-serif;">
+            <div style="overflow-y:auto; max-height:calc(90vh - 80px); padding-right:5px; display:flex; flex-direction:column; gap:12px;">
+                <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                    <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:4px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
+                    <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:6px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:6px; font-family: 'Montserrat', sans-serif;">
 
-                <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:5px;">🎯 TARGET CẢ THÁNG (TR):</label>
-                <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:8px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
+                    <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:4px;">🎯 TARGET CẢ THÁNG (TR):</label>
+                    <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:6px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
 
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-                    <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
-                    <label style="background:#e67e22; color:white; border:none; padding:8px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
-                        📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
-                    </label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
+                        <label style="background:#e67e22; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
+                            📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
+                        </label>
+                    </div>
                 </div>
-            </div>
-            <div style="max-height:220px; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
-                ${checklistHtml}
-            </div>
-            ` : `
-            <div style="max-height:300px; overflow-y:auto; margin-bottom:15px; border:1px solid #ddd; padding:10px; border-radius:8px;">
-                <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:8px; text-align:center;">👥 QUẢN LÝ NHÂN SỰ SIÊU THỊ</div>
-                ${nvChecklistHtml}
-            </div>
-            `}
 
-            <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif;">LƯU LẠI ✅</button>
+                <div>
+                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">📦 Cấu hình Nhóm Ngành Hàng</div>
+                    <div style="max-height:180px; overflow-y:auto; border:1px solid #ddd; padding:8px; border-radius:8px; background:#fff;">
+                        ${checklistHtml}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;">
+                        <span>👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</span>
+                    </div>
+                    <div style="max-height:240px; overflow-y:auto; border:1px solid #ccc; padding:8px; border-radius:8px; background:#fdfdfd; margin-bottom:8px;">
+                        <div style="font-size:11px; font-weight:900; color:#004a99; margin-bottom:6px; background:#e6f0fa; padding:4px 8px; border-radius:4px;">📌 15 NHÂN VIÊN KHÓA CỨNG</div>
+                        ${(() => {
+                            let defaultFixedNv = [
+                                { name: "249318 - Cù Huy Nam", nickname: "" },
+                                { name: "249862 - Nguyễn Hoàng Phong", nickname: "" },
+                                { name: "142524 - Nguyễn Minh Ngô", nickname: "" },
+                                { name: "13518 - Đặng Nữ Thanh Đa", nickname: "" },
+                                { name: "179274 - Lâm Trà Đăng Khoa", nickname: "" },
+                                { name: "280385 - Vũ Nguyễn Hữu Đức", nickname: "" },
+                                { name: "170242 - Nguyễn Thị Hoàng Oanh", nickname: "" },
+                                { name: "256800 - Tống Văn Út Khá", nickname: "" },
+                                { name: "70237 - Trần Công Tuấn", nickname: "" },
+                                { name: "262196 - Phạm Nguyễn Hoàng Huân", nickname: "" },
+                                { name: "43006 - Đỗ Thị Chi", nickname: "" },
+                                { name: "174960 - Vũ Thoại Uyên", nickname: "" },
+                                { name: "59971 - Bùi Thị Vân", nickname: "" },
+                                { name: "63634 - Bùi Minh Việt", nickname: "" },
+                                { name: "37349 - Lê Thị Mỹ Hằng", nickname: "" },
+                                { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }
+                            ];
+                            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || defaultFixedNv;
+                            let html = '';
+                            for (let i = 0; i < 15; i++) {
+                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
+                                html += `
+                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:${i % 2 === 0 ? '#fafafa' : '#fff'};">
+                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#004a99;">${i+1}</span>
+                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Mã - Tên nhân viên..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
+                                    </div>`;
+                            }
+                            html += `<div style="font-size:11px; font-weight:900; color:#e67e22; margin:10px 0 6px 0; background:#fdf3e6; padding:4px 8px; border-radius:4px;">🔄 5 Ô CHỜ (LINH ĐỘNG)</div>`;
+                            for (let i = 15; i < 20; i++) {
+                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
+                                html += `
+                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:#fffdf5;">
+                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#e67e22;">C${i-14}</span>
+                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Tên ô chờ..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
+                                    </div>`;
+                            }
+                            return html;
+                        })()}
+                    </div>
+                </div>
+
+                <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px; margin-top:5px;">LƯU LẠI ✅</button>
+            </div>
         `;
         document.body.appendChild(pnl);
     };
@@ -1102,14 +1263,17 @@
         });
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
 
-        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-        document.querySelectorAll('#settings-panel-v31 .chk-nv-item').forEach(item => {
-            let name = item.querySelector('.vis-nv-chk').getAttribute('data-name');
-            let vis = item.querySelector('.vis-nv-chk').checked;
-            let nick = item.querySelector('.nick-nv-inp').value.trim().toUpperCase();
-            nvConfigs[name] = { visible: vis, nickname: nick };
-        });
-        localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+        let fixedNvList = Array(20).fill({ name: '', nickname: '' });
+            document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
+                let idx = parseInt(nameInput.getAttribute('data-index'));
+                let itemRow = nameInput.closest('div');
+                let nickInput = itemRow.querySelector('.fix-nv-nick');
+                fixedNvList[idx] = {
+                    name: nameInput.value.trim(),
+                    nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
+                };
+            });
+            localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
 
         document.getElementById('settings-panel-v31').remove();
 
@@ -1193,8 +1357,9 @@
 
         let zone = document.getElementById('capture-zone');
         let isLuyKe = window.currentReportMode === 'LUYKE';
+        let isNvView = window.currentCommanderView === 'nv';
         let dateStr = new Date().toISOString().slice(0,10);
-        let fileName = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+        let fileName = isNvView ? (isLuyKe ? `LUYKE_NV_${dateStr}.png` : `REALTIME_NV_${dateStr}.png`) : (isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`);
 
         window.html2canvas(zone, {
             scale: 3,
@@ -1239,10 +1404,6 @@
             localStorage.removeItem('tamhoa_pending_mode');
             setTimeout(() => { window.startFSM(pendingMode); }, 1500);
         }
-        let pendingNv = localStorage.getItem('tamhoa_pending_nv');
-        if (pendingNv) {
-            localStorage.removeItem('tamhoa_pending_nv');
-            setTimeout(() => { window.startFSMNhanVien(); }, 1500);
-        }
+        
     }, 2000);
 })();
