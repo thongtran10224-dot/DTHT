@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.4 PRO
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.5 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.4
-// @description Bản chuẩn V32.4: Nâng cấp giao diện bảng nhân viên rộng rãi, rõ nét, huy chương Top 1-2-3 cực đỉnh.
+// @version     32.5
+// @description Bản chuẩn V32.5: Full tính năng, tối ưu hóa text report, cache nhân sự đa máy.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -153,7 +153,7 @@
     };
 
     // =========================================================================
-    // 2. LUỒNG REALTIME & LŨY KẾ ĐÃ TỐI ƯU
+    // 2. LUỒNG REALTIME & LŨY KẾ
     // =========================================================================
     window.startFSM = async (mode = 'REALTIME') => {
         let currentUrl = window.location.href.split('?')[0];
@@ -236,11 +236,13 @@
                 return !allCards.some(other => other !== card && card.contains(other));
             });
 
+            let storedGroupNames = [];
             cardElements.forEach(card => {
                 let nameEl = card.querySelector('span.line-clamp-3');
                 let name = nameEl ? (nameEl.getAttribute('title') || nameEl.innerText).trim() : "";
                 if (!name || name.includes("DOANH THU") || name.includes("TỔNG")) return;
 
+                storedGroupNames.push(name);
                 let badgeSpan = Array.from(card.querySelectorAll('span')).find(s => s.innerText.trim() === 'SL' || s.innerText.trim() === 'DT');
                 let isSL = badgeSpan ? badgeSpan.innerText.trim() === 'SL' : card.innerText.includes("SL");
 
@@ -269,7 +271,11 @@
                 }
             });
 
-           groups.sort((a, b) => {
+            if (storedGroupNames.length > 0) {
+                localStorage.setItem('tamhoa_v32_all_group_names', JSON.stringify(storedGroupNames));
+            }
+
+            groups.sort((a, b) => {
                 let pA = parseFloat(a.p), pB = parseFloat(b.p);
                 let validA = !isNaN(pA) && pA > 0;
                 let validB = !isNaN(pB) && pB > 0;
@@ -278,7 +284,7 @@
                 return (pB || 0) - (pA || 0);
             });
 
-            let nvListResult = [];
+            // Cào dữ liệu nhân sự ngầm & lưu cache an toàn đa máy
             try {
                 let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
                 if (nhanVienBtn) {
@@ -328,19 +334,17 @@
                     localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
                     localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
 
-                    if (mode === 'REALTIME') {
-                        window.currentRawRealtimeNvList = rawList;
-                    } else {
-                        window.currentRawLuyKeNvList = rawList;
+                    if (rawList.length > 0) {
+                        if (mode === 'LUYKE') {
+                            window.currentRawLuyKeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
+                        } else {
+                            window.currentRawRealtimeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
+                        }
                     }
                 }
             } catch(e) {}
-
-            if (mode === 'REALTIME') {
-                window.currentRealtimeNvList = nvListResult;
-            } else {
-                window.currentLuyKeNvList = nvListResult;
-            }
 
             tatVuTruLoading();
             window.currentReportMode = mode;
@@ -351,7 +355,6 @@
         }
     };
 
-    
     window.captureNhanVienImg = function() {
         let btn = event.target;
         let oldText = btn.innerText;
@@ -386,7 +389,7 @@
     };
 
     // =========================================================================
-    // 4. MODULE SO SÁNH CÙNG KỲ
+    // 3. MODULE SO SÁNH CÙNG KỲ
     // =========================================================================
     window.startFSMCungKy = async () => {
         let oldPanel = document.getElementById('dtht-cungky-overlay');
@@ -528,7 +531,8 @@
         document.body.appendChild(div);
         window.generateCungKyTextReport(dataList);
     };
-window.generateCungKyTextReport = function(dataList) {
+
+    window.generateCungKyTextReport = function(dataList) {
         let groupsMap = {};
         let currentParent = null;
 
@@ -543,7 +547,6 @@ window.generateCungKyTextReport = function(dataList) {
             }
         });
 
-        // 5 nhóm chủ lực ép buộc lên đầu theo đúng thứ tự
         let priorityKeywords = ["viễn thông", "laptop", "apple", "phụ kiện", "avapos"];
         let allParentNames = Object.keys(groupsMap);
 
@@ -559,7 +562,6 @@ window.generateCungKyTextReport = function(dataList) {
             return 0;
         });
 
-        // Các hàm hỗ trợ làm sạch và rút gọn số liệu
         const formatCleanMoney = (val) => {
             let n = parseFloat(val) || 0;
             if (Math.abs(n) >= 1000) {
@@ -602,14 +604,14 @@ window.generateCungKyTextReport = function(dataList) {
             else if (lowerName.includes("phụ kiện") || lowerName.includes("đồng hồ")) sticker = "⌚";
             else if (lowerName.includes("avapos")) sticker = "💳";
 
-            let trendIcon = item.chenhLechTien > 0 ? "🟢" : (item.chenhLechTien < 0 ? "🔴" : "⚪");
+            let trendIcon = item.chenhLechTien > 0 ? "📈" : (item.chenhLechTien < 0 ? "📉" : "➖");
             let diffStr = formatCleanDiff(item.chenhLechTien);
             let donGiaStr = formatCleanDonGia(item.donGia);
 
             txt += `${sticker} ${pName.toUpperCase()}: ${formatCleanMoney(item.dtQd)} (${trendIcon} ${diffStr} | ${item.pctTt}%)${donGiaStr}\n`;
 
             group.subs.forEach(sub => {
-                let subTrend = sub.chenhLechTien > 0 ? "🟢" : (sub.chenhLechTien < 0 ? "🔴" : "⚪");
+                let subTrend = sub.chenhLechTien > 0 ? "📈" : (sub.chenhLechTien < 0 ? "📉" : "➖");
                 let subDiffStr = formatCleanDiff(sub.chenhLechTien);
                 let subDonGiaStr = formatCleanDonGia(sub.donGia);
                 let cleanSubName = sub.name.replace(/^L\s+/, "").trim();
@@ -621,7 +623,8 @@ window.generateCungKyTextReport = function(dataList) {
         let txtArea = document.getElementById('cungkyText');
         if (txtArea) txtArea.value = txt.trim();
     };
-window.copyCungKyTextReport = function() {
+
+    window.copyCungKyTextReport = function() {
         const textarea = document.getElementById('cungkyText');
         if (!textarea) return;
         textarea.select();
@@ -633,6 +636,7 @@ window.copyCungKyTextReport = function() {
             alert("❌ Lỗi Copy!");
         }
     };
+
     window.captureCungKyImg = function() {
         let btn = event.target;
         let oldText = btn.innerText;
@@ -667,7 +671,7 @@ window.copyCungKyTextReport = function() {
     };
 
     // =========================================================================
-    // 5. RENDER GIAO DIỆN REALTIME & LŨY KẾ
+    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
     // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         let oldPanel = document.getElementById('dtht-commander-overlay');
@@ -710,11 +714,9 @@ window.copyCungKyTextReport = function() {
 
         let headerStatsHtml = "";
         window.currentCommanderView = window.currentCommanderView || 'groups';
-        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-        let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || []) : (window.currentRawRealtimeNvList || []);
+        let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_lk_nv')) || []) : (window.currentRawRealtimeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_rt_nv')) || []);
         let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
 
-        // Lọc ra danh sách các tên hợp lệ từ 15 nhân viên cố định & ô chờ (bỏ qua dòng trống)
         let validNamesMap = new Map();
         fixedNvConfigs.forEach(item => {
             if (item && item.name && item.name.trim() !== '') {
@@ -723,11 +725,9 @@ window.copyCungKyTextReport = function() {
             }
         });
 
-        // Chỉ lấy những nhân sự nằm trong danh sách đã cấu hình của ông
         let targetNvList = [];
         rawNvSource.forEach(nv => {
             let raw = nv.rawName ? nv.rawName.trim() : '';
-            // Kiểm tra xem rawName có khớp với danh sách cố định hay không (so khớp tương đối hoặc tuyệt đối)
             let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
             if (matchedKey) {
                 let customName = validNamesMap.get(matchedKey);
@@ -883,7 +883,10 @@ window.copyCungKyTextReport = function() {
                     ${viewSwitchHtml}
                     <div id="capture-zone">
                         ${headerStatsHtml}
-                        ${window.currentCommanderView === 'nv' && targetNvList.length > 0 ? (() => {
+                        ${window.currentCommanderView === 'nv' ? (() => {
+                            if (targetNvList.length === 0) {
+                                return `<div style="text-align:center; padding:30px; color:#666; font-weight:800; font-size:12px;">⚠️ Đang lấy dữ liệu nhân sự hoặc chưa nạp bảng.<br>Vui lòng tắt bảng và bấm lại nút Chạy báo cáo chính để hệ thống quét lại nhé!</div>`;
+                            }
                             let nvRowsHtml = '';
                             targetNvList.forEach((nv, index) => {
                                 let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
@@ -964,7 +967,7 @@ window.copyCungKyTextReport = function() {
 
         if (isNvView) {
             let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-            let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || []) : (window.currentRawRealtimeNvList || []);
+            let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_lk_nv')) || []) : (window.currentRawRealtimeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_rt_nv')) || []);
             let targetNvList = rawNvSource.filter(nv => {
                 let conf = nvConfigs[nv.rawName] || { visible: true };
                 return conf.visible !== false;
@@ -973,7 +976,6 @@ window.copyCungKyTextReport = function() {
                 return { ...nv, name: conf.nickname || nv.rawName };
             });
 
-            // Lọc theo danh sách 15 nhân viên khóa cứng và ô chờ đã cài đặt
             let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
             let validNamesMap = new Map();
             fixedNvConfigs.forEach(item => {
@@ -1000,9 +1002,7 @@ window.copyCungKyTextReport = function() {
             let titleMode = isLuyKe ? "LŨY KẾ THÁNG" : "REALTIME";
             txt = `🏆 BÁO CÁO SỨC KHỎE NHÂN SỰ (${titleMode}):\n\n`;
             filteredNvList.forEach((nv, idx) => {
-                let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉`" : `Top ${idx + 1}`));
-                // Thay ký tự ` thành khoảng trắng cho chuẩn
-                rank = rank.replace('`','');
+                let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : `Top ${idx + 1}`));
                 txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
             });
             txt += `\n🔥 Team tiếp tục nỗ lực bứt phá số nhé! 🔥`;
@@ -1109,6 +1109,7 @@ window.copyCungKyTextReport = function() {
         let txtArea = document.getElementById('lienText');
         if(txtArea) txtArea.value = txt;
     };
+
     window.openSettingsV31 = function() {
         let oldPnl = document.getElementById('settings-panel-v31');
         if (oldPnl) oldPnl.remove();
@@ -1135,22 +1136,6 @@ window.copyCungKyTextReport = function() {
                     <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
                     <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
                     <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
-                </div>`;
-        });
-
-        let nvChecklistHtml = '';
-        let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
-        let allNvNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_nv_names')) || [];
-        if (allNvNames.length === 0 && window.currentParsedNvList) {
-            allNvNames = window.currentParsedNvList.map(nv => nv.rawName || nv.name);
-        }
-        allNvNames.forEach(name => {
-            let conf = nvConfigs[name] || { visible: true, nickname: '' };
-            nvChecklistHtml += `
-                <div class="chk-nv-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
-                    <span style="font-size:11px; font-weight:800; width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</span>
-                    <input type="text" class="nick-nv-inp" data-name="${name}" value="${conf.nickname}" placeholder="Tên hiển thị..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
-                    <input type="checkbox" class="vis-nv-chk" data-name="${name}" ${conf.visible !== false ? 'checked' : ''}>
                 </div>`;
         });
 
@@ -1184,9 +1169,7 @@ window.copyCungKyTextReport = function() {
                 </div>
 
                 <div>
-                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;">
-                        <span>👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</span>
-                    </div>
+                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</div>
                     <div style="max-height:240px; overflow-y:auto; border:1px solid #ccc; padding:8px; border-radius:8px; background:#fdfdfd; margin-bottom:8px;">
                         <div style="font-size:11px; font-weight:900; color:#004a99; margin-bottom:6px; background:#e6f0fa; padding:4px 8px; border-radius:4px;">📌 15 NHÂN VIÊN KHÓA CỨNG</div>
                         ${(() => {
@@ -1264,42 +1247,19 @@ window.copyCungKyTextReport = function() {
         localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
 
         let fixedNvList = Array(20).fill({ name: '', nickname: '' });
-            document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
-                let idx = parseInt(nameInput.getAttribute('data-index'));
-                let itemRow = nameInput.closest('div');
-                let nickInput = itemRow.querySelector('.fix-nv-nick');
-                fixedNvList[idx] = {
-                    name: nameInput.value.trim(),
-                    nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
-                };
-            });
-            localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
+        document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
+            let idx = parseInt(nameInput.getAttribute('data-index'));
+            let itemRow = nameInput.closest('div');
+            let nickInput = itemRow.querySelector('.fix-nv-nick');
+            fixedNvList[idx] = {
+                name: nameInput.value.trim(),
+                nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
+            };
+        });
+        localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
 
         document.getElementById('settings-panel-v31').remove();
-
-        if (document.getElementById('dtht-nhanvien-overlay')) {
-            if (window.currentRawNvList) {
-                let filtered = window.currentRawNvList.filter(nv => {
-                    let conf = nvConfigs[nv.rawName] || { visible: true };
-                    return conf.visible !== false;
-                }).map(nv => {
-                    let conf = nvConfigs[nv.rawName] || {};
-                    return { ...nv, name: conf.nickname || nv.rawName };
-                });
-                filtered.sort((a, b) => b.dtQd - a.dtQd);
-                let totalNv = filtered.length;
-                filtered.forEach((nv, idx) => {
-                    if (idx < 5) nv.tier = 'green';
-                    else if (idx < totalNv - 3) nv.tier = 'yellow';
-                    else nv.tier = 'red';
-                });
-                hienThiNhanVienPanel(filtered);
-            } else {
-                window.startFSMNhanVien();
-            }
-        } else {
-            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
-        }
+        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
     };
 
     window.openStickerPicker = function(gName) {
@@ -1404,6 +1364,5 @@ window.copyCungKyTextReport = function() {
             localStorage.removeItem('tamhoa_pending_mode');
             setTimeout(() => { window.startFSM(pendingMode); }, 1500);
         }
-        
     }, 2000);
 })();
