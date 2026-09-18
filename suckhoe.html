@@ -760,61 +760,65 @@
         `;
 
         if (isLuyKe) {
-            headerStatsHtml = `
-                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
-                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="stat-box" style="grid-column: span 2;">
-                        <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
-                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">DỰ KIẾN</div>
-                        <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
-                        <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">TRẢ GÓP</div>
-                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
-                    </div>
-                   <div class="stat-box">
-                        <div class="stat-label">NHÓM ĐẠT</div>
-                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
-                    </div>
-                </div>
-            `;
-        } else {
-            headerStatsHtml = `
-                <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
-                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
-                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
-                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
-                </div>
-                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
-                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="stat-box">
-                        <div class="stat-label">THỰC / TARGET (TR)</div>
-                        <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
-                    </div>
-                    <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
-                        <div class="stat-label">% ĐẠT</div>
-                        <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">TRẢ GÓP</div>
-                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">NHÓM ĐẠT</div>
-                        <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
-                    </div>
-                </div>
-            `;
-        }
+                    headerStatsHtml = `
+                        <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-box" style="grid-column: span 2;">
+                                <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
+                                <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">DỰ KIẾN</div>
+                                <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                                <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">TRẢ GÓP</div>
+                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                            </div>
+                           <div class="stat-box">
+                                <div class="stat-label">NHÓM ĐẠT</div>
+                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    headerStatsHtml = `
+                        <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
+                            <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                            <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                            <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                        </div>
+                        <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-box">
+                                <div class="stat-label">THỰC / TARGET (TR)</div>
+                                <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                            </div>
+                            <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
+                                <div class="stat-label">% ĐẠT</div>
+                                <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">TRẢ GÓP</div>
+                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">NHÓM ĐẠT</div>
+                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                            </div>
+                        </div>
+                    `;
+                }
 
-        let div = document.createElement('div');
+                if (window.currentCommanderView === 'nv') {
+                    headerStatsHtml = '';
+                }
+
+                let div = document.createElement('div');
         div.id = 'dtht-commander-overlay';
         div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
 
