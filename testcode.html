@@ -1,0 +1,1378 @@
+// ==UserScript==
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.5 PRO
+// @namespace   http://tampermonkey.net/
+// @version     32.5
+// @description Bản chuẩn V32.5: Full tính năng, tối ưu hóa text report, cache nhân sự đa máy.
+// @match       *://baocao.dienmayxanh.com/*
+// @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
+// @grant       none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    if (!document.getElementById('font-montserrat')) {
+        const link = document.createElement('link');
+        link.id = 'font-montserrat';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap';
+        document.head.appendChild(link);
+    }
+
+    const delay = ms => new Promise(r => setTimeout(r, ms));
+    const STICKERS = ["📱","📲","📳","☎️","📞","📟","🖨️","💻","🖥️","🖱️","⌨️","🎧","🔋","📸","⌚","⚡","💰","💸","💲","💵","🏦","💳","👛","🏧","🛡️","📊","📉","🌐","📶","🚩","🕹️","🔊","🔥","📦"];
+
+    const lamTronTamHoa = (num) => {
+        let n = parseFloat(num);
+        if (isNaN(n)) return 0;
+        let absNum = Math.abs(n);
+        let result = (absNum > 0 && absNum < 1.5) ? 1 : Math.round(absNum);
+        return n < 0 ? -result : result;
+    };
+
+    const toSt = num => num.toString().split('').map(d => ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"][parseInt(d)] || d).join('');
+    const formatMoney = num => num.toLocaleString('en-US', {maximumFractionDigits: 0});
+
+    window.capNhatGioChot = function() {
+        const timeEl = document.getElementById('realtime-header');
+        if(timeEl) {
+            const now = new Date();
+            timeEl.innerText = '⏰ REALTIME ' + now.getHours() + ':' + (now.getMinutes()<10?'0':'') + now.getMinutes();
+        }
+    };
+
+    // =========================================================================
+    // 1. MÀN HÌNH CHỜ & MENU ĐIỀU HƯỚNG CHÍNH
+    // =========================================================================
+    let rocketInterval = null;
+
+    function hienThiVuTruLoading(modeText = "ĐANG KẾT NỐI BI") {
+        let oldOverlay = document.getElementById('master-loading-overlay');
+        if (oldOverlay) oldOverlay.remove();
+
+        if (!document.getElementById('rocket-style-permanent')) {
+            const css = `
+                .skst-overlay { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100dvh !important; background: #050505 !important; z-index: 2147483647 !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; color: white !important; overflow: hidden !important; pointer-events: all !important; font-family: 'Montserrat', sans-serif !important; }
+                .stars-bg { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 0; }
+                .star-bg-point { position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; animation: blink 2.5s infinite; }
+                @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+                .rocket-container { position: relative; font-size: 80px; z-index: 1; animation: launch 2s infinite ease-in-out; }
+                @keyframes launch { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+                .status-text { margin-top: 80px; font-size: 22px; letter-spacing: 2px; color: #fff; text-transform: uppercase; font-weight: 900; z-index: 1; text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00d2ff; text-align: center;}
+            `;
+            let style = document.createElement('style'); style.id = 'rocket-style-permanent'; style.innerHTML = css; document.head.appendChild(style);
+        }
+
+        let div = document.createElement('div');
+        div.id = 'master-loading-overlay';
+        div.className = 'skst-overlay';
+        let bgStars = '<div class="stars-bg">';
+        for(let i=0; i<60; i++) {
+            let size = Math.random() * 3 + 2;
+            bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
+        }
+        bgStars += '</div>';
+        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107; font-weight: 700;">[ ${modeText} ]</span></div>`;
+        document.body.appendChild(div);
+    }
+
+    function tatVuTruLoading() {
+        if (rocketInterval) { clearInterval(rocketInterval); rocketInterval = null; }
+        let load = document.getElementById('master-loading-overlay');
+        if(load) load.remove();
+    }
+
+    const taoNutBatTu = () => {
+        if (document.getElementById('btn-immortal-menu')) return;
+        let btn = document.createElement('button');
+        btn.id = 'btn-immortal-menu';
+        btn.innerHTML = '📊';
+        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
+        btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
+        btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
+        btn.onclick = hienThiMenuChinh;
+        document.body.appendChild(btn);
+    };
+
+    const hienThiMenuChinh = () => {
+        let old = document.getElementById('th-main-menu');
+        if (old) { old.remove(); return; }
+
+        let div = document.createElement('div');
+        div.id = 'th-main-menu';
+        div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family: "Montserrat", sans-serif;';
+        div.innerHTML = `
+            <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMCungKy();" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📊 SO SÁNH CÙNG KỲ</button>
+        `;
+        document.body.appendChild(div);
+    };
+
+    const chonBoLoc = async (labelText, keyword) => {
+        let mainWord = labelText.replace(' Chọn', '').trim();
+        let triggerBox = Array.from(document.querySelectorAll('button')).find(btn => (btn.innerText || '').includes(mainWord) && (btn.innerText || '').includes('Chọn') && btn.offsetParent !== null);
+        if (!triggerBox) return false;
+
+        triggerBox.click(); await delay(1000);
+
+        let searchInput = Array.from(document.querySelectorAll('input')).reverse().find(i => i.offsetParent !== null && i.type !== 'checkbox');
+        if (searchInput) {
+            searchInput.focus(); searchInput.value = keyword;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            searchInput.dispatchEvent(new Event('change', { bubbles: true }));
+            await delay(800);
+        }
+
+        let targetCheckbox = Array.from(document.querySelectorAll('input[type="checkbox"]')).find(chk => {
+            let text = (chk.closest('label, div, li') || chk.parentElement)?.innerText.trim() || '';
+            return text.includes(keyword) && chk.offsetParent !== null;
+        });
+
+        if (targetCheckbox) {
+            if (!targetCheckbox.checked) {
+                targetCheckbox.click();
+                await delay(1500);
+            } else {
+                triggerBox.click();
+                await delay(800);
+            }
+            return true;
+        }
+        return false;
+    };
+
+    const clickMenu = async (menuText) => {
+        for(let attempts = 0; attempts < 10; attempts++) {
+            let target = Array.from(document.querySelectorAll('a, span, div, button, li')).find(el => el.innerText && el.innerText.trim() === menuText && el.offsetParent !== null);
+            if (target) { target.click(); return true; }
+            await delay(500);
+        }
+        return false;
+    };
+
+    // =========================================================================
+    // 2. LUỒNG REALTIME & LŨY KẾ
+    // =========================================================================
+    window.startFSM = async (mode = 'REALTIME') => {
+        let currentUrl = window.location.href.split('?')[0];
+        if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
+            localStorage.setItem('tamhoa_pending_mode', mode);
+            window.location.href = 'https://baocao.dienmayxanh.com/';
+            return;
+        }
+
+        let oldPanel = document.getElementById('dtht-commander-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        let modeTitle = mode === 'LUYKE' ? 'LŨY KẾ THÁNG' : 'REALTIME NGÀY';
+        hienThiVuTruLoading(`ĐANG HÚT SỐ ${modeTitle}`);
+
+        try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
+
+            await clickMenu('Doanh thu hợp nhất'); await delay(1500);
+            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            if (mode === 'LUYKE') {
+                let luyKeTab = Array.from(document.querySelectorAll('button, a, div')).find(b => b.innerText && b.innerText.trim() === 'Lũy kế' && b.offsetParent !== null);
+                if (luyKeTab) { luyKeTab.click(); await delay(1500); }
+            } else {
+                let realtimeTab = Array.from(document.querySelectorAll('button')).find(b => b.innerText && b.innerText.trim() === 'Realtime' && b.offsetParent !== null);
+                if (realtimeTab) { realtimeTab.click(); await delay(1500); }
+            }
+
+            let dtQuyDoiBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'DT quy đổi' && el.offsetParent !== null);
+            if (dtQuyDoiBtn) { dtQuyDoiBtn.click(); await delay(1500); }
+
+            let thiDuaBtn = Array.from(document.querySelectorAll('button')).find(b => b.innerText && b.innerText.includes('Thi đua') && b.offsetParent !== null);
+            if (thiDuaBtn) { thiDuaBtn.click(); await delay(2000); }
+
+            let cardViewBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').trim() === 'Card' && b.offsetParent !== null);
+            if (cardViewBtn) { cardViewBtn.click(); await delay(1000); }
+
+            let loaded = false; let attemptsData = 0;
+            while (!loaded && attemptsData < 30) {
+                await delay(500);
+                if (document.body.innerText.includes("THỰC HIỆN") && document.body.innerText.includes("TARGET")) loaded = true;
+                attemptsData++;
+            }
+            if (!loaded) throw new Error("Dữ liệu load chậm, thử lại nhé!");
+
+            let summaryData = { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+            Array.from(document.querySelectorAll('div')).forEach(div => {
+                let text = div.innerText || "";
+                let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+                if (lines.includes("DT quy đổi") && !lines.includes("đường dẫn")) {
+                    let idx = lines.indexOf("DT quy đổi");
+                    if (idx + 1 < lines.length) summaryData.dtQd = lines[idx + 1];
+                }
+                if (lines.includes("Tỉ trọng trả góp")) {
+                    let idx = lines.indexOf("Tỉ trọng trả góp");
+                    if (idx + 1 < lines.length) summaryData.tiTrongTraGop = lines[idx + 1];
+                }
+                if (lines.includes("DT dự kiến")) {
+                    let idx = lines.indexOf("DT dự kiến");
+                    for (let i = idx + 1; i < lines.length; i++) {
+                        if (lines[i] !== '?' && /[0-9]/.test(lines[i])) {
+                            summaryData.dtDuKien = lines[i];
+                            break;
+                        }
+                    }
+                }
+            });
+
+            let groups = [];
+            let allCards = Array.from(document.querySelectorAll('div')).filter(card => {
+                return card.querySelector('span.line-clamp-3') &&
+                       card.innerText.includes('THỰC HIỆN') &&
+                       card.innerText.includes('TARGET');
+            });
+
+            let cardElements = allCards.filter(card => {
+                return !allCards.some(other => other !== card && card.contains(other));
+            });
+
+            let storedGroupNames = [];
+            cardElements.forEach(card => {
+                let nameEl = card.querySelector('span.line-clamp-3');
+                let name = nameEl ? (nameEl.getAttribute('title') || nameEl.innerText).trim() : "";
+                if (!name || name.includes("DOANH THU") || name.includes("TỔNG")) return;
+
+                storedGroupNames.push(name);
+                let badgeSpan = Array.from(card.querySelectorAll('span')).find(s => s.innerText.trim() === 'SL' || s.innerText.trim() === 'DT');
+                let isSL = badgeSpan ? badgeSpan.innerText.trim() === 'SL' : card.innerText.includes("SL");
+
+                let p = 0;
+                let bigPctEl = card.querySelector('.text-xl');
+                if (bigPctEl) {
+                    let pVal = parseFloat(bigPctEl.innerText.replace('%', ''));
+                    if (!isNaN(pVal)) p = pVal;
+                }
+
+                let rawR = 0, rawT = 0;
+                let lines = card.innerText.split('\n').map(l => l.trim()).filter(Boolean);
+
+                let thIdx = lines.findIndex(l => l.toUpperCase().includes('THỰC HIỆN'));
+                if (thIdx !== -1 && thIdx + 1 < lines.length) {
+                    rawR = parseFloat(lines[thIdx + 1].replace(/,/g, '')) || 0;
+                }
+
+                let tgIdx = lines.findIndex(l => l.toUpperCase().includes('TARGET'));
+                if (tgIdx !== -1 && tgIdx + 1 < lines.length) {
+                    rawT = parseFloat(lines[tgIdx + 1].replace(/,/g, '')) || 0;
+                }
+
+                if (!groups.some(g => g.name === name)) {
+                    groups.push({ name, p, isSL, rawR, rawT });
+                }
+            });
+
+            if (storedGroupNames.length > 0) {
+                localStorage.setItem('tamhoa_v32_all_group_names', JSON.stringify(storedGroupNames));
+            }
+
+            groups.sort((a, b) => {
+                let pA = parseFloat(a.p), pB = parseFloat(b.p);
+                let validA = !isNaN(pA) && pA > 0;
+                let validB = !isNaN(pB) && pB > 0;
+                if (validA && !validB) return -1;
+                if (!validA && validB) return 1;
+                return (pB || 0) - (pA || 0);
+            });
+
+            // Cào dữ liệu nhân sự ngầm & lưu cache an toàn đa máy
+            try {
+                let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
+                if (nhanVienBtn) {
+                    nhanVienBtn.click();
+                    await delay(1500);
+                    let paginationItems = document.querySelectorAll('.ant-pagination-item');
+                    let rowMap = new Map();
+                    const collectRows = () => {
+                        document.querySelectorAll('tr').forEach(tr => {
+                            let cells = tr.querySelectorAll('td, th');
+                            if (cells.length < 5) return;
+                            let rawName = cells[0].innerText.trim();
+                            if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng")) return;
+                            if (!rowMap.has(rawName)) rowMap.set(rawName, tr);
+                        });
+                    };
+                    if (paginationItems.length > 1) {
+                        for (let i = 0; i < paginationItems.length; i++) {
+                            paginationItems[i].click();
+                            await delay(600);
+                            collectRows();
+                        }
+                        paginationItems[0].click();
+                        await delay(400);
+                    } else {
+                        collectRows();
+                    }
+
+                    let rawList = [];
+                    let allStoredNames = [];
+                    let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+
+                    rowMap.forEach((tr, rawName) => {
+                        allStoredNames.push(rawName);
+                        if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
+
+                        let cells = tr.querySelectorAll('td, th');
+                        if (cells.length >= 5) {
+                            let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                            let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
+                            let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
+                            let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
+                            let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
+                            rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
+                        }
+                    });
+                    localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+                    localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
+
+                    if (rawList.length > 0) {
+                        if (mode === 'LUYKE') {
+                            window.currentRawLuyKeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
+                        } else {
+                            window.currentRawRealtimeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            tatVuTruLoading();
+            window.currentReportMode = mode;
+            hienThiCommanderPanel(summaryData, groups);
+        } catch (error) {
+            tatVuTruLoading();
+            alert("❌ Lỗi hệ thống: " + error.message);
+        }
+    };
+
+    window.captureNhanVienImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone-nhanvien');
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = `SK_NHAN_VIEN_${dateStr}.png`;
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false;
+                    return true;
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    // =========================================================================
+    // 3. MODULE SO SÁNH CÙNG KỲ
+    // =========================================================================
+    window.startFSMCungKy = async () => {
+        let oldPanel = document.getElementById('dtht-cungky-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        hienThiVuTruLoading("ĐANG LẤY SO SÁNH CÙNG KỲ");
+
+        try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
+
+            await clickMenu('Doanh Thu Ngành Hàng BI'); await delay(1500);
+            await chonBoLoc('Siêu thị Chọn', 'TGD_DON_BHO'); await delay(1500);
+
+            let tableLoaded = false; let attempts = 0;
+            while (!tableLoaded && attempts < 30) {
+                await delay(500);
+                if (document.querySelector('.ant-table-tbody')) tableLoaded = true;
+                attempts++;
+            }
+            if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
+
+            let targetKeys = ['l1-1', 'l1-2', 'l1-3', 'l1-4', 'l1-10'];
+            for (let key of targetKeys) {
+                let row = document.querySelector(`tr[data-row-key="${key}"]`);
+                if (row) {
+                    let expandBtn = row.querySelector('.ant-table-row-expand-icon');
+                    if (expandBtn) {
+                        let isExpanded = expandBtn.classList.contains('ant-table-row-expand-icon-expanded') || expandBtn.classList.contains('ant-table-row-expanded');
+                        if (!isExpanded) {
+                            expandBtn.click();
+                            let attempts = 0;
+                            while (!expandBtn.classList.contains('ant-table-row-expand-icon-expanded') && attempts < 12) {
+                                await delay(200);
+                                attempts++;
+                            }
+                        }
+                    }
+                }
+            }
+            await delay(1500);
+
+            let rows = document.querySelectorAll('.ant-table-tbody > tr.ant-table-row');
+            let dataList = [];
+
+            rows.forEach(tr => {
+                let cells = tr.querySelectorAll('td');
+                if (cells.length < 4) return;
+
+                let name = cells[0].innerText.trim();
+                let isIndent = tr.querySelector('.ant-table-row-indent.indent-level-1') !== null;
+                let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                let dtQd = parseFloat(cells[3]?.innerText.replace(/,/g, '')) || parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
+
+                let pctCell = cells[7] || cells[cells.length - 1];
+                let pctText = pctCell ? pctCell.innerText.trim() : '0%';
+                let isNegative = /[-−–—▼↓\(\)]/.test(pctText);
+                let pctMatch = pctText.match(/[\d\.]+/);
+                let pctNum = pctMatch ? parseFloat(pctMatch[0]) : 0;
+                let pctTt = isNegative ? -pctNum : pctNum;
+
+                let chenhLechTien = dtQd * (pctTt / 100);
+                let donGia = sl > 0 ? (dtQd * 1000000) / sl : 0;
+
+                dataList.push({ name, isIndent, sl, dtQd, pctTt, chenhLechTien, donGia });
+            });
+
+            tatVuTruLoading();
+            hienThiCungKyPanel(dataList);
+
+        } catch (error) {
+            tatVuTruLoading();
+            alert("❌ Lỗi So Sánh Cùng Kỳ: " + error.message);
+        }
+    };
+
+    const hienThiCungKyPanel = (dataList) => {
+        let oldPanel = document.getElementById('dtht-cungky-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        let tableRowsHtml = '';
+        dataList.forEach(item => {
+            let prefix = item.isIndent ? '└ ' : '';
+            let rowStyle = item.isIndent ? 'background:#fafafa; font-size:11px;' : 'background:#fff; font-weight:800; font-size:12px;';
+            let moneyColor = item.chenhLechTien >= 0 ? '#28a745' : '#dc3545';
+            let moneySign = item.chenhLechTien > 0 ? '+' : '';
+            let pctColor = item.pctTt >= 0 ? '#28a745' : '#dc3545';
+
+            tableRowsHtml += `
+                <tr style="${rowStyle}">
+                    <td style="padding:6px; border-bottom:1px solid #eee;">${prefix}${item.name}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.sl)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${formatMoney(item.dtQd)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; color:${moneyColor};">${moneySign}${formatMoney(item.chenhLechTien)}</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:${pctColor};">${item.pctTt}%</td>
+                    <td style="padding:6px; border-bottom:1px solid #eee; text-align:right;">${item.donGia > 0 ? formatMoney(item.donGia) : '-'}</td>
+                </tr>
+            `;
+        });
+
+        let div = document.createElement('div');
+        div.id = 'dtht-cungky-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding: 20px 10px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+
+        div.innerHTML = `
+            <div style="width:100%; max-width:720px; margin:0 auto; background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h2 style="margin:0; color:#004a99; font-weight:900; font-size:16px;">📊 SO SÁNH CÙNG KỲ (BI)</h2>
+                    <button onclick="document.getElementById('dtht-cungky-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
+                </div>
+
+                <div id="capture-zone-cungky" style="background:#f0f2f5; padding:12px; border-radius:12px; border:2px solid #004a99; overflow-x:auto;">
+                    <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 14px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">📈 BẢNG CHI TIẾT SO SÁNH CÙNG KỲ</div>
+                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                        <thead>
+                            <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                <th style="padding:8px 6px; text-align:left;">Nhóm hàng</th>
+                                <th style="padding:8px 6px; text-align:right;">SL</th>
+                                <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                <th style="padding:8px 6px; text-align:right;">+/- Tiền</th>
+                                <th style="padding:8px 6px; text-align:right;">% TT</th>
+                                <th style="padding:8px 6px; text-align:right;">Đơn Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <textarea id="cungkyText" readonly style="background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 140px; margin-top: 15px; font-size: 12px; padding: 10px; border-radius: 8px; width: 100%; line-height: 1.4; resize: none; font-family: 'Montserrat', sans-serif;"></textarea>
+
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="window.copyCungKyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
+                    <button onclick="window.captureCungKyImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH CÙNG KỲ</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+        window.generateCungKyTextReport(dataList);
+    };
+
+    window.generateCungKyTextReport = function(dataList) {
+        let groupsMap = {};
+        let currentParent = null;
+
+        dataList.forEach(item => {
+            if (!item.isIndent) {
+                currentParent = item.name.trim();
+                groupsMap[currentParent] = { parent: item, subs: [] };
+            } else if (currentParent && groupsMap[currentParent]) {
+                if (item.dtQd > 0 || item.sl > 0 || item.chenhLechTien !== 0) {
+                    groupsMap[currentParent].subs.push(item);
+                }
+            }
+        });
+
+        let priorityKeywords = ["viễn thông", "laptop", "apple", "phụ kiện", "avapos"];
+        let allParentNames = Object.keys(groupsMap);
+
+        allParentNames.sort((a, b) => {
+            let lowerA = a.toLowerCase();
+            let lowerB = b.toLowerCase();
+            let idxA = priorityKeywords.findIndex(p => lowerA.includes(p));
+            let idxB = priorityKeywords.findIndex(p => lowerB.includes(p));
+
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return 0;
+        });
+
+        const formatCleanMoney = (val) => {
+            let n = parseFloat(val) || 0;
+            if (Math.abs(n) >= 1000) {
+                return (n / 1000).toFixed(1).replace('.', ',') + ' tỷ';
+            }
+            return lamTronTamHoa(n) + 'TR';
+        };
+
+        const formatCleanDiff = (val) => {
+            let n = parseFloat(val) || 0;
+            let sign = n > 0 ? '+' : '';
+            if (Math.abs(n) >= 1000) {
+                return sign + (n / 1000).toFixed(1).replace('.', ',') + ' tỷ';
+            }
+            return sign + lamTronTamHoa(n) + 'TR';
+        };
+
+        const formatCleanDonGia = (val) => {
+            let n = parseFloat(val) || 0;
+            if (n <= 0) return '';
+            let tr = n / 1000000;
+            let formatted = tr.toFixed(1).replace('.', ',');
+            if (formatted.endsWith(',0')) {
+                formatted = formatted.slice(0, -2);
+            }
+            return ` | ĐG: ${formatted}TR`;
+        };
+
+        let txt = `📊 BÁO CÁO SO SÁNH CÙNG KỲ:\n\n`;
+
+        allParentNames.forEach(pName => {
+            let group = groupsMap[pName];
+            let item = group.parent;
+
+            let sticker = "📦";
+            let lowerName = pName.toLowerCase();
+            if (lowerName.includes("viễn thông")) sticker = "📱";
+            else if (lowerName.includes("laptop")) sticker = "💻";
+            else if (lowerName.includes("apple")) sticker = "🍎";
+            else if (lowerName.includes("phụ kiện") || lowerName.includes("đồng hồ")) sticker = "⌚";
+            else if (lowerName.includes("avapos")) sticker = "💳";
+            else if (lowerName.includes("điện tử")) sticker = "📺";
+            else if (lowerName.includes("tủ lạnh") || lowerName.includes("đông") || lowerName.includes("mát")) sticker = "❄️";
+            else if (lowerName.includes("máy giặt") || lowerName.includes("sấy")) sticker = "🧺";
+            else if (lowerName.includes("máy lạnh") || lowerName.includes("nước nóng")) sticker = "❄️";
+            else if (lowerName.includes("gia dụng")) sticker = "🍳";
+            else if (lowerName.includes("tận tâm")) sticker = "🛠️";
+            else if (lowerName.includes("chưa phân loại")) sticker = "🏷️";
+
+            let trendIcon = item.chenhLechTien > 0 ? "🟢" : (item.chenhLechTien < 0 ? "🔴" : "⚪");
+            let diffStr = formatCleanDiff(item.chenhLechTien);
+            let donGiaStr = formatCleanDonGia(item.donGia);
+
+            txt += `${sticker} ${pName.toUpperCase()}: ${formatCleanMoney(item.dtQd)} (${trendIcon} ${diffStr} | ${item.pctTt}%)${donGiaStr}\n`;
+
+            group.subs.forEach(sub => {
+                let subTrend = sub.chenhLechTien > 0 ? "🟢" : (sub.chenhLechTien < 0 ? "🔴" : "⚪");
+                let subDiffStr = formatCleanDiff(sub.chenhLechTien);
+                let subDonGiaStr = formatCleanDonGia(sub.donGia);
+                let cleanSubName = sub.name.replace(/^L\s+/, "").trim();
+                txt += `  - ${cleanSubName}: ${formatCleanMoney(sub.dtQd)} (${subTrend} ${subDiffStr} | ${sub.pctTt}%)${subDonGiaStr}\n`;
+            });
+            txt += `\n`;
+        });
+
+        let txtArea = document.getElementById('cungkyText');
+        if (txtArea) txtArea.value = txt.trim();
+    };
+    window.copyCungKyTextReport = function() {
+        const textarea = document.getElementById('cungkyText');
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            alert("✅ Đã Copy báo cáo Cùng kỳ chuẩn Zalo!");
+        } catch (err) {
+            alert("❌ Lỗi Copy!");
+        }
+    };
+
+    window.captureCungKyImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone-cungky');
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = `CUNG_KY_${dateStr}.png`;
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false;
+                    return true;
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    // =========================================================================
+    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
+    // =========================================================================
+    const hienThiCommanderPanel = (summaryData, groups) => {
+        let oldPanel = document.getElementById('dtht-commander-overlay');
+        if (oldPanel) oldPanel.remove();
+
+        window.currentParsedGroups = groups;
+        window.currentSummaryData = summaryData;
+        window.currentTimeMode = window.currentTimeMode || 'now';
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+
+        let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
+        let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+
+        let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
+        let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#f1c40f' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
+
+        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay);
+        let missing = Math.max(0, masterTarget - dtVal);
+        let moiNgay = lamTronTamHoa(missing / remainingDays);
+
+        let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
+        let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
+
+        let actG = groups.filter(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
+            return conf.visible !== false;
+        });
+        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+        let headerStatsHtml = "";
+        window.currentCommanderView = window.currentCommanderView || 'groups';
+        let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_lk_nv')) || []) : (window.currentRawRealtimeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_rt_nv')) || []);
+        let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
+
+        let validNamesMap = new Map();
+        fixedNvConfigs.forEach(item => {
+            if (item && item.name && item.name.trim() !== '') {
+                let cleanName = item.name.trim();
+                validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
+            }
+        });
+
+        let targetNvList = [];
+        rawNvSource.forEach(nv => {
+            let raw = nv.rawName ? nv.rawName.trim() : '';
+            let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
+            if (matchedKey) {
+                let customName = validNamesMap.get(matchedKey);
+                targetNvList.push({
+                    ...nv,
+                    name: customName || raw
+                });
+            }
+        });
+        targetNvList.sort((a, b) => b.dtQd - a.dtQd);
+        let totalNvCount = targetNvList.length;
+        targetNvList.forEach((nv, idx) => {
+            if (idx < 5) nv.tier = 'green';
+            else if (idx < totalNvCount - 3) nv.tier = 'yellow';
+            else nv.tier = 'red';
+        });
+        let nvButtonLabel = isLuyKe ? "👥 NHÂN VIÊN LŨY KẾ" : "👥 NHÂN VIÊN REALTIME";
+
+        let viewSwitchHtml = `
+            <div style="display:flex; gap:6px; margin-bottom:12px;" data-html2canvas-ignore="true">
+                <button onclick="window.setCommanderView('groups', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'groups' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'groups' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">📦 NHÓM NGÀNH HÀNG</button>
+                <button onclick="window.setCommanderView('nv', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'nv' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'nv' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">${nvButtonLabel}</button>
+            </div>
+        `;
+
+        if (isLuyKe) {
+                    headerStatsHtml = `
+                        <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-box" style="grid-column: span 2;">
+                                <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
+                                <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">DỰ KIẾN</div>
+                                <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                                <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">TRẢ GÓP</div>
+                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                            </div>
+                           <div class="stat-box">
+                                <div class="stat-label">NHÓM ĐẠT</div>
+                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    headerStatsHtml = `
+                        <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
+                            <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                            <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                            <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                        </div>
+                        <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-box">
+                                <div class="stat-label">THỰC / TARGET (TR)</div>
+                                <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                            </div>
+                            <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
+                                <div class="stat-label">% ĐẠT</div>
+                                <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">TRẢ GÓP</div>
+                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">NHÓM ĐẠT</div>
+                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (window.currentCommanderView === 'nv') {
+                    headerStatsHtml = '';
+                }
+
+                let div = document.createElement('div');
+        div.id = 'dtht-commander-overlay';
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+
+        const cssGoc = `
+            * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+            .th-container { padding: 10px; width: 100%; max-width: 680px; margin: 20px auto; position:relative; }
+            .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
+            .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
+            .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
+            #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; }
+            .stats-grid { display: grid; gap: 8px; margin-bottom: 15px; }
+            .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
+            .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
+            .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+            .group-name { font-size: 13px !important; font-weight: 800 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
+            .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
+            .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
+            .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
+
+            .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-mid { color: #f1c40f !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+            .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
+
+            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
+        `;
+
+        let gridHtml = "";
+        groups.forEach(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+            if (conf.visible === false) return;
+
+            let fName = conf.nickname || g.name;
+            let pRounded = lamTronTamHoa(g.p);
+            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 75 ? "pct-mid" : (pRounded >= 40 ? "pct-orange" : "pct-low"));
+
+            let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
+            let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
+
+            let pctBar = Math.min(100, Math.max(0, pRounded));
+            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
+
+            let flagIcon = (g.rawT > 0 && g.rawR >= g.rawT) ? '🏁' : '';
+            gridHtml += `
+                <div class="group-card">
+                    <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
+                    <div class="group-stats">
+                        <span class="group-num">${rDisp} / ${tDisp}</span>
+                        <span style="font-size: 14px;">${flagIcon}</span>
+                        <span class="${pCl}">${pRounded}%</span>
+                    </div>
+                    <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
+                        <div style="width:${pctBar}%; background:${barColor}; height:100%;"></div>
+                    </div>
+                </div>`;
+        });
+
+        div.innerHTML = `
+            <style>${cssGoc}</style>
+            <div class="th-container">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="window.openSettingsV31('group')" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
+                            <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
+                        </div>
+                    </div>
+
+                    ${viewSwitchHtml}
+                    <div id="capture-zone">
+                        ${headerStatsHtml}
+                        ${window.currentCommanderView === 'nv' ? (() => {
+                            if (targetNvList.length === 0) {
+                                return `<div style="text-align:center; padding:30px; color:#666; font-weight:800; font-size:12px;">⚠️ Đang lấy dữ liệu nhân sự hoặc chưa nạp bảng.<br>Vui lòng tắt bảng và bấm lại nút Chạy báo cáo chính để hệ thống quét lại nhé!</div>`;
+                            }
+                            let nvRowsHtml = '';
+                            targetNvList.forEach((nv, index) => {
+                                let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
+                                let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
+                                let rankStyle = index < 3 ? 'font-size:20px; text-align:center;' : 'font-size:13px; font-weight:900; text-align:center; color:#333;';
+                                nvRowsHtml += `
+                                    <tr style="background:${rowBg}; font-size:13px;">
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dtTg)}</td>
+                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900;">${nv.pctTg}</td>
+                                    </tr>
+                                `;
+                            });
+                            let titleNvLabel = isLuyKe ? '🏆 SỨC KHỎE NHÂN VIÊN LŨY KẾ' : '🏆 SỨC KHỎE NHÂN VIÊN REALTIME';
+                            return `
+                                <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">${titleNvLabel}</div>
+                                <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                                    <thead>
+                                        <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                            <th style="padding:8px 6px; text-align:center; width:45px;">Top</th>
+                                            <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
+                                            <th style="padding:8px 6px; text-align:right;">SL</th>
+                                            <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                            <th style="padding:8px 6px; text-align:right;">DT</th>
+                                            <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
+                                            <th style="padding:8px 6px; text-align:right;">%TG</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${nvRowsHtml}
+                                    </tbody>
+                                </table>
+                            `;
+                        })() : `<div class="group-grid">${gridHtml}</div>`}
+                    </div>
+                    <textarea id="lienText" readonly></textarea>
+
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
+                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+
+        if (window.capNhatGioChot) window.capNhatGioChot();
+        if (window.realtimeClockTimer) clearInterval(window.realtimeClockTimer);
+        window.realtimeClockTimer = setInterval(window.capNhatGioChot, 1000);
+
+        window.generateTextReport();
+    };
+
+    window.setTimeMode = function(tm, btnEl) {
+        window.currentTimeMode = tm;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) {
+            btnEl.classList.add('active');
+        } else {
+            event.target.classList.add('active');
+        }
+        window.generateTextReport();
+    };
+
+    window.setCommanderView = function(view, btnEl) {
+        window.currentCommanderView = view;
+        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+    };
+
+    window.generateTextReport = function() {
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+        let isNvView = window.currentCommanderView === 'nv';
+        let txt = "";
+
+        if (isNvView) {
+            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+            let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_lk_nv')) || []) : (window.currentRawRealtimeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_rt_nv')) || []);
+            let targetNvList = rawNvSource.filter(nv => {
+                let conf = nvConfigs[nv.rawName] || { visible: true };
+                return conf.visible !== false;
+            }).map(nv => {
+                let conf = nvConfigs[nv.rawName] || {};
+                return { ...nv, name: conf.nickname || nv.rawName };
+            });
+
+            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
+            let validNamesMap = new Map();
+            fixedNvConfigs.forEach(item => {
+                if (item && item.name && item.name.trim() !== '') {
+                    let cleanName = item.name.trim();
+                    validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
+                }
+            });
+
+            let filteredNvList = [];
+            targetNvList.forEach(nv => {
+                let raw = nv.rawName ? nv.rawName.trim() : '';
+                let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
+                if (matchedKey) {
+                    let customName = validNamesMap.get(matchedKey);
+                    filteredNvList.push({
+                        ...nv,
+                        name: customName || raw
+                    });
+                }
+            });
+            filteredNvList.sort((a, b) => b.dtQd - a.dtQd);
+
+            let titleMode = isLuyKe ? "LŨY KẾ THÁNG" : "REALTIME";
+            txt = `🏆 BÁO CÁO SỨC KHỎE NHÂN SỰ (${titleMode}):\n\n`;
+            filteredNvList.forEach((nv, idx) => {
+                let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : `Top ${idx + 1}`));
+                txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
+            });
+            txt += `\n🔥 Team tiếp tục nỗ lực bứt phá số nhé! 🔥`;
+
+        } else {
+            let groups = window.currentParsedGroups || [];
+            let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
+            let tMode = window.currentTimeMode || 'now';
+            let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+
+            let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+            let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+            let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+
+            let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
+            let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
+            let dtDuKienVal = parseFloat(sum.dtDuKien.replace(/,/g, '')) || 0;
+            let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+
+            let pDT = masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0;
+            let missing = Math.max(0, masterTarget - dtVal);
+
+            let dtTr = lamTronTamHoa(dtVal);
+            let tTr = lamTronTamHoa(masterTarget);
+            let pTr = lamTronTamHoa(pDT);
+            let tgTr = lamTronTamHoa(rawTgVal);
+            let thTr = lamTronTamHoa(missing);
+
+            let actG = groups.filter(g => {
+                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
+                return conf.visible !== false;
+            });
+            let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+
+            let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
+            let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
+
+            if (isLuyKe) {
+                txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
+                txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
+                txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
+                txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+                if(hG.length > 0) {
+                    txt += `✅ NHÓM ĐẠT:\n`;
+                    hG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                    txt += `\n`;
+                }
+                if(lG.length > 0) {
+                    txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
+                    lG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                }
+                txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
+
+            } else {
+                let pre = "", st = "", cauKet = "";
+                let timeStr = new Date().getHours() + ":" + (new Date().getMinutes()<10?'0':'') + new Date().getMinutes();
+
+                if (tMode === 'now') {
+                    pre = `🔥 CẬP NHẬT HIỆN TẠI (${timeStr}): `;
+                    st = pDT >= 100 ? `🎊 Tuyệt vời! Cán đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Nhận thông tin push số gấp";
+                } else if (tMode === 'morning') {
+                    pre = `☀️ KẾT CA SÁNG: `;
+                    st = pDT >= 100 ? `🎊 Ca sáng quá tốt! ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `⚠️ Kết ca sáng: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Team ca chiều nhận thông tin push số";
+                } else {
+                    pre = `🏁 TỔNG KẾT NGÀY: `;
+                    st = pDT >= 100 ? `🎊 CHÚC MỪNG! Về đích ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%).` : `📉 Về: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%)\n👉 Thiếu: ${toSt(thTr)}TR`;
+                    cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
+                }
+
+                txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+
+                if(hG.length > 0) {
+                    txt += `✅ NHÓM ĐẠT:\n`;
+                    hG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                    txt += `\n`;
+                }
+                if(lG.length > 0) {
+                    txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
+                    lG.forEach(g => {
+                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
+                        let gNameShow = conf.nickname || g.name;
+                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                    });
+                }
+                txt += `\n🚀 ${cauKet} 🔥`;
+            }
+        }
+
+        let txtArea = document.getElementById('lienText');
+        if(txtArea) txtArea.value = txt;
+    };
+
+    window.openSettingsV31 = function() {
+        let oldPnl = document.getElementById('settings-panel-v31');
+        if (oldPnl) oldPnl.remove();
+
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
+        let monthlyTarget = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
+
+        let pnl = document.createElement('div');
+        pnl.id = 'settings-panel-v31';
+        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:550px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
+
+        let checklistHtml = '';
+        let groupsTootip = window.currentParsedGroups;
+        if (!groupsTootip || groupsTootip.length === 0) {
+            let storedGroupNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_group_names')) || [];
+            groupsTootip = storedGroupNames.map(name => ({ name }));
+        }
+        groupsTootip.forEach(g => {
+            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
+            checklistHtml += `
+                <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
+                    <span style="font-size:22px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
+                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
+                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
+                    <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
+                </div>`;
+        });
+
+        pnl.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0; color:#004a99; font-weight:900; font-size:15px;">⚙️ CÀI ĐẶT HỆ THỐNG CHUNG</h3>
+                <span style="cursor:pointer; font-size:22px;" onclick="document.getElementById('settings-panel-v31').remove()">✖</span>
+            </div>
+
+            <div style="overflow-y:auto; max-height:calc(90vh - 80px); padding-right:5px; display:flex; flex-direction:column; gap:12px;">
+                <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                    <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:4px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
+                    <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:6px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:6px; font-family: 'Montserrat', sans-serif;">
+
+                    <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:4px;">🎯 TARGET CẢ THÁNG (TR):</label>
+                    <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:6px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
+                        <label style="background:#e67e22; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
+                            📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">📦 Cấu hình Nhóm Ngành Hàng</div>
+                    <div style="max-height:180px; overflow-y:auto; border:1px solid #ddd; padding:8px; border-radius:8px; background:#fff;">
+                        ${checklistHtml}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</div>
+                    <div style="max-height:240px; overflow-y:auto; border:1px solid #ccc; padding:8px; border-radius:8px; background:#fdfdfd; margin-bottom:8px;">
+                        <div style="font-size:11px; font-weight:900; color:#004a99; margin-bottom:6px; background:#e6f0fa; padding:4px 8px; border-radius:4px;">📌 15 NHÂN VIÊN KHÓA CỨNG</div>
+                        ${(() => {
+                            let defaultFixedNv = [
+                                { name: "249318 - Cù Huy Nam", nickname: "" },
+                                { name: "249862 - Nguyễn Hoàng Phong", nickname: "" },
+                                { name: "142524 - Nguyễn Minh Ngô", nickname: "" },
+                                { name: "13518 - Đặng Nữ Thanh Đa", nickname: "" },
+                                { name: "179274 - Lâm Trà Đăng Khoa", nickname: "" },
+                                { name: "280385 - Vũ Nguyễn Hữu Đức", nickname: "" },
+                                { name: "170242 - Nguyễn Thị Hoàng Oanh", nickname: "" },
+                                { name: "256800 - Tống Văn Út Khá", nickname: "" },
+                                { name: "70237 - Trần Công Tuấn", nickname: "" },
+                                { name: "262196 - Phạm Nguyễn Hoàng Huân", nickname: "" },
+                                { name: "43006 - Đỗ Thị Chi", nickname: "" },
+                                { name: "174960 - Vũ Thoại Uyên", nickname: "" },
+                                { name: "59971 - Bùi Thị Vân", nickname: "" },
+                                { name: "63634 - Bùi Minh Việt", nickname: "" },
+                                { name: "37349 - Lê Thị Mỹ Hằng", nickname: "" },
+                                { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }
+                            ];
+                            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || defaultFixedNv;
+                            let html = '';
+                            for (let i = 0; i < 15; i++) {
+                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
+                                html += `
+                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:${i % 2 === 0 ? '#fafafa' : '#fff'};">
+                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#004a99;">${i+1}</span>
+                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Mã - Tên nhân viên..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
+                                    </div>`;
+                            }
+                            html += `<div style="font-size:11px; font-weight:900; color:#e67e22; margin:10px 0 6px 0; background:#fdf3e6; padding:4px 8px; border-radius:4px;">🔄 5 Ô CHỜ (LINH ĐỘNG)</div>`;
+                            for (let i = 15; i < 20; i++) {
+                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
+                                html += `
+                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:#fffdf5;">
+                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#e67e22;">C${i-14}</span>
+                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Tên ô chờ..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
+                                    </div>`;
+                            }
+                            return html;
+                        })()}
+                    </div>
+                </div>
+
+                <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px; margin-top:5px;">LƯU LẠI ✅</button>
+            </div>
+        `;
+        document.body.appendChild(pnl);
+    };
+
+    window.saveSettingsV31 = function() {
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+
+        let mtInput = document.getElementById('inpMasterTargetSet');
+        if (mtInput) {
+            let mt = parseFloat(mtInput.value) || 304;
+            localStorage.setItem('tamhoa_v31_masterTarget', mt);
+        }
+        let motInput = document.getElementById('inpMonthlyTargetSet');
+        if (motInput) {
+            let mot = parseFloat(motInput.value) || 13014;
+            localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
+        }
+
+        document.querySelectorAll('#settings-panel-v31 .chk-item').forEach(item => {
+            let name = item.querySelector('.vis-chk').getAttribute('data-name');
+            let vis = item.querySelector('.vis-chk').checked;
+            let nick = item.querySelector('.nick-inp').value.trim().toUpperCase();
+            let stk = item.querySelector('span').innerText;
+            groupConfigs[name] = { visible: vis, sticker: stk, nickname: nick };
+        });
+        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
+
+        let fixedNvList = Array(20).fill({ name: '', nickname: '' });
+        document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
+            let idx = parseInt(nameInput.getAttribute('data-index'));
+            let itemRow = nameInput.closest('div');
+            let nickInput = itemRow.querySelector('.fix-nv-nick');
+            fixedNvList[idx] = {
+                name: nameInput.value.trim(),
+                nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
+            };
+        });
+        localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
+
+        document.getElementById('settings-panel-v31').remove();
+        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+    };
+
+    window.openStickerPicker = function(gName) {
+        let pop = document.createElement('div');
+        pop.id = 'sticker-pop-v31';
+        pop.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:3px solid #004a99; padding:15px; border-radius:12px; z-index:2147483650; width:300px; max-height:300px; overflow-y:auto; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); font-family: 'Montserrat', sans-serif;";
+        pop.innerHTML = STICKERS.map(s => `<div style="font-size:28px; cursor:pointer; padding:5px;" onclick="window.selectSticker('${gName}', '${s}')">${s}</div>`).join('');
+        document.body.appendChild(pop);
+    };
+
+    window.selectSticker = function(gName, stk) {
+        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
+        if (!groupConfigs[gName]) groupConfigs[gName] = { visible: true, sticker: "📦", nickname: "" };
+        groupConfigs[gName].sticker = stk;
+        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
+        document.getElementById('sticker-pop-v31').remove();
+        window.openSettingsV31('group');
+    };
+
+    window.exportConfigJson = function() {
+        let data = {
+            target: localStorage.getItem('tamhoa_v31_masterTarget'),
+            monthlyTarget: localStorage.getItem('tamhoa_v31_monthlyTarget'),
+            configs: JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {}
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = `tamhoa_v31_config_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        alert("✅ Đã xuất cấu hình thành công!");
+    };
+
+    window.importConfigJson = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if(imported.target) localStorage.setItem('tamhoa_v31_masterTarget', imported.target);
+                if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
+                if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
+                alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
+                window.openSettingsV31('group');
+            } catch(err) { alert("❌ File lỗi hoặc sai định dạng!"); }
+        };
+        reader.readAsText(file);
+    };
+
+    window.captureReportImg = function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP...";
+
+        let zone = document.getElementById('capture-zone');
+        let isLuyKe = window.currentReportMode === 'LUYKE';
+        let isNvView = window.currentCommanderView === 'nv';
+        let dateStr = new Date().toISOString().slice(0,10);
+        let fileName = isNvView ? (isLuyKe ? `LUYKE_NV_${dateStr}.png` : `REALTIME_NV_${dateStr}.png`) : (isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`);
+
+        window.html2canvas(zone, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#f0f2f5",
+            ignoreElements: (element) => {
+                if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
+                    if (element.id === 'font-montserrat') return false;
+                    if (element.innerHTML && element.innerHTML.includes('th-container')) return false;
+                    return true;
+                }
+                return false;
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerText = "✅ XONG!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        }).catch(err => {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        });
+    };
+
+    window.copyTextReport = function() {
+        const textarea = document.getElementById('lienText');
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            alert("✅ Đã Copy báo cáo text chuẩn Zalo!");
+        } catch (err) { alert("Lỗi Copy!"); }
+    };
+
+    setTimeout(() => {
+        taoNutBatTu();
+        let pendingMode = localStorage.getItem('tamhoa_pending_mode');
+        if (pendingMode) {
+            localStorage.removeItem('tamhoa_pending_mode');
+            setTimeout(() => { window.startFSM(pendingMode); }, 1500);
+        }
+    }, 2000);
+})();
