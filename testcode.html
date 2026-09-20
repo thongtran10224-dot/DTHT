@@ -334,10 +334,11 @@
                     localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
                     localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
 
-                    if (rawList.length > 0) {
+                   if (rawList.length > 0) {
                         if (mode === 'LUYKE') {
                             window.currentRawLuyKeNvList = rawList;
                             localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
+                            localStorage.setItem('tamhoa_v32_monthly_dtQd', summaryData.dtQd);
                         } else {
                             window.currentRawRealtimeNvList = rawList;
                             localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
@@ -407,7 +408,11 @@
             let tableLoaded = false; let attempts = 0;
             while (!tableLoaded && attempts < 30) {
                 await delay(500);
-                if (document.querySelector('.ant-table-tbody')) tableLoaded = true;
+                let firstRowText = document.querySelector('.ant-table-tbody > tr.ant-table-row td')?.innerText || '';
+                // Chờ bảng BI load dữ liệu mới, đảm bảo dòng đầu không chứa mã nhân viên (dãy 5 chữ số trở lên)
+                if (document.querySelector('.ant-table-tbody') && firstRowText && !/\d{5,}/.test(firstRowText)) {
+                    tableLoaded = true;
+                }
                 attempts++;
             }
             if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
@@ -689,9 +694,14 @@
         let isLuyKe = window.currentReportMode === 'LUYKE';
 
         let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
         let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-        let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+        let monthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd')) || 0;
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay + 1);
+        let dynamicDailyTarget = lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays);
+        let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
 
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
@@ -1023,9 +1033,14 @@
             let tMode = window.currentTimeMode || 'now';
             let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
 
-            let masterTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
             let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-            let masterTarget = isLuyKe ? monthlyTargetConfig : masterTargetConfig;
+            let monthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd')) || 0;
+            let now = new Date();
+            let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            let currentDay = now.getDate();
+            let remainingDays = Math.max(1, totalDays - currentDay + 1);
+            let dynamicDailyTarget = lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays);
+            let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
 
             let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
             let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
