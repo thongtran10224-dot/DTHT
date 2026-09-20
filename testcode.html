@@ -709,15 +709,11 @@
         let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
         let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#f1c40f' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
 
-        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
-        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+       let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+            let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
 
-        let now = new Date();
-        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        let currentDay = now.getDate();
-        let remainingDays = Math.max(1, totalDays - currentDay);
-        let missing = Math.max(0, masterTarget - dtVal);
-        let moiNgay = lamTronTamHoa(missing / remainingDays);
+            let missing = Math.max(0, masterTarget - dtVal);
+            let moiNgay = lamTronTamHoa(missing / remainingDays);
 
         let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
         let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
