@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.5 PRO
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.9 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.5
-// @description Bản chuẩn V32.5: Full tính năng, tối ưu hóa text report, cache nhân sự đa máy.
+// @version     32.9
+// @description Bản chuẩn V32.9: Đồng bộ tiêu đề Doanh thu hiện tại/Nhân viên, thay icon nhóm chat bằng 4 tầng trạng thái thực chiến.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -10,6 +10,25 @@
 
 (function() {
     'use strict';
+
+    // 📝 DANH SÁCH NHÂN VIÊN KHÓA CỨNG (15 nhân sự chính thức)
+    const DANH_SACH_NHAN_VIEN_STATIC = [
+        { name: "Vũ Nguyễn Hữu Đức", nickname: "ĐỨC" },
+        { name: "Cù Huy Nam", nickname: "NAM" },
+        { name: "Lâm Trà Đăng Khoa", nickname: "KHOA" },
+        { name: "Trần Công Tuấn", nickname: "TUẤN" },
+        { name: "Nguyễn Thị Hoàng Oanh", nickname: "OANH" },
+        { name: "Đặng Nữ Thanh Đa", nickname: "ĐA" },
+        { name: "Nguyễn Hoàng Phong", nickname: "PHONG" },
+        { name: "Bùi Minh Việt", nickname: "VIỆT" },
+        { name: "Nguyễn Minh Ngô", nickname: "NGÔ" },
+        { name: "Tống Văn Út Khá", nickname: "KHÁ" },
+        { name: "Phạm Nguyễn Hoàng Huân", nickname: "HUÂN" },
+        { name: "Bùi Thị Vân", nickname: "VÂN" },
+        { name: "Vũ Thoại Uyên", nickname: "UYÊN" },
+        { name: "Đỗ Thị Chi", nickname: "CHI" },
+        { name: "Lê Thị Mỹ Hằng", nickname: "HẰNG" }
+    ];
 
     if (!document.getElementById('font-montserrat')) {
         const link = document.createElement('link');
@@ -20,7 +39,6 @@
     }
 
     const delay = ms => new Promise(r => setTimeout(r, ms));
-    const STICKERS = ["📱","📲","📳","☎️","📞","📟","🖨️","💻","🖥️","🖱️","⌨️","🎧","🔋","📸","⌚","⚡","💰","💸","💲","💵","🏦","💳","👛","🏧","🛡️","📊","📉","🌐","📶","🚩","🕹️","🔊","🔥","📦"];
 
     const lamTronTamHoa = (num) => {
         let n = parseFloat(num);
@@ -33,11 +51,68 @@
     const toSt = num => num.toString().split('').map(d => ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"][parseInt(d)] || d).join('');
     const formatMoney = num => num.toLocaleString('en-US', {maximumFractionDigits: 0});
 
+    const layNgayHienTai = () => {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        return `${dd}/${mm}`;
+    };
+
+    // Hàm lấy icon trạng thái 4 cấp cho nhóm ngành hàng
+    const getGroupIcon = (pVal) => {
+        let p = lamTronTamHoa(pVal);
+        if (p >= 100) return '🏁'; // Về đích
+        if (p >= 70) return '🏃‍♂️'; // Tăng tốc
+        if (p >= 40) return '⚠️'; // Cảnh báo
+        return '🚨'; // Báo động
+    };
+
+    // Bộ từ điển rút gọn thông minh (Smart Alias) chống tràn viền trên iPhone
+    const rutGonTenNhom = (name) => {
+        if (!name) return '';
+        let upper = name.trim();
+        const aliases = {
+            "Bảo hiểm Thợ ĐMX": "BH Thợ ĐMX",
+            "Điện thoại Vivo": "Vivo",
+            "MỞ THẺ TÍN DỤNG TPBANK EVO VÀ VPBANK MWG": "Mở Thẻ Tín Dụng",
+            "OTT MANGO+, ICALLME -": "OTT Mango / iCall",
+            "PHỤ KIỆN CÔNG NGHỆ": "Phụ Kiện Công Nghệ",
+            "TABLET ANDROID": "Tab Android",
+            "Vay tiền mặt": "Vay Tiền Mặt",
+            "Ví trả sau": "Ví Trả Sau",
+            "NẠP RÚT TIỀN TÀI KHOẢN NGÂN HÀNG": "Nạp / Rút Tiền",
+            "VAS": "VAS",
+            "TRẢ CHẬM FECREDIT, SHINHAN, SAMSUNG FINANCE+": "Trả Chậm FE/Shin/SS",
+            "Cáp - Sạc": "Cáp - Sạc",
+            "SIM tổng": "SIM Tổng",
+            "Đồng hồ": "Đồng Hồ",
+            "Laptop (trừ Apple)": "Laptop (Trừ Apple)",
+            "TRẢ CHẬM HOMECREDIT": "Trả Chậm Home",
+            "T09 - T10 IPHONE 18 series, iPhone Duo": "iPhone Series & Duo",
+            "Phụ kiện IT và nhóm khác": "PK IT & Khác",
+            "ĐIỆN THOẠI & TABLET ANDROID": "Phone & Tab Android",
+            "Camera": "Camera",
+            "TAI NGHE": "Tai Nghe",
+            "SIM MOBIFONE/VINAPHONE/SIM DMX": "SIM Mobi/Vina/DMX",
+            "Bảo hiểm tổng": "Bảo Hiểm Tổng",
+            "SẠC DỰ PHÒNG": "Sạc Dự Phòng",
+            "Điện thoại realme": "Realme"
+        };
+        for (let key in aliases) {
+            if (upper.toUpperCase() === key.toUpperCase()) {
+                return aliases[key];
+            }
+        }
+        return name;
+    };
+
     window.capNhatGioChot = function() {
         const timeEl = document.getElementById('realtime-header');
         if(timeEl) {
             const now = new Date();
-            timeEl.innerText = '⏰ REALTIME ' + now.getHours() + ':' + (now.getMinutes()<10?'0':'') + now.getMinutes();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            timeEl.innerText = `⏰ DOANH THU HIỆN TẠI ${hh}:${min} ${layNgayHienTai()}`;
         }
     };
 
@@ -103,7 +178,7 @@
         div.style.cssText = 'position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:2147483647; background:white; padding:15px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:2px solid #004a99; display:flex; flex-direction:column; gap:10px; width:220px; font-family: "Montserrat", sans-serif;';
         div.innerHTML = `
             <h3 style="margin:0 0 5px 0; color:#004a99; text-align:center; font-size:15px; font-weight:900;">📊 CHỌN BÁO CÁO</h3>
-            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 REALTIME NGÀY</button>
+            <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('REALTIME');" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">🔥 DOANH THU HIỆN TẠI</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSM('LUYKE');" style="background:#0284c7; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📈 LŨY KẾ THÁNG</button>
             <button onclick="document.getElementById('th-main-menu').remove(); window.startFSMCungKy();" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; cursor:pointer; font-size:12px; font-family: 'Montserrat', sans-serif;">📊 SO SÁNH CÙNG KỲ</button>
         `;
@@ -166,7 +241,7 @@
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
 
-        let modeTitle = mode === 'LUYKE' ? 'LŨY KẾ THÁNG' : 'REALTIME NGÀY';
+        let modeTitle = mode === 'LUYKE' ? 'LŨY KẾ THÁNG' : 'DOANH THU HIỆN TẠI';
         hienThiVuTruLoading(`ĐANG HÚT SỐ ${modeTitle}`);
 
         try {
@@ -245,13 +320,11 @@
                 return !allCards.some(other => other !== card && card.contains(other));
             });
 
-            let storedGroupNames = [];
             cardElements.forEach(card => {
                 let nameEl = card.querySelector('span.line-clamp-3');
                 let name = nameEl ? (nameEl.getAttribute('title') || nameEl.innerText).trim() : "";
                 if (!name || name.includes("DOANH THU") || name.includes("TỔNG")) return;
 
-                storedGroupNames.push(name);
                 let badgeSpan = Array.from(card.querySelectorAll('span')).find(s => s.innerText.trim() === 'SL' || s.innerText.trim() === 'DT');
                 let isSL = badgeSpan ? badgeSpan.innerText.trim() === 'SL' : card.innerText.includes("SL");
 
@@ -279,10 +352,6 @@
                     groups.push({ name, p, isSL, rawR, rawT });
                 }
             });
-
-            if (storedGroupNames.length > 0) {
-                localStorage.setItem('tamhoa_v32_all_group_names', JSON.stringify(storedGroupNames));
-            }
 
             groups.sort((a, b) => {
                 let pA = parseFloat(a.p), pB = parseFloat(b.p);
@@ -352,16 +421,19 @@
                                     window.currentRawRealtimeNvList = rawList;
                                     localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
                                     if (summaryData.monthlyTarget) {
-                                        localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
-                                    }
-                                    if (summaryData.monthlyPct && summaryData.monthlyTarget) {
-                                        let acc = summaryData.monthlyTarget * (summaryData.monthlyPct / 100);
-                                        localStorage.setItem('tamhoa_v32_monthly_dtQd', acc);
-                                    }
+                                localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
+                            }
+                            if (mode === 'LUYKE' && summaryData.monthlyPct && summaryData.monthlyTarget) {
+                                let acc = summaryData.monthlyTarget * (summaryData.monthlyPct / 100);
+                                localStorage.setItem('tamhoa_v32_monthly_dtQd', acc);
+                            } else if (!localStorage.getItem('tamhoa_v32_monthly_dtQd')) {
+                                localStorage.setItem('tamhoa_v32_monthly_dtQd', 13014 * 0.791);
+                            }
                                 }
                             }
                         }
                     } catch(e) {}
+
             tatVuTruLoading();
             window.currentReportMode = mode;
             hienThiCommanderPanel(summaryData, groups);
@@ -405,13 +477,13 @@
     };
 
     // =========================================================================
-    // 3. MODULE SO SÁNH CÙNG KỲ
+    // 3. MODULE SO SÁNH CÙNG KỲ (GIỮ NGUYÊN GỐC)
     // =========================================================================
     window.startFSMCungKy = async () => {
         let oldPanel = document.getElementById('dtht-cungky-overlay');
         if (oldPanel) oldPanel.remove();
 
-        hienThiVuTruLoading("ĐANG LẤY SO SÁNH CÙNG KỲ");
+        hienThiVuTruLoading("ĐANG HÚT SỐ SO SÁNH CÙNG KỲ");
 
         try {
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
@@ -423,11 +495,7 @@
             let tableLoaded = false; let attempts = 0;
             while (!tableLoaded && attempts < 30) {
                 await delay(500);
-                let firstRowText = document.querySelector('.ant-table-tbody > tr.ant-table-row td')?.innerText || '';
-                // Chờ bảng BI load dữ liệu mới, đảm bảo dòng đầu không chứa mã nhân viên (dãy 5 chữ số trở lên)
-                if (document.querySelector('.ant-table-tbody') && firstRowText && !/\d{5,}/.test(firstRowText)) {
-                    tableLoaded = true;
-                }
+                if (document.querySelector('.ant-table-tbody')) tableLoaded = true;
                 attempts++;
             }
             if (!tableLoaded) throw new Error("Không tìm thấy bảng BI ngành hàng!");
@@ -650,6 +718,7 @@
         let txtArea = document.getElementById('cungkyText');
         if (txtArea) txtArea.value = txt.trim();
     };
+
     window.copyCungKyTextReport = function() {
         const textarea = document.getElementById('cungkyText');
         if (!textarea) return;
@@ -658,9 +727,7 @@
         try {
             document.execCommand('copy');
             alert("✅ Đã Copy báo cáo Cùng kỳ chuẩn Zalo!");
-        } catch (err) {
-            alert("❌ Lỗi Copy!");
-        }
+        } catch (err) { alert("❌ Lỗi Copy!"); }
     };
 
     window.captureCungKyImg = function() {
@@ -708,44 +775,36 @@
         window.currentTimeMode = window.currentTimeMode || 'now';
         let isLuyKe = window.currentReportMode === 'LUYKE';
 
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
         let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-        let monthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd')) || 0;
+        let monthlyAcc = (!isLuyKe || !localStorage.getItem('tamhoa_v32_monthly_dtQd')) ? (monthlyTargetConfig * 0.791) : parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd'));
         let now = new Date();
         let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         let currentDay = now.getDate();
         let remainingDays = Math.max(1, totalDays - currentDay + 1);
-        let dynamicDailyTarget = monthlyAcc > 0 ? lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays) : (parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 334);
+        let dynamicDailyTarget = lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays);
         let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
-
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
 
         let percentLuyKe = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
         let luyKeColor = percentLuyKe >= 100 ? '#27ae60' : (percentLuyKe >= 75 ? '#f1c40f' : (percentLuyKe >= 40 ? '#e67e22' : '#dc3545'));
 
-       let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
-            let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
+        let dtDuKienVal = parseFloat(summaryData.dtDuKien.replace(/,/g, '')) || 0;
+        let percentDuKien = lamTronTamHoa(masterTarget > 0 ? (dtDuKienVal / masterTarget) * 100 : 0);
 
-            let missing = Math.max(0, masterTarget - dtVal);
-            let moiNgay = lamTronTamHoa(missing / remainingDays);
+        let missing = Math.max(0, masterTarget - dtVal);
+        let moiNgay = lamTronTamHoa(missing / remainingDays);
 
         let rawTgVal = parseFloat(summaryData.tiTrongTraGop.replace(/%/g, '')) || 0;
         let roundedTraGop = lamTronTamHoa(rawTgVal) + '%';
 
-        let actG = groups.filter(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
-            return conf.visible !== false;
-        });
-        let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
+        let datCount = groups.filter(g => lamTronTamHoa(g.p) >= 100).length;
 
         let headerStatsHtml = "";
         window.currentCommanderView = window.currentCommanderView || 'groups';
         let rawNvSource = isLuyKe ? (window.currentRawLuyKeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_lk_nv')) || []) : (window.currentRawRealtimeNvList || JSON.parse(localStorage.getItem('tamhoa_v32_cache_rt_nv')) || []);
-        let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
-
         let validNamesMap = new Map();
-        fixedNvConfigs.forEach(item => {
+        DANH_SACH_NHAN_VIEN_STATIC.forEach(item => {
             if (item && item.name && item.name.trim() !== '') {
                 let cleanName = item.name.trim();
                 validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
@@ -758,10 +817,7 @@
             let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
             if (matchedKey) {
                 let customName = validNamesMap.get(matchedKey);
-                targetNvList.push({
-                    ...nv,
-                    name: customName || raw
-                });
+                targetNvList.push({ ...nv, name: customName || raw });
             }
         });
         targetNvList.sort((a, b) => b.dtQd - a.dtQd);
@@ -771,75 +827,78 @@
             else if (idx < totalNvCount - 3) nv.tier = 'yellow';
             else nv.tier = 'red';
         });
-        let nvButtonLabel = isLuyKe ? "👥 NHÂN VIÊN LŨY KẾ" : "👥 NHÂN VIÊN REALTIME";
+
+       let groupButtonLabel = isLuyKe ? "💲 DOANH THU LŨY KẾ" : "💲 DOANH THU NGÀY";
+        let nvButtonLabel = isLuyKe ? `👨‍💼 DOANH THU NHÂN VIÊN LŨY KẾ` : `👨‍💼 DOANH THU NHÂN VIÊN REALTIME`;
 
         let viewSwitchHtml = `
             <div style="display:flex; gap:6px; margin-bottom:12px;" data-html2canvas-ignore="true">
-                <button onclick="window.setCommanderView('groups', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'groups' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'groups' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">📦 NHÓM NGÀNH HÀNG</button>
-                <button onclick="window.setCommanderView('nv', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'nv' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'nv' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">${nvButtonLabel}</button>
+                <button onclick="window.setCommanderView('groups', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'groups' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'groups' ? '#fff' : '#004a99'}; font-weight:900; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;">${groupButtonLabel}</button>
+                <button onclick="window.setCommanderView('nv', this)" style="flex:1; padding:10px; border:2px solid #004a99; border-radius:8px; background:${window.currentCommanderView === 'nv' ? '#004a99' : '#fff'}; color:${window.currentCommanderView === 'nv' ? '#fff' : '#004a99'}; font-weight:900; font-size:11px; cursor:pointer; font-family:'Montserrat',sans-serif;">${nvButtonLabel}</button>
             </div>
         `;
 
+        // 4 Ô THỐNG KÊ VÀ TIÊU ĐỀ DOANH THU HIỆN TẠI / LŨY KẾ
         if (isLuyKe) {
-                    headerStatsHtml = `
-                        <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG</div>
-                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                            <div class="stat-box" style="grid-column: span 2;">
-                                <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
-                                <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">DỰ KIẾN</div>
-                                <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
-                                <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">TRẢ GÓP</div>
-                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
-                            </div>
-                           <div class="stat-box">
-                                <div class="stat-label">NHÓM ĐẠT</div>
-                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    headerStatsHtml = `
-                        <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
-                            <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
-                            <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
-                            <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
-                        </div>
-                        <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 16px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ REALTIME --:--</div>
-                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                            <div class="stat-box">
-                                <div class="stat-label">THỰC / TARGET (TR)</div>
-                                <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
-                            </div>
-                            <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
-                                <div class="stat-label">% ĐẠT</div>
-                                <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">TRẢ GÓP</div>
-                                <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">NHÓM ĐẠT</div>
-                                <div class="stat-val" style="color:${datCount === actG.length ? '#27ae60' : (datCount >= actG.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${actG.length}</div>
-                            </div>
-                        </div>
-                    `;
-                }
+            headerStatsHtml = `
+                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG ĐẾN NGÀY ${layNgayHienTai()}</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
+                        <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">DỰ KIẾN</div>
+                        <div class="stat-val" style="color:${percentDuKien >= 100 ? '#27ae60' : '#d35400'};">${percentDuKien}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">CÒN ${remainingDays} NGÀY, MỖI NGÀY</div>
+                        <div class="stat-val" style="color:#dc3545;">${moiNgay}TR</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                   <div class="stat-box">
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === groups.length ? '#27ae60' : (datCount >= groups.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${groups.length}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            headerStatsHtml = `
+                <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
+                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                </div>
+                <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ DOANH THU HIỆN TẠI --:-- ${layNgayHienTai()}</div>
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="stat-box">
+                        <div class="stat-label">THỰC / TARGET (TR)</div>
+                        <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                    </div>
+                    <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
+                        <div class="stat-label">% ĐẠT</div>
+                        <div class="stat-val" style="color:${percentTarget >= 100 ? '#27ae60' : '#004a99'};">${percentTarget}%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">TRẢ GÓP</div>
+                        <div class="stat-val" style="color:#27ae60;">${roundedTraGop}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">NHÓM ĐẠT</div>
+                        <div class="stat-val" style="color:${datCount === groups.length ? '#27ae60' : (datCount >= groups.length / 2 ? '#d35400' : '#dc3545')};">${datCount}/${groups.length}</div>
+                    </div>
+                </div>
+            `;
+        }
 
-                if (window.currentCommanderView === 'nv') {
-                    headerStatsHtml = '';
-                }
+        if (window.currentCommanderView === 'nv') {
+            headerStatsHtml = '';
+        }
 
-                let div = document.createElement('div');
+        let div = document.createElement('div');
         div.id = 'dtht-commander-overlay';
         div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
 
@@ -854,50 +913,67 @@
             .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
             .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
             .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
-            .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-            .group-card { background: #fff; border: 1px solid #e0e6ed; padding: 10px; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-            .group-name { font-size: 13px !important; font-weight: 800 !important; color: #000; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.3; }
-            .group-sticker { font-size: 16px !important; display: inline-block; vertical-align: middle; margin-right: 4px; }
-            .group-stats { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 4px; line-height: 1; }
-            .group-num { font-size: 18px !important; font-weight: 900 !important; color: #000; line-height: 1; letter-spacing: -0.5px; }
-
-            .pct-high { color: #28a745 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-mid { color: #f1c40f !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-orange { color: #e67e22 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-            .pct-low { color: #dc3545 !important; font-weight: 900 !important; font-size: 18px !important; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); letter-spacing: -0.5px; }
-
             #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
         `;
 
-        let gridHtml = "";
-        groups.forEach(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
-            if (conf.visible === false) return;
-
-            let fName = conf.nickname || g.name;
+        // RENDER BẢNG NGÀNH HÀNG
+        let tableRowsHtml = '';
+        groups.forEach((g, index) => {
+            let fName = rutGonTenNhom(g.name);
             let pRounded = lamTronTamHoa(g.p);
-            let pCl = pRounded >= 100 ? "pct-high" : (pRounded >= 75 ? "pct-mid" : (pRounded >= 40 ? "pct-orange" : "pct-low"));
-
             let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
             let tDisp = g.isSL ? g.rawT : lamTronTamHoa(g.rawT);
+            let conLai = Math.max(0, tDisp - rDisp);
+            let rowBg = index % 2 === 0 ? '#fff' : '#fafafa';
 
-            let pctBar = Math.min(100, Math.max(0, pRounded));
-            let barColor = pRounded >= 100 ? '#28a745' : (pRounded >= 75 ? '#f1c40f' : (pRounded >= 40 ? '#e67e22' : '#dc3545'));
+            let kqIcon = getGroupIcon(pRounded);
+            let pCl = 'color:#dc3545; font-weight:900;';
 
-            let flagIcon = (g.rawT > 0 && g.rawR >= g.rawT) ? '🏁' : '';
-            gridHtml += `
-                <div class="group-card">
-                    <div class="group-name"><span class="group-sticker">${conf.sticker}</span> ${fName}</div>
-                    <div class="group-stats">
-                        <span class="group-num">${rDisp} / ${tDisp}</span>
-                        <span style="font-size: 14px;">${flagIcon}</span>
-                        <span class="${pCl}">${pRounded}%</span>
-                    </div>
-                    <div style="width:100%; background:#e0e0e0; height:6px; border-radius:3px; overflow:hidden;">
-                        <div style="width:${pctBar}%; background:${barColor}; height:100%;"></div>
-                    </div>
-                </div>`;
+            if (pRounded >= 100) {
+                pCl = 'color:#28a745; font-weight:900;';
+            } else if (pRounded >= 70) {
+                pCl = 'color:#f1c40f; font-weight:900;';
+            } else if (pRounded >= 40) {
+                pCl = 'color:#e67e22; font-weight:900;';
+            } else {
+                pCl = 'color:#dc3545; font-weight:900;';
+            }
+
+            tableRowsHtml += `
+                <tr style="background:${rowBg}; font-size:12px;">
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:center; font-weight:900; color:#000;">${index + 1}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; font-weight:800; color:#111; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${fName}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; font-weight:800;">${formatMoney(tDisp)}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:#004a99;">${formatMoney(rDisp)}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; ${pCl}">${pRounded}%</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; font-weight:800; color:#666;">${formatMoney(conLai)}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:center; font-size:14px;">${kqIcon}</td>
+                </tr>
+            `;
         });
+
+        let groupTableHtml = `
+            <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.05); border:1px solid #e0e6ed;">
+                <thead>
+                    <tr style="background:#e67e22; color:#fff; font-size:11px; font-weight:900;">
+                        <th style="padding:8px 4px; text-align:center; width:30px;">#</th>
+                        <th style="padding:8px 6px; text-align:left;">THI ĐUA</th>
+                        <th style="padding:8px 6px; text-align:right;">TARGET</th>
+                        <th style="padding:8px 6px; text-align:right;">REALTIME</th>
+                        <th style="padding:8px 6px; text-align:right;">%HT</th>
+                        <th style="padding:8px 6px; text-align:right;">CÒN LẠI</th>
+                        <th style="padding:8px 6px; text-align:center; width:35px;">KQ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRowsHtml}
+                </tbody>
+            </table>
+        `;
+
+        const nowTime = new Date();
+        const timeStrReal = String(nowTime.getHours()).padStart(2, '0') + ':' + String(nowTime.getMinutes()).padStart(2, '0');
+        const dateTimeReal = `${timeStrReal} ${layNgayHienTai()}`;
 
         div.innerHTML = `
             <style>${cssGoc}</style>
@@ -906,7 +982,6 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
-                            <button onclick="window.openSettingsV31('group')" style="background:#6c757d; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">⚙️ CÀI ĐẶT</button>
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
                         </div>
                     </div>
@@ -935,9 +1010,10 @@
                                     </tr>
                                 `;
                             });
-                            let titleNvLabel = isLuyKe ? '🏆 SỨC KHỎE NHÂN VIÊN LŨY KẾ' : '🏆 SỨC KHỎE NHÂN VIÊN REALTIME';
+                            // Tiêu đề Doanh thu nhân viên realtime cùng 1 dòng
+                            let titleNvLabel = isLuyKe ? `🏆 DOANH THU NHÂN VIÊN LŨY KẾ ĐẾN NGÀY ${layNgayHienTai()}` : `🏆 DOANH THU NHÂN VIÊN HIỆN TẠI - ${dateTimeReal}`;
                             return `
-                                <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">${titleNvLabel}</div>
+                                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase; line-height: 1.4;">${titleNvLabel}</div>
                                 <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
                                     <thead>
                                         <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
@@ -955,7 +1031,7 @@
                                     </tbody>
                                 </table>
                             `;
-                        })() : `<div class="group-grid">${gridHtml}</div>`}
+                        })() : groupTableHtml}
                     </div>
                     <textarea id="lienText" readonly></textarea>
 
@@ -1007,9 +1083,8 @@
                 return { ...nv, name: conf.nickname || nv.rawName };
             });
 
-            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || [];
             let validNamesMap = new Map();
-            fixedNvConfigs.forEach(item => {
+            DANH_SACH_NHAN_VIEN_STATIC.forEach(item => {
                 if (item && item.name && item.name.trim() !== '') {
                     let cleanName = item.name.trim();
                     validNamesMap.set(cleanName, item.nickname ? item.nickname.trim().toUpperCase() : cleanName);
@@ -1017,21 +1092,18 @@
             });
 
             let filteredNvList = [];
-            targetNvList.forEach(nv => {
+            rawNvSource.forEach(nv => {
                 let raw = nv.rawName ? nv.rawName.trim() : '';
                 let matchedKey = Array.from(validNamesMap.keys()).find(k => raw.includes(k) || k.includes(raw));
                 if (matchedKey) {
                     let customName = validNamesMap.get(matchedKey);
-                    filteredNvList.push({
-                        ...nv,
-                        name: customName || raw
-                    });
+                    filteredNvList.push({ ...nv, name: customName || raw });
                 }
             });
             filteredNvList.sort((a, b) => b.dtQd - a.dtQd);
 
             let titleMode = isLuyKe ? "LŨY KẾ THÁNG" : "REALTIME";
-            txt = `🏆 BÁO CÁO SỨC KHỎE NHÂN SỰ (${titleMode}):\n\n`;
+            txt = `🏆 BÁO CÁO DOANH THU NHÂN SỰ (${titleMode}):\n\n`;
             filteredNvList.forEach((nv, idx) => {
                 let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : `Top ${idx + 1}`));
                 txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
@@ -1042,16 +1114,15 @@
             let groups = window.currentParsedGroups || [];
             let sum = window.currentSummaryData || { dtQd: "0", tiTrongTraGop: "0%", dtDuKien: "0" };
             let tMode = window.currentTimeMode || 'now';
-            let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
 
             let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-            let monthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd')) || 0;
-            let now = new Date();
-            let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            let currentDay = now.getDate();
-            let remainingDays = Math.max(1, totalDays - currentDay + 1);
-            let dynamicDailyTarget = monthlyAcc > 0 ? lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays) : (parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 334);
-            let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
+        let monthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd')) || 0;
+        let now = new Date();
+        let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let currentDay = now.getDate();
+        let remainingDays = Math.max(1, totalDays - currentDay + 1);
+        let dynamicDailyTarget = monthlyAcc > 0 ? lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays) : (parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 334);
+        let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
 
             let dtVal = parseFloat(sum.dtQd.replace(/,/g, '')) || 0;
             let rawTgVal = parseFloat(sum.tiTrongTraGop.replace(/%/g, '')) || 0;
@@ -1067,36 +1138,31 @@
             let tgTr = lamTronTamHoa(rawTgVal);
             let thTr = lamTronTamHoa(missing);
 
-            let actG = groups.filter(g => {
-                let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || {};
-                return conf.visible !== false;
-            });
-            let datCount = actG.filter(g => lamTronTamHoa(g.p) >= 100).length;
-
-            let hG = actG.filter(g => lamTronTamHoa(g.p) >= 100);
-            let lG = actG.filter(g => lamTronTamHoa(g.p) < 100);
+            let datCount = groups.filter(g => lamTronTamHoa(g.p) >= 100).length;
+            let hG = groups.filter(g => lamTronTamHoa(g.p) >= 100);
+            let lG = groups.filter(g => lamTronTamHoa(g.p) < 100);
 
             if (isLuyKe) {
                 txt = `📈 BÁO CÁO LŨY KẾ THÁNG:\n`;
                 txt += `📊 Lũy kế: ${toSt(dtTr)}/${toSt(tTr)}TR (${toSt(pTr)}%) - Dự kiến HT: ${toSt(percentDuKien)}%\n`;
                 txt += `💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n`;
-                txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+                txt += `📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(groups.length)}\n\n`;
 
                 if(hG.length > 0) {
                     txt += `✅ NHÓM ĐẠT:\n`;
                     hG.forEach(g => {
-                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                        let gNameShow = conf.nickname || g.name;
-                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                        let gNameShow = rutGonTenNhom(g.name);
+                        let icon = getGroupIcon(g.p);
+                        txt += `${icon} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
                     });
                     txt += `\n`;
                 }
                 if(lG.length > 0) {
                     txt += `🔥 NHÓM DỰ KIẾN CHƯA ĐẠT CẦN LƯU Ý:\n`;
                     lG.forEach(g => {
-                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                        let gNameShow = conf.nickname || g.name;
-                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                        let gNameShow = rutGonTenNhom(g.name);
+                        let icon = getGroupIcon(g.p);
+                        txt += `${icon} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
                     });
                 }
                 txt += `\n🚀 Team nhận tt sức khỏe siêu thị tiếp tục push số cho các ngày còn lại 🔥`;
@@ -1119,23 +1185,23 @@
                     cauKet = "Team cập nhật doanh thu nghỉ ngơi sớm";
                 }
 
-                txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(actG.length)}\n\n`;
+                txt = `${pre}\n${st}\n💳 TRẢ GÓP: ${toSt(lamTronTamHoa(tgTr))}%\n📦 Nhóm đạt/Tổng: ${toSt(datCount)}/${toSt(groups.length)}\n\n`;
 
                 if(hG.length > 0) {
                     txt += `✅ NHÓM ĐẠT:\n`;
                     hG.forEach(g => {
-                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                        let gNameShow = conf.nickname || g.name;
-                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                        let gNameShow = rutGonTenNhom(g.name);
+                        let icon = getGroupIcon(g.p);
+                        txt += `${icon} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
                     });
                     txt += `\n`;
                 }
                 if(lG.length > 0) {
                     txt += `🔥 NHÓM CHƯA ĐẠT:\n`;
                     lG.forEach(g => {
-                        let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { sticker: "📦", nickname: "" };
-                        let gNameShow = conf.nickname || g.name;
-                        txt += `${conf.sticker} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
+                        let gNameShow = rutGonTenNhom(g.name);
+                        let icon = getGroupIcon(g.p);
+                        txt += `${icon} ${gNameShow}: ${toSt(lamTronTamHoa(g.p))}%\n`;
                     });
                 }
                 txt += `\n🚀 ${cauKet} 🔥`;
@@ -1144,206 +1210,6 @@
 
         let txtArea = document.getElementById('lienText');
         if(txtArea) txtArea.value = txt;
-    };
-
-    window.openSettingsV31 = function() {
-        let oldPnl = document.getElementById('settings-panel-v31');
-        if (oldPnl) oldPnl.remove();
-
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        let masterTarget = parseFloat(localStorage.getItem('tamhoa_v31_masterTarget')) || 304;
-        let monthlyTarget = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-
-        let pnl = document.createElement('div');
-        pnl.id = 'settings-panel-v31';
-        pnl.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; width:95%; max-width:550px; max-height:90vh; padding:20px; border-radius:12px; z-index:2147483649; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif;";
-
-        let checklistHtml = '';
-        let groupsTootip = window.currentParsedGroups;
-        if (!groupsTootip || groupsTootip.length === 0) {
-            let storedGroupNames = JSON.parse(localStorage.getItem('tamhoa_v32_all_group_names')) || [];
-            groupsTootip = storedGroupNames.map(name => ({ name }));
-        }
-        groupsTootip.forEach(g => {
-            let conf = groupConfigs[g.name] || groupConfigs[g.name.trim()] || { visible: true, sticker: "📦", nickname: "" };
-            checklistHtml += `
-                <div class="chk-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; gap:8px;">
-                    <span style="font-size:22px; cursor:pointer;" onclick="window.openStickerPicker('${g.name}')">${conf.sticker}</span>
-                    <span style="font-size:11px; font-weight:800; flex:1;">${g.name}</span>
-                    <input type="text" class="nick-inp" data-name="${g.name}" value="${conf.nickname}" placeholder="Biệt danh..." style="width:110px; padding:4px; font-weight:700; font-size:11px; text-transform:uppercase; font-family: 'Montserrat', sans-serif;">
-                    <input type="checkbox" class="vis-chk" data-name="${g.name}" ${conf.visible !== false ? 'checked' : ''}>
-                </div>`;
-        });
-
-        pnl.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; color:#004a99; font-weight:900; font-size:15px;">⚙️ CÀI ĐẶT HỆ THỐNG CHUNG</h3>
-                <span style="cursor:pointer; font-size:22px;" onclick="document.getElementById('settings-panel-v31').remove()">✖</span>
-            </div>
-
-            <div style="overflow-y:auto; max-height:calc(90vh - 80px); padding-right:5px; display:flex; flex-direction:column; gap:12px;">
-                <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                    <label style="display:block; font-weight:800; font-size:11px; color:#dc3545; margin-bottom:4px;">🎯 TARGET SIÊU THỊ TRONG NGÀY (TR):</label>
-                    <input type="number" id="inpMasterTargetSet" value="${masterTarget}" style="width:100%; padding:6px; border:2px solid #004a99; border-radius:6px; font-weight:900; margin-bottom:6px; font-family: 'Montserrat', sans-serif;">
-
-                    <label style="display:block; font-weight:800; font-size:11px; color:#0284c7; margin-bottom:4px;">🎯 TARGET CẢ THÁNG (TR):</label>
-                    <input type="number" id="inpMonthlyTargetSet" value="${monthlyTarget}" style="width:100%; padding:6px; border:2px solid #0284c7; border-radius:6px; font-weight:900; font-family: 'Montserrat', sans-serif;">
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                        <button onclick="window.exportConfigJson()" style="background:#0284c7; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📥 XUẤT FILE</button>
-                        <label style="background:#e67e22; color:white; border:none; padding:6px; border-radius:6px; font-weight:800; font-size:11px; text-align:center; cursor:pointer; margin:0; display:flex; align-items:center; justify-content:center; position:relative; font-family: 'Montserrat', sans-serif;">
-                            📤 NHẬP FILE <input type="file" onchange="window.importConfigJson(event)" style="position:absolute; opacity:0; width:100%; height:100%; cursor:pointer;">
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">📦 Cấu hình Nhóm Ngành Hàng</div>
-                    <div style="max-height:180px; overflow-y:auto; border:1px solid #ddd; padding:8px; border-radius:8px; background:#fff;">
-                        ${checklistHtml}
-                    </div>
-                </div>
-
-                <div>
-                    <div style="font-weight:900; color:#004a99; font-size:12px; margin-bottom:6px; text-transform:uppercase;">👥 QUẢN LÝ NHÂN SỰ CỐ ĐỊNH & Ô CHỜ</div>
-                    <div style="max-height:240px; overflow-y:auto; border:1px solid #ccc; padding:8px; border-radius:8px; background:#fdfdfd; margin-bottom:8px;">
-                        <div style="font-size:11px; font-weight:900; color:#004a99; margin-bottom:6px; background:#e6f0fa; padding:4px 8px; border-radius:4px;">📌 15 NHÂN VIÊN KHÓA CỨNG</div>
-                        ${(() => {
-                            let defaultFixedNv = [
-                                { name: "249318 - Cù Huy Nam", nickname: "" },
-                                { name: "249862 - Nguyễn Hoàng Phong", nickname: "" },
-                                { name: "142524 - Nguyễn Minh Ngô", nickname: "" },
-                                { name: "13518 - Đặng Nữ Thanh Đa", nickname: "" },
-                                { name: "179274 - Lâm Trà Đăng Khoa", nickname: "" },
-                                { name: "280385 - Vũ Nguyễn Hữu Đức", nickname: "" },
-                                { name: "170242 - Nguyễn Thị Hoàng Oanh", nickname: "" },
-                                { name: "256800 - Tống Văn Út Khá", nickname: "" },
-                                { name: "70237 - Trần Công Tuấn", nickname: "" },
-                                { name: "262196 - Phạm Nguyễn Hoàng Huân", nickname: "" },
-                                { name: "43006 - Đỗ Thị Chi", nickname: "" },
-                                { name: "174960 - Vũ Thoại Uyên", nickname: "" },
-                                { name: "59971 - Bùi Thị Vân", nickname: "" },
-                                { name: "63634 - Bùi Minh Việt", nickname: "" },
-                                { name: "37349 - Lê Thị Mỹ Hằng", nickname: "" },
-                                { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }, { name: "", nickname: "" }
-                            ];
-                            let fixedNvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_fixed_nv')) || defaultFixedNv;
-                            let html = '';
-                            for (let i = 0; i < 15; i++) {
-                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
-                                html += `
-                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:${i % 2 === 0 ? '#fafafa' : '#fff'};">
-                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#004a99;">${i+1}</span>
-                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Mã - Tên nhân viên..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
-                                    </div>`;
-                            }
-                            html += `<div style="font-size:11px; font-weight:900; color:#e67e22; margin:10px 0 6px 0; background:#fdf3e6; padding:4px 8px; border-radius:4px;">🔄 5 Ô CHỜ (LINH ĐỘNG)</div>`;
-                            for (let i = 15; i < 20; i++) {
-                                let item = fixedNvConfigs[i] || { name: '', nickname: '' };
-                                html += `
-                                    <div style="display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #eee; background:#fffdf5;">
-                                        <span style="font-size:11px; font-weight:900; width:24px; text-align:center; color:#e67e22;">C${i-14}</span>
-                                        <input type="text" class="fix-nv-name" data-index="${i}" value="${item.name || ''}" placeholder="Tên ô chờ..." style="flex:1; padding:5px; font-weight:700; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                        <input type="text" class="fix-nv-nick" data-index="${i}" value="${item.nickname || ''}" placeholder="Biệt danh..." style="width:95px; padding:5px; font-weight:700; font-size:11px; text-transform:uppercase; border:1px solid #ccc; border-radius:4px;">
-                                    </div>`;
-                            }
-                            return html;
-                        })()}
-                    </div>
-                </div>
-
-                <button onclick="window.saveSettingsV31()" style="width:100%; background:#28a745; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; cursor:pointer; font-family: 'Montserrat', sans-serif; font-size:13px; margin-top:5px;">LƯU LẠI ✅</button>
-            </div>
-        `;
-        document.body.appendChild(pnl);
-    };
-
-    window.saveSettingsV31 = function() {
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-
-        let mtInput = document.getElementById('inpMasterTargetSet');
-        if (mtInput) {
-            let mt = parseFloat(mtInput.value) || 304;
-            localStorage.setItem('tamhoa_v31_masterTarget', mt);
-        }
-        let motInput = document.getElementById('inpMonthlyTargetSet');
-        if (motInput) {
-            let mot = parseFloat(motInput.value) || 13014;
-            localStorage.setItem('tamhoa_v31_monthlyTarget', mot);
-        }
-
-        document.querySelectorAll('#settings-panel-v31 .chk-item').forEach(item => {
-            let name = item.querySelector('.vis-chk').getAttribute('data-name');
-            let vis = item.querySelector('.vis-chk').checked;
-            let nick = item.querySelector('.nick-inp').value.trim().toUpperCase();
-            let stk = item.querySelector('span').innerText;
-            groupConfigs[name] = { visible: vis, sticker: stk, nickname: nick };
-        });
-        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
-
-        let fixedNvList = Array(20).fill({ name: '', nickname: '' });
-        document.querySelectorAll('#settings-panel-v31 .fix-nv-name').forEach(nameInput => {
-            let idx = parseInt(nameInput.getAttribute('data-index'));
-            let itemRow = nameInput.closest('div');
-            let nickInput = itemRow.querySelector('.fix-nv-nick');
-            fixedNvList[idx] = {
-                name: nameInput.value.trim(),
-                nickname: nickInput ? nickInput.value.trim().toUpperCase() : ''
-            };
-        });
-        localStorage.setItem('tamhoa_v32_fixed_nv', JSON.stringify(fixedNvList));
-
-        document.getElementById('settings-panel-v31').remove();
-        hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
-    };
-
-    window.openStickerPicker = function(gName) {
-        let pop = document.createElement('div');
-        pop.id = 'sticker-pop-v31';
-        pop.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:3px solid #004a99; padding:15px; border-radius:12px; z-index:2147483650; width:300px; max-height:300px; overflow-y:auto; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); font-family: 'Montserrat', sans-serif;";
-        pop.innerHTML = STICKERS.map(s => `<div style="font-size:28px; cursor:pointer; padding:5px;" onclick="window.selectSticker('${gName}', '${s}')">${s}</div>`).join('');
-        document.body.appendChild(pop);
-    };
-
-    window.selectSticker = function(gName, stk) {
-        let groupConfigs = JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {};
-        if (!groupConfigs[gName]) groupConfigs[gName] = { visible: true, sticker: "📦", nickname: "" };
-        groupConfigs[gName].sticker = stk;
-        localStorage.setItem('tamhoa_v31_configs', JSON.stringify(groupConfigs));
-        document.getElementById('sticker-pop-v31').remove();
-        window.openSettingsV31('group');
-    };
-
-    window.exportConfigJson = function() {
-        let data = {
-            target: localStorage.getItem('tamhoa_v31_masterTarget'),
-            monthlyTarget: localStorage.getItem('tamhoa_v31_monthlyTarget'),
-            configs: JSON.parse(localStorage.getItem('tamhoa_v31_configs')) || {}
-        };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-        const a = document.createElement('a');
-        a.href = dataStr;
-        a.download = `tamhoa_v31_config_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        alert("✅ Đã xuất cấu hình thành công!");
-    };
-
-    window.importConfigJson = function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if(imported.target) localStorage.setItem('tamhoa_v31_masterTarget', imported.target);
-                if(imported.monthlyTarget) localStorage.setItem('tamhoa_v31_monthlyTarget', imported.monthlyTarget);
-                if(imported.configs) localStorage.setItem('tamhoa_v31_configs', JSON.stringify(imported.configs));
-                alert("✅ Nhập cấu hình thành công! Hãy bấm Lưu lại.");
-                window.openSettingsV31('group');
-            } catch(err) { alert("❌ File lỗi hoặc sai định dạng!"); }
-        };
-        reader.readAsText(file);
     };
 
     window.captureReportImg = function() {
