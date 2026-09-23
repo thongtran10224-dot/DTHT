@@ -238,6 +238,14 @@
             return;
         }
 
+        if (mode === 'LUYKE') {
+            window.currentRawLuyKeNvList = null;
+            localStorage.removeItem('tamhoa_v32_cache_lk_nv');
+        } else {
+            window.currentRawRealtimeNvList = null;
+            localStorage.removeItem('tamhoa_v32_cache_rt_nv');
+        }
+
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
 
