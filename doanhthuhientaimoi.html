@@ -147,7 +147,7 @@
             bgStars += `<div class="star-bg-point" style="width:${size}px; height:${size}px; left:${Math.random()*100}%; top:${Math.random()*100}%; animation-delay:${Math.random()*2.5}s;"></div>`;
         }
         bgStars += '</div>';
-        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍 ĐANG ĐỔ SỐ 🤍🤍🤍<br><span style="font-size:14px; color:#ffc107; font-weight: 700;">[ ${modeText} ]</span></div>`;
+        div.innerHTML = bgStars + `<div class="rocket-container">🌟</div><div class="status-text">🤍🤍🤍🤍🤍🤍🤍🤍🤍<br><span style="font-size:14px; color:#ffc107; font-weight: 700;">[ ${modeText} ]</span></div>`;
         document.body.appendChild(div);
     }
 
@@ -253,7 +253,12 @@
         hienThiVuTruLoading(`ĐANG HÚT SỐ ${modeTitle}`);
 
         try {
-            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Xem báo cáo') && b.offsetParent !== null) || document.querySelector('button .lucide-chart-column')?.closest('button');
+            if (!xemBaoCaoBtn) {
+                let sidebarBtn = document.querySelector('button[title="Open sidebar"]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('.lucide-menu'));
+                if (sidebarBtn) { sidebarBtn.click(); await delay(800); }
+                xemBaoCaoBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Xem báo cáo') && b.offsetParent !== null) || document.querySelector('button .lucide-chart-column')?.closest('button');
+            }
             if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
 
             await clickMenu('Doanh thu hợp nhất'); await delay(1500);
@@ -293,7 +298,7 @@
                     let idx = lines.indexOf("DT quy đổi");
                     if (idx + 1 < lines.length) summaryData.dtQd = lines[idx + 1];
                 }
-                if (text.includes("Target trọn kỳ") || text.includes("% HT target")) {
+                if (mode === 'LUYKE' && (text.includes("Target trọn kỳ") || text.includes("% HT target"))) {
                     let pctLine = lines.find(l => l.endsWith('%'));
                     if (pctLine) summaryData.monthlyPct = parseFloat(pctLine.replace('%', ''));
                     let targetLine = lines.find(l => l.includes('trọn kỳ') || l.includes('13,'));
@@ -375,7 +380,17 @@
                 let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
                 if (nhanVienBtn) {
                     nhanVienBtn.click();
-                    await delay(1500);
+                    let attemptsNv = 0;
+                    while (attemptsNv < 15) {
+                        await delay(500);
+                        let rowsCheck = document.querySelectorAll('tr');
+                        let hasData = Array.from(rowsCheck).some(tr => {
+                            let cells = tr.querySelectorAll('td, th');
+                            return cells.length >= 5 && !cells[0].innerText.includes("NHÂN VIÊN") && !cells[0].innerText.includes("Tổng");
+                        });
+                        if (hasData) break;
+                        attemptsNv++;
+                    }
                     let paginationItems = document.querySelectorAll('.ant-pagination-item');
                     let rowMap = new Map();
                     const collectRows = () => {
@@ -493,8 +508,13 @@
 
         hienThiVuTruLoading("ĐANG HÚT SỐ SO SÁNH CÙNG KỲ");
 
-        try {
-            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button, a, div')).find(el => el.innerText && el.innerText.trim() === 'Xem báo cáo' && el.offsetParent !== null);
+     try {
+            let xemBaoCaoBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Xem báo cáo') && b.offsetParent !== null) || document.querySelector('button .lucide-chart-column')?.closest('button');
+            if (!xemBaoCaoBtn) {
+                let sidebarBtn = document.querySelector('button[title="Open sidebar"]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('.lucide-menu'));
+                if (sidebarBtn) { sidebarBtn.click(); await delay(800); }
+                xemBaoCaoBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Xem báo cáo') && b.offsetParent !== null) || document.querySelector('button .lucide-chart-column')?.closest('button');
+            }
             if (xemBaoCaoBtn) { xemBaoCaoBtn.click(); await delay(2000); }
 
             await clickMenu('Doanh Thu Ngành Hàng BI'); await delay(1500);
