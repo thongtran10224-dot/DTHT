@@ -381,7 +381,7 @@
                 if (nhanVienBtn) {
                     nhanVienBtn.click();
                     let attemptsNv = 0;
-                    while (attemptsNv < 15) {
+                    while (attemptsNv < 30) {
                         await delay(500);
                         let rowsCheck = document.querySelectorAll('tr');
                         let hasData = Array.from(rowsCheck).some(tr => {
