@@ -415,35 +415,35 @@
                     }
 
                     let rawList = [];
-                            let allStoredNames = [];
-                            let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
+                    let allStoredNames = [];
+                    let nvConfigs = JSON.parse(localStorage.getItem('tamhoa_v32_nv_configs')) || {};
 
-                            rowMap.forEach((tr, rawName) => {
-                                allStoredNames.push(rawName);
-                                if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
+                    rowMap.forEach((tr, rawName) => {
+                        allStoredNames.push(rawName);
+                        if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
 
-                                let cells = tr.querySelectorAll('td, th');
-                                if (cells.length >= 5) {
-                                    let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
-                                    let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
-                                    let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
-                                    let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
-                                    let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
-                                    rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
-                                }
-                            });
-                            localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
-                            localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
+                        let cells = tr.querySelectorAll('td, th');
+                        if (cells.length >= 5) {
+                            let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
+                            let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
+                            let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
+                            let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
+                            let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
+                            rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
+                        }
+                    });
+                    localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
+                    localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
 
-                            if (rawList.length > 0) {
-                                if (mode === 'LUYKE') {
-                                    window.currentRawLuyKeNvList = rawList;
-                                    localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
-                                    localStorage.setItem('tamhoa_v32_monthly_dtQd', summaryData.dtQd);
-                                } else {
-                                    window.currentRawRealtimeNvList = rawList;
-                                    localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
-                                    if (summaryData.monthlyTarget) {
+                    if (rawList.length > 0) {
+                        if (mode === 'LUYKE') {
+                            window.currentRawLuyKeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
+                            localStorage.setItem('tamhoa_v32_monthly_dtQd', (summaryData.dtQd || '').replace(/,/g, ''));
+                        } else {
+                            window.currentRawRealtimeNvList = rawList;
+                            localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
+                            if (summaryData.monthlyTarget) {
                                 localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
                             }
                             if (mode === 'LUYKE' && summaryData.monthlyPct && summaryData.monthlyTarget) {
@@ -452,10 +452,10 @@
                             } else if (!localStorage.getItem('tamhoa_v32_monthly_dtQd')) {
                                 localStorage.setItem('tamhoa_v32_monthly_dtQd', 13014 * 0.791);
                             }
-                                }
-                            }
                         }
-                    } catch(e) {}
+                    }
+                }
+            } catch (e) {}
 
             tatVuTruLoading();
             window.currentReportMode = mode;
@@ -804,12 +804,14 @@
         let isLuyKe = window.currentReportMode === 'LUYKE';
 
         let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
-        let monthlyAcc = (!isLuyKe || !localStorage.getItem('tamhoa_v32_monthly_dtQd')) ? (monthlyTargetConfig * 0.791) : parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd'));
+        let savedMonthlyAcc = parseFloat(localStorage.getItem('tamhoa_v32_monthly_dtQd'));
+        let monthlyAcc = !isNaN(savedMonthlyAcc) ? savedMonthlyAcc : (monthlyTargetConfig * 0.791);
         let now = new Date();
         let totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         let currentDay = now.getDate();
         let remainingDays = Math.max(1, totalDays - currentDay + 1);
-        let dynamicDailyTarget = lamTronTamHoa(Math.max(0, monthlyTargetConfig - monthlyAcc) / remainingDays);
+
+        let dynamicDailyTarget = lamTronTamHoa(monthlyTargetConfig / totalDays);
         let masterTarget = isLuyKe ? monthlyTargetConfig : dynamicDailyTarget;
         let dtVal = parseFloat(summaryData.dtQd.replace(/,/g, '')) || 0;
         let percentTarget = lamTronTamHoa(masterTarget > 0 ? (dtVal / masterTarget) * 100 : 0);
