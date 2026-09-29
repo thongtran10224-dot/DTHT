@@ -58,6 +58,18 @@
         return `${dd}/${mm}`;
     };
 
+// 🌟 Dán hàm thông báo nổi (Toast) vào đây:
+    const showToast = (msg) => {
+        let old = document.getElementById('th-toast-popup');
+        if (old) old.remove();
+        let toast = document.createElement('div');
+        toast.id = 'th-toast-popup';
+        toast.innerText = msg;
+        toast.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.9); color:#ffc107; padding:12px 24px; border-radius:8px; font-weight:900; font-size:14px; z-index:2147483647; font-family:"Montserrat", sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.3); border:2px solid #ffc107; text-align:center;';
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 1500);
+    };
+
     // Hàm lấy icon trạng thái 4 cấp cho nhóm ngành hàng
     const getGroupIcon = (pVal) => {
         let p = lamTronTamHoa(pVal);
@@ -608,39 +620,46 @@
 
         let div = document.createElement('div');
         div.id = 'dtht-cungky-overlay';
-        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding: 20px 10px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; padding:10px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
 
         div.innerHTML = `
-            <div style="width:100%; max-width:720px; margin:0 auto; background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h2 style="margin:0; color:#004a99; font-weight:900; font-size:16px;">📊 SO SÁNH CÙNG KỲ (BI)</h2>
-                    <button onclick="document.getElementById('dtht-cungky-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
-                </div>
+            <style>
+                #cungkyText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 200px; flex-shrink: 0; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width: 100%; line-height: 1.5; resize: none; font-family: 'Montserrat', sans-serif; }
+                .th-container { width: 100%; max-width: 680px; height: 95dvh; display: flex; flex-direction: column; }
+            </style>
+            <div class="th-container">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; height:100%; overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
+                        <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">📊 SO SÁNH CÙNG KỲ (BI)</h2>
+                        <button onclick="document.getElementById('dtht-cungky-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
+                    </div>
 
-                <div id="capture-zone-cungky" style="background:#f0f2f5; padding:12px; border-radius:12px; border:2px solid #004a99; overflow-x:auto;">
-                    <div style="text-align: center; color: #fff; background: #004a99; padding: 8px; font-size: 14px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">📈 BẢNG CHI TIẾT SO SÁNH CÙNG KỲ</div>
-                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
-                        <thead>
-                            <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
-                                <th style="padding:8px 6px; text-align:left;">Nhóm hàng</th>
-                                <th style="padding:8px 6px; text-align:right;">SL</th>
-                                <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
-                                <th style="padding:8px 6px; text-align:right;">+/- Tiền</th>
-                                <th style="padding:8px 6px; text-align:right;">% TT</th>
-                                <th style="padding:8px 6px; text-align:right;">Đơn Giá</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                    <div style="flex:1; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column;">
+                        <div id="capture-zone-cungky" style="background:#f0f2f5; padding:15px; border-radius:12px; border:2px solid #004a99;">
+                            <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase;">📈 BẢNG CHI TIẾT SO SÁNH CÙNG KỲ</div>
+                            <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                                <thead>
+                                    <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                        <th style="padding:8px 6px; text-align:left;">Nhóm hàng</th>
+                                        <th style="padding:8px 6px; text-align:right;">SL</th>
+                                        <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                        <th style="padding:8px 6px; text-align:right;">+/- Tiền</th>
+                                        <th style="padding:8px 6px; text-align:right;">% TT</th>
+                                        <th style="padding:8px 6px; text-align:right;">Đơn Giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                        <textarea id="cungkyText" readonly></textarea>
+                    </div>
 
-                <textarea id="cungkyText" readonly style="background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 140px; margin-top: 15px; font-size: 12px; padding: 10px; border-radius: 8px; width: 100%; line-height: 1.4; resize: none; font-family: 'Montserrat', sans-serif;"></textarea>
-
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button onclick="window.copyCungKyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
-                    <button onclick="window.captureCungKyImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH CÙNG KỲ</button>
+                    <div style="display:flex; gap:10px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
+                        <button onclick="window.copyCungKyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
+                        <button onclick="window.captureCungKyImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH CÙNG KỲ</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -745,17 +764,6 @@
 
         let txtArea = document.getElementById('cungkyText');
         if (txtArea) txtArea.value = txt.trim();
-    };
-
-    window.copyCungKyTextReport = function() {
-        const textarea = document.getElementById('cungkyText');
-        if (!textarea) return;
-        textarea.select();
-        textarea.setSelectionRange(0, 99999);
-        try {
-            document.execCommand('copy');
-            alert("✅ Đã Copy báo cáo Cùng kỳ chuẩn Zalo!");
-        } catch (err) { alert("❌ Lỗi Copy!"); }
     };
 
     window.captureCungKyImg = function() {
@@ -930,11 +938,11 @@
 
         let div = document.createElement('div');
         div.id = 'dtht-commander-overlay';
-        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); overflow-y:auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
+        div.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100dvh; z-index:2147483645; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; padding:10px; box-sizing: border-box; font-family: 'Montserrat', sans-serif;";
 
         const cssGoc = `
             * { box-sizing: border-box; font-family: 'Montserrat', sans-serif !important; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-            .th-container { padding: 10px; width: 100%; max-width: 680px; margin: 20px auto; position:relative; }
+            .th-container { width: 100%; max-width: 680px; height: 95dvh; display: flex; flex-direction: column; }
             .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
             .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
             .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
@@ -943,7 +951,7 @@
             .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
             .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
             .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
-            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 160px; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
+            #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 200px; flex-shrink: 0; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
         `;
 
         // RENDER BẢNG NGÀNH HÀNG
@@ -1008,64 +1016,65 @@
         div.innerHTML = `
             <style>${cssGoc}</style>
             <div class="th-container">
-                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="background:#fff; padding:15px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; height:100%; overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
                         <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
                         </div>
                     </div>
 
-                    ${viewSwitchHtml}
-                    <div id="capture-zone">
-                        ${headerStatsHtml}
-                        ${window.currentCommanderView === 'nv' ? (() => {
-                            if (targetNvList.length === 0) {
-                                return `<div style="text-align:center; padding:30px; color:#666; font-weight:800; font-size:12px;">⚠️ Đang lấy dữ liệu nhân sự hoặc chưa nạp bảng.<br>Vui lòng tắt bảng và bấm lại nút Chạy báo cáo chính để hệ thống quét lại nhé!</div>`;
-                            }
-                            let nvRowsHtml = '';
-                            targetNvList.forEach((nv, index) => {
-                                let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
-                                let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
-                                let rankStyle = index < 3 ? 'font-size:20px; text-align:center;' : 'font-size:13px; font-weight:900; text-align:center; color:#333;';
-                                nvRowsHtml += `
-                                    <tr style="background:${rowBg}; font-size:13px;">
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dtTg)}</td>
-                                        <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900;">${nv.pctTg}</td>
-                                    </tr>
-                                `;
-                            });
-                            // Tiêu đề Doanh thu nhân viên realtime cùng 1 dòng
-                            let titleNvLabel = isLuyKe ? `🏆 DOANH THU NHÂN VIÊN LŨY KẾ ĐẾN NGÀY ${layNgayHienTai()}` : `🏆 DOANH THU NHÂN VIÊN HIỆN TẠI - ${dateTimeReal}`;
-                            return `
-                                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase; line-height: 1.4;">${titleNvLabel}</div>
-                                <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
-                                    <thead>
-                                        <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
-                                            <th style="padding:8px 6px; text-align:center; width:45px;">Top</th>
-                                            <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
-                                            <th style="padding:8px 6px; text-align:right;">SL</th>
-                                            <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
-                                            <th style="padding:8px 6px; text-align:right;">DT</th>
-                                            <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
-                                            <th style="padding:8px 6px; text-align:right;">%TG</th>
+                    <div style="flex:1; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column;">
+                        ${viewSwitchHtml}
+                        <div id="capture-zone">
+                            ${headerStatsHtml}
+                            ${window.currentCommanderView === 'nv' ? (() => {
+                                if (targetNvList.length === 0) {
+                                    return `<div style="text-align:center; padding:30px; color:#666; font-weight:800; font-size:12px;">⚠️ Đang lấy dữ liệu nhân sự hoặc chưa nạp bảng.<br>Vui lòng tắt bảng và bấm lại nút Chạy báo cáo chính để hệ thống quét lại nhé!</div>`;
+                                }
+                                let nvRowsHtml = '';
+                                targetNvList.forEach((nv, index) => {
+                                    let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
+                                    let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
+                                    let rankStyle = index < 3 ? 'font-size:20px; text-align:center;' : 'font-size:13px; font-weight:900; text-align:center; color:#333;';
+                                    nvRowsHtml += `
+                                        <tr style="background:${rowBg}; font-size:13px;">
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dtTg)}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900;">${nv.pctTg}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${nvRowsHtml}
-                                    </tbody>
-                                </table>
-                            `;
-                        })() : groupTableHtml}
+                                    `;
+                                });
+                                let titleNvLabel = isLuyKe ? `🏆 DOANH THU NHÂN VIÊN LŨY KẾ ĐẾN NGÀY ${layNgayHienTai()}` : `🏆 DOANH THU NHÂN VIÊN HIỆN TẠI - ${dateTimeReal}`;
+                                return `
+                                    <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase; line-height: 1.4;">${titleNvLabel}</div>
+                                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                                        <thead>
+                                            <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                                                <th style="padding:8px 6px; text-align:center; width:45px;">Top</th>
+                                                <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
+                                                <th style="padding:8px 6px; text-align:right;">SL</th>
+                                                <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                                                <th style="padding:8px 6px; text-align:right;">DT</th>
+                                                <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
+                                                <th style="padding:8px 6px; text-align:right;">%TG</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${nvRowsHtml}
+                                        </tbody>
+                                    </table>
+                                `;
+                            })() : groupTableHtml}
+                        </div>
+                        <textarea id="lienText" readonly></textarea>
                     </div>
-                    <textarea id="lienText" readonly></textarea>
 
-                    <div style="display:flex; gap:10px; margin-top:15px;">
+                    <div style="display:flex; gap:10px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
                         <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
                         <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
                     </div>
@@ -1282,8 +1291,19 @@
         textarea.setSelectionRange(0, 99999);
         try {
             document.execCommand('copy');
-            alert("✅ Đã Copy báo cáo text chuẩn Zalo!");
-        } catch (err) { alert("Lỗi Copy!"); }
+            showToast("✅ Đã Copy báo cáo text chuẩn Zalo!");
+        } catch (err) { showToast("❌ Lỗi Copy!"); }
+    };
+
+    window.copyCungKyTextReport = function() {
+        const textarea = document.getElementById('cungkyText');
+        if (!textarea) return;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            showToast("✅ Đã Copy báo cáo Cùng kỳ chuẩn Zalo!");
+        } catch (err) { showToast("❌ Lỗi Copy!"); }
     };
 
     setTimeout(() => {
