@@ -319,8 +319,8 @@
                         if (numMatch) summaryData.monthlyTarget = parseFloat(numMatch[0].replace(/,/g, ''));
                     }
                 }
-                if (lines.includes("Tỉ trọng trả góp")) {
-                    let idx = lines.indexOf("Tỉ trọng trả góp");
+                if (lines.includes("Tỉ trọng trả góp") || lines.includes("Tỷ trọng trả chậm")) {
+                    let idx = lines.includes("Tỷ trọng trả chậm") ? lines.indexOf("Tỷ trọng trả chậm") : lines.indexOf("Tỉ trọng trả góp");
                     if (idx + 1 < lines.length) summaryData.tiTrongTraGop = lines[idx + 1];
                 }
                 if (lines.includes("DT dự kiến")) {
