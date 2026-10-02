@@ -311,12 +311,20 @@
                     if (idx + 1 < lines.length) summaryData.dtQd = lines[idx + 1];
                 }
                 if (mode === 'LUYKE' && (text.includes("Target trọn kỳ") || text.includes("% HT target"))) {
-                    let pctLine = lines.find(l => l.endsWith('%'));
-                    if (pctLine) summaryData.monthlyPct = parseFloat(pctLine.replace('%', ''));
-                    let targetLine = lines.find(l => l.includes('trọn kỳ') || l.includes('13,'));
+                    let pctLine = lines.find(l => l.includes('%'));
+                    if (pctLine) {
+                        let pMatch = pctLine.match(/([\d\.]+)%/);
+                        if (pMatch) summaryData.monthlyPct = parseFloat(pMatch[1]);
+                    }
+                    let targetLine = lines.find(l => l.includes('trọn kỳ'));
                     if (targetLine) {
-                        let numMatch = targetLine.match(/([\d,\.]+)/);
-                        if (numMatch) summaryData.monthlyTarget = parseFloat(numMatch[0].replace(/,/g, ''));
+                        let parts = targetLine.split('trọn kỳ');
+                        if (parts.length > 1) {
+                            let numMatch = parts[1].match(/([\d,\.]+)/);
+                            if (numMatch) {
+                                summaryData.monthlyTarget = parseFloat(numMatch[1].replace(/,/g, ''));
+                            }
+                        }
                     }
                 }
                 if (lines.includes("Tỉ trọng trả góp") || lines.includes("Tỷ trọng trả chậm")) {
@@ -447,12 +455,13 @@
                     localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
                     localStorage.setItem('tamhoa_v32_all_nv_names', JSON.stringify(allStoredNames));
 
-                    if (rawList.length > 0) {
-                        if (mode === 'LUYKE') {
-                            window.currentRawLuyKeNvList = rawList;
-                            localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
-                            localStorage.setItem('tamhoa_v32_monthly_dtQd', (summaryData.dtQd || '').replace(/,/g, ''));
-                        } else {
+                    if (mode === 'LUYKE') {
+                        window.currentRawLuyKeNvList = rawList;
+                        localStorage.setItem('tamhoa_v32_cache_lk_nv', JSON.stringify(rawList));
+                        localStorage.setItem('tamhoa_v32_monthly_dtQd', (summaryData.dtQd || '').replace(/,/g, ''));
+                        if (summaryData.monthlyTarget) {
+                            localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
+                    } else {
                             window.currentRawRealtimeNvList = rawList;
                             localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
                             if (summaryData.monthlyTarget) {
