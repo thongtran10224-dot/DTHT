@@ -397,16 +397,20 @@
 
             // Cào dữ liệu nhân sự ngầm & lưu cache an toàn đa máy
             try {
-                let nhanVienBtn = Array.from(document.querySelectorAll('button, span, div')).find(el => el.innerText && el.innerText.trim() === 'Nhân viên' && el.offsetParent !== null);
+                // Định vị chuẩn nút tab Nhân viên trên thanh ngang (tránh quét nhầm menu bên trái)
+                let nhanVienBtn = Array.from(document.querySelectorAll('button, div, span')).find(el => {
+                    let text = (el.innerText || '').trim();
+                    return text === 'Nhân viên' && el.offsetParent !== null && (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'SPAN');
+                });
                 if (nhanVienBtn) {
                     nhanVienBtn.click();
                     let attemptsNv = 0;
                     while (attemptsNv < 30) {
                         await delay(500);
-                        let rowsCheck = document.querySelectorAll('tr');
+                        let rowsCheck = document.querySelectorAll('.ant-table-tbody tr, tr');
                         let hasData = Array.from(rowsCheck).some(tr => {
-                            let cells = tr.querySelectorAll('td, th');
-                            return cells.length >= 5 && !cells[0].innerText.includes("NHÂN VIÊN") && !cells[0].innerText.includes("Tổng");
+                            let cells = tr.querySelectorAll('td');
+                            return cells.length >= 4 && !tr.innerText.includes("NHÂN VIÊN") && !tr.innerText.includes("Tổng");
                         });
                         if (hasData) break;
                         attemptsNv++;
@@ -414,11 +418,11 @@
                     let paginationItems = document.querySelectorAll('.ant-pagination-item');
                     let rowMap = new Map();
                     const collectRows = () => {
-                        document.querySelectorAll('tr').forEach(tr => {
-                            let cells = tr.querySelectorAll('td, th');
-                            if (cells.length < 5) return;
+                        document.querySelectorAll('.ant-table-tbody tr, tr').forEach(tr => {
+                            let cells = tr.querySelectorAll('td');
+                            if (cells.length < 4) return;
                             let rawName = cells[0].innerText.trim();
-                            if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng")) return;
+                            if (!rawName || rawName.includes("NHÂN VIÊN") || rawName.includes("Tổng") || rawName.includes("Top")) return;
                             if (!rowMap.has(rawName)) rowMap.set(rawName, tr);
                         });
                     };
@@ -442,12 +446,13 @@
                         allStoredNames.push(rawName);
                         if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
 
-                        let cells = tr.querySelectorAll('td, th');
-                        if (cells.length >= 5) {
-                            let sl = parseFloat(cells[1]?.innerText.replace(/,/g, '')) || 0;
-                            let dtQd = parseFloat(cells[2]?.innerText.replace(/,/g, '')) || 0;
-                            let dt = parseFloat(cells[4]?.innerText.replace(/,/g, '')) || 0;
-                            let dtTg = parseFloat(cells[cells.length - 2]?.innerText.replace(/,/g, '')) || 0;
+                        let cells = tr.querySelectorAll('td');
+                        if (cells.length >= 4) {
+                            let cellTexts = Array.from(cells).map(c => c.innerText.replace(/,/g, '').trim());
+                            let sl = parseFloat(cellTexts[1]) || 0;
+                            let dtQd = parseFloat(cellTexts[2]) || 0;
+                            let dt = parseFloat(cellTexts[3]) || 0;
+                            let dtTg = parseFloat(cellTexts[cellTexts.length - 2]) || 0;
                             let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
                             rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
                         }
@@ -461,21 +466,19 @@
                         localStorage.setItem('tamhoa_v32_monthly_dtQd', (summaryData.dtQd || '').replace(/,/g, ''));
                         if (summaryData.monthlyTarget) {
                             localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
+                        }
+                        if (summaryData.monthlyPct && summaryData.monthlyTarget) {
+                            let acc = summaryData.monthlyTarget * (summaryData.monthlyPct / 100);
+                            localStorage.setItem('tamhoa_v32_monthly_dtQd', acc);
+                        }
                     } else {
-                            window.currentRawRealtimeNvList = rawList;
-                            localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
-                            if (summaryData.monthlyTarget) {
-                                localStorage.setItem('tamhoa_v31_monthlyTarget', summaryData.monthlyTarget);
-                            }
-                            if (mode === 'LUYKE' && summaryData.monthlyPct && summaryData.monthlyTarget) {
-                                let acc = summaryData.monthlyTarget * (summaryData.monthlyPct / 100);
-                                localStorage.setItem('tamhoa_v32_monthly_dtQd', acc);
-                            } else if (!localStorage.getItem('tamhoa_v32_monthly_dtQd')) {
-                                localStorage.setItem('tamhoa_v32_monthly_dtQd', 13014 * 0.791);
-                            }
+                        window.currentRawRealtimeNvList = rawList;
+                        localStorage.setItem('tamhoa_v32_cache_rt_nv', JSON.stringify(rawList));
+                        if (!localStorage.getItem('tamhoa_v32_monthly_dtQd')) {
+                            localStorage.setItem('tamhoa_v32_monthly_dtQd', 13014 * 0.791);
                         }
                     }
-                }
+}
             } catch (e) {}
 
             tatVuTruLoading();
