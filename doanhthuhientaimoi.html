@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.9.1 PRO
+// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.9 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.9.1
-// @description Bản chuẩn V32.9.1: Đồng bộ tiêu đề Doanh thu hiện tại/Nhân viên, thay icon nhóm chat bằng 4 tầng trạng thái thực chiến.
+// @version     32.9
+// @description Bản chuẩn V32.9: Đồng bộ tiêu đề Doanh thu hiện tại/Nhân viên, thay icon nhóm chat bằng 4 tầng trạng thái thực chiến.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -174,7 +174,7 @@
         let btn = document.createElement('button');
         btn.id = 'btn-immortal-menu';
         btn.innerHTML = '📊';
-        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
+        btn.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:2147483646; width:55px; height:55px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:26px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
         btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
         btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
         btn.onclick = hienThiMenuChinh;
@@ -1086,14 +1086,15 @@
                         <textarea id="lienText" readonly></textarea>
                     </div>
 
-                    <div style="display:flex; gap:10px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
-                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
-                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
-                    </div>
+                    <div style="display:flex; gap:8px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
+                    <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 13px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY</button>
+                    <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 13px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 1 BẢNG</button>
+                    <button onclick="window.captureBothImg()" style="flex:1; background:#8e44ad; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 13px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 DT+NV</button>
                 </div>
             </div>
-        `;
-        document.body.appendChild(div);
+        </div>
+    `;
+    document.body.appendChild(div);
 
         if (window.capNhatGioChot) window.capNhatGioChot();
         if (window.realtimeClockTimer) clearInterval(window.realtimeClockTimer);
@@ -1278,7 +1279,6 @@
             ignoreElements: (element) => {
                 if (element.tagName === 'STYLE' || element.tagName === 'LINK') {
                     if (element.id === 'font-montserrat') return false;
-                    if (element.innerHTML && element.innerHTML.includes('th-container')) return false;
                     return true;
                 }
                 return false;
@@ -1294,6 +1294,56 @@
             alert("❌ Lỗi chụp ảnh: " + err.message);
             btn.innerText = oldText;
         });
+    };
+
+    window.captureBothImg = async function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP 2 BẢNG...";
+
+        try {
+            window.currentCommanderView = 'groups';
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+            await delay(600);
+
+            let zone1 = document.getElementById('capture-zone');
+            let isLuyKe = window.currentReportMode === 'LUYKE';
+            let dateStr = new Date().toISOString().slice(0,10);
+            let fileName1 = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+
+            let canvas1 = await window.html2canvas(zone1, {
+                scale: 3, useCORS: true, backgroundColor: "#f0f2f5",
+                ignoreElements: (el) => (el.tagName === 'STYLE' || el.tagName === 'LINK') && el.id !== 'font-montserrat'
+            });
+            const link1 = document.createElement('a');
+            link1.download = fileName1;
+            link1.href = canvas1.toDataURL("image/png");
+            link1.click();
+
+            await delay(1000);
+
+            window.currentCommanderView = 'nv';
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+            await delay(600);
+
+            let zone2 = document.getElementById('capture-zone');
+            let fileName2 = isLuyKe ? `LUYKE_NV_${dateStr}.png` : `REALTIME_NV_${dateStr}.png`;
+
+            let canvas2 = await window.html2canvas(zone2, {
+                scale: 3, useCORS: true, backgroundColor: "#f0f2f5",
+                ignoreElements: (el) => (el.tagName === 'STYLE' || el.tagName === 'LINK') && el.id !== 'font-montserrat'
+            });
+            const link2 = document.createElement('a');
+            link2.download = fileName2;
+            link2.href = canvas2.toDataURL("image/png");
+            link2.click();
+
+            btn.innerText = "✅ XONG CẢ 2!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        } catch (err) {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        }
     };
 
     window.copyTextReport = function() {
