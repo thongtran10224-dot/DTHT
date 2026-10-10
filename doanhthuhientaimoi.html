@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        🚀 SIÊU TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.9.3 PRO
+// @name        🚀TOOL TAM HÒA - REALTIME, LŨY KẾ & SO SÁNH CÙNG KỲ V32.9.5 PRO
 // @namespace   http://tampermonkey.net/
-// @version     32.9.3
-// @description Bản chuẩn V32.9.3: Đồng bộ tiêu đề Doanh thu hiện tại/Nhân viên, thay icon nhóm chat bằng 4 tầng trạng thái thực chiến.
+// @version     32.9.5
+// @description Bản chuẩn V32.9.5: Tách dải nút chọn ca ra ngoài vùng chụp để khắc phục triệt để lỗi cắt cụt đầu ảnh.
 // @match       *://baocao.dienmayxanh.com/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant       none
@@ -58,7 +58,6 @@
         return `${dd}/${mm}`;
     };
 
-// 🌟 Dán hàm thông báo nổi (Toast) vào đây:
     const showToast = (msg) => {
         let old = document.getElementById('th-toast-popup');
         if (old) old.remove();
@@ -70,16 +69,14 @@
         setTimeout(() => { toast.remove(); }, 1500);
     };
 
-    // Hàm lấy icon trạng thái 4 cấp cho nhóm ngành hàng
     const getGroupIcon = (pVal) => {
         let p = lamTronTamHoa(pVal);
-        if (p >= 100) return '🏁'; // Về đích
-        if (p >= 70) return '🏃‍♂️'; // Tăng tốc
-        if (p >= 40) return '⚠️'; // Cảnh báo
-        return '🚨'; // Báo động
+        if (p >= 100) return '🏁';
+        if (p >= 70) return '🏃‍♂️';
+        if (p >= 40) return '⚠️';
+        return '🚨';
     };
 
-    // Bộ từ điển rút gọn thông minh (Smart Alias) chống tràn viền trên iPhone
     const rutGonTenNhom = (name) => {
         if (!name) return '';
         let upper = name.trim();
@@ -128,9 +125,6 @@
         }
     };
 
-    // =========================================================================
-    // 1. MÀN HÌNH CHỜ & MENU ĐIỀU HƯỚNG CHÍNH
-    // =========================================================================
     let rocketInterval = null;
 
     function hienThiVuTruLoading(modeText = "ĐANG KẾT NỐI BI") {
@@ -174,7 +168,7 @@
         let btn = document.createElement('button');
         btn.id = 'btn-immortal-menu';
         btn.innerHTML = '📊';
-        btn.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
+        btn.style.cssText = 'position:fixed; bottom:80px; left:50%; transform:translateX(-50%); z-index:2147483646; width:60px; height:60px; background:linear-gradient(135deg, #004a99, #0066cc); color:white; font-weight:900; font-size:28px; border:3px solid #ffc107; border-radius:50%; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; transition: 0.3s; font-family: "Montserrat", sans-serif;';
         btn.onmouseover = () => btn.style.transform = "translateX(-50%) scale(1.1)";
         btn.onmouseout = () => btn.style.transform = "translateX(-50%) scale(1)";
         btn.onclick = hienThiMenuChinh;
@@ -239,9 +233,6 @@
         return false;
     };
 
-    // =========================================================================
-    // 2. LUỒNG REALTIME & LŨY KẾ
-    // =========================================================================
     window.startFSM = async (mode = 'REALTIME') => {
         let currentUrl = window.location.href.split('?')[0];
         if (currentUrl !== 'https://baocao.dienmayxanh.com/' && currentUrl !== 'https://baocao.dienmayxanh.com') {
@@ -395,9 +386,7 @@
                 return (pB || 0) - (pA || 0);
             });
 
-            // Cào dữ liệu nhân sự ngầm & lưu cache an toàn đa máy
             try {
-                // Định vị chuẩn nút tab Nhân viên trên thanh ngang (tránh quét nhầm menu bên trái)
                 let nhanVienBtn = Array.from(document.querySelectorAll('button, div, span')).find(el => {
                     let text = (el.innerText || '').trim();
                     return text === 'Nhân viên' && el.offsetParent !== null && (el.tagName === 'BUTTON' || el.tagName === 'DIV' || el.tagName === 'SPAN');
@@ -415,6 +404,14 @@
                         if (hasData) break;
                         attemptsNv++;
                     }
+
+                    // 🧠 Tự động kiểm tra và bật nút "Trả góp" nếu chưa được tick
+                    let traGopBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Trả góp') && b.offsetParent !== null);
+                    if (traGopBtn && !traGopBtn.innerText.includes('✓')) {
+                        traGopBtn.click();
+                        await delay(1500); // Chờ hệ thống BI load xong số liệu trả góp
+                    }
+
                     let paginationItems = document.querySelectorAll('.ant-pagination-item');
                     let rowMap = new Map();
                     const collectRows = () => {
@@ -447,14 +444,16 @@
                         if (!nvConfigs[rawName]) nvConfigs[rawName] = { visible: true, nickname: '' };
 
                         let cells = tr.querySelectorAll('td');
-                        if (cells.length >= 4) {
+                        if (cells.length >= 5) {
                             let cellTexts = Array.from(cells).map(c => c.innerText.replace(/,/g, '').trim());
                             let sl = parseFloat(cellTexts[1]) || 0;
                             let dtQd = parseFloat(cellTexts[2]) || 0;
-                            let dt = parseFloat(cellTexts[3]) || 0;
-                            let dtTg = parseFloat(cellTexts[cellTexts.length - 2]) || 0;
+                            let dt = parseFloat(cellTexts[4]) || 0;
+                            let dtTg = parseFloat(cellTexts[7]) || 0;
                             let pctTg = cells[cells.length - 1]?.innerText.trim() || '0%';
-                            rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg });
+                            let donGia = sl > 0 ? (dtQd / sl) : 0;
+
+                            rawList.push({ rawName, sl, dtQd, dt, dtTg, pctTg, donGia });
                         }
                     });
                     localStorage.setItem('tamhoa_v32_nv_configs', JSON.stringify(nvConfigs));
@@ -478,11 +477,12 @@
                             localStorage.setItem('tamhoa_v32_monthly_dtQd', 13014 * 0.791);
                         }
                     }
-}
+                }
             } catch (e) {}
 
             tatVuTruLoading();
             window.currentReportMode = mode;
+            localStorage.setItem('tamhoa_current_report_mode', mode);
             hienThiCommanderPanel(summaryData, groups);
         } catch (error) {
             tatVuTruLoading();
@@ -523,16 +523,13 @@
         });
     };
 
-    // =========================================================================
-    // 3. MODULE SO SÁNH CÙNG KỲ (GIỮ NGUYÊN GỐC)
-    // =========================================================================
     window.startFSMCungKy = async () => {
         let oldPanel = document.getElementById('dtht-cungky-overlay');
         if (oldPanel) oldPanel.remove();
 
         hienThiVuTruLoading("ĐANG HÚT SỐ SO SÁNH CÙNG KỲ");
 
-     try {
+        try {
             let xemBaoCaoBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Xem báo cáo') && b.offsetParent !== null) || document.querySelector('button .lucide-chart-column')?.closest('button');
             if (!xemBaoCaoBtn) {
                 let sidebarBtn = document.querySelector('button[title="Open sidebar"]') || Array.from(document.querySelectorAll('button')).find(b => b.querySelector('.lucide-menu'));
@@ -751,7 +748,7 @@
             else if (lowerName.includes("phụ kiện") || lowerName.includes("đồng hồ")) sticker = "⌚";
             else if (lowerName.includes("avapos")) sticker = "💳";
             else if (lowerName.includes("điện tử")) sticker = "📺";
-            else if (lowerName.includes("tủ lạnh") || lowerName.includes("đông") || lowerName.includes("mát")) sticker = "❄️";
+            else if (lowerName.includes("tủ lạnh") || lowerName.includes("đông") || lowerName.includes("mát")) sticker = "❄";
             else if (lowerName.includes("máy giặt") || lowerName.includes("sấy")) sticker = "🧺";
             else if (lowerName.includes("máy lạnh") || lowerName.includes("nước nóng")) sticker = "❄️";
             else if (lowerName.includes("gia dụng")) sticker = "🍳";
@@ -811,9 +808,6 @@
         });
     };
 
-    // =========================================================================
-    // 4. RENDER GIAO DIỆN REALTIME & LŨY KẾ
-    // =========================================================================
     const hienThiCommanderPanel = (summaryData, groups) => {
         let oldPanel = document.getElementById('dtht-commander-overlay');
         if (oldPanel) oldPanel.remove();
@@ -821,6 +815,7 @@
         window.currentParsedGroups = groups;
         window.currentSummaryData = summaryData;
         window.currentTimeMode = window.currentTimeMode || 'now';
+        window.currentReportMode = window.currentReportMode || localStorage.getItem('tamhoa_current_report_mode') || 'REALTIME';
         let isLuyKe = window.currentReportMode === 'LUYKE';
 
         let monthlyTargetConfig = parseFloat(localStorage.getItem('tamhoa_v31_monthlyTarget')) || 13014;
@@ -878,7 +873,7 @@
             else nv.tier = 'red';
         });
 
-       let groupButtonLabel = isLuyKe ? "💲 DOANH THU LŨY KẾ" : "💲 DOANH THU NGÀY";
+        let groupButtonLabel = isLuyKe ? "💲 DOANH THU LŨY KẾ" : "💲 DOANH THU NGÀY";
         let nvButtonLabel = isLuyKe ? `👨‍💼 DOANH THU NHÂN VIÊN LŨY KẾ` : `👨‍💼 DOANH THU NHÂN VIÊN REALTIME`;
 
         let viewSwitchHtml = `
@@ -888,12 +883,22 @@
             </div>
         `;
 
-        // 4 Ô THỐNG KÊ VÀ TIÊU ĐỀ DOANH THU HIỆN TẠI / LŨY KẾ
+        let timeModeHtml = '';
+        if (!isLuyKe && window.currentCommanderView !== 'nv') {
+            timeModeHtml = `
+                <div class="mode-group" id="timeModeGroup" style="display: flex; gap: 4px; margin-bottom: 10px;" data-html2canvas-ignore="true">
+                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
+                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
+                </div>
+            `;
+        }
+
         if (isLuyKe) {
             headerStatsHtml = `
                 <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🚀 BÁO CÁO LŨY KẾ THÁNG ĐẾN NGÀY ${layNgayHienTai()}</div>
-                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="stat-box" style="grid-column: span 2;">
+                <div class="stats-grid">
+                    <div class="stat-box full">
                         <div class="stat-label">LŨY KẾ / TARGET (TR)</div>
                         <div class="stat-val">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)} <span style="color:${luyKeColor}; font-size:20px; font-weight:900;">(${percentLuyKe}%)</span></div>
                     </div>
@@ -917,16 +922,11 @@
             `;
         } else {
             headerStatsHtml = `
-                <div class="mode-group" id="timeModeGroup" data-html2canvas-ignore="true">
-                    <button class="mode-btn ${window.currentTimeMode === 'now' ? 'active' : ''}" onclick="window.setTimeMode('now', this)">🔥 HIỆN TẠI</button>
-                    <button class="mode-btn ${window.currentTimeMode === 'morning' ? 'active' : ''}" onclick="window.setTimeMode('morning', this)">☀️ CA SÁNG</button>
-                    <button class="mode-btn ${window.currentTimeMode === 'end' ? 'active' : ''}" onclick="window.setTimeMode('end', this)">🏁 CUỐI NGÀY</button>
-                </div>
                 <div id="realtime-header" style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 15px; font-weight: 900; border-radius: 8px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">⏰ DOANH THU HIỆN TẠI --:-- ${layNgayHienTai()}</div>
-                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-label">THỰC / TARGET (TR)</div>
-                        <div class="stat-val" style="color:#d35400;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
+                        <div class="stat-val" style="color:#d35400; font-size: 22px !important;">${lamTronTamHoa(dtVal)} / ${lamTronTamHoa(masterTarget)}</div>
                     </div>
                     <div class="stat-box" style="background:${percentTarget >= 100 ? '#e8f8f5' : '#fff'}">
                         <div class="stat-label">% ĐẠT</div>
@@ -958,15 +958,15 @@
             .mode-group { display: flex; gap: 4px; margin-bottom: 10px; }
             .mode-btn { flex: 1; padding: 10px 2px; border: 2px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-weight: 800; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
             .mode-btn.active { background: #004a99; color: white; border-color: #004a99; }
-            #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; }
-            .stats-grid { display: grid; gap: 8px; margin-bottom: 15px; }
-            .stat-box { background: #fff; padding: 15px 10px; border-radius: 12px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; }
-            .stat-label { font-size: 11px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 4px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
-            .stat-val { font-size: 26px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
+            #capture-zone { background: #f0f2f5; padding: 15px; border-radius: 12px; border: 2px solid #004a99; width: 100%; box-sizing: border-box; }
+            .stats-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; width: 100%; }
+            .stat-box { background: #fff; padding: 12px 8px; border-radius: 10px; border: 2px solid #004a99; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: center; width: calc(50% - 4px); box-sizing: border-box; }
+            .stat-box.full { width: 100%; }
+            .stat-label { font-size: 10px; font-weight: 800 !important; color: #000 !important; text-transform: uppercase; margin-bottom: 2px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); }
+            .stat-val { font-size: 24px !important; font-weight: 900 !important; color: #004a99; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1); line-height: 1.2; letter-spacing: -0.5px; }
             #lienText { background: #fffbe6; border: 2px dashed #004a99; font-weight: 700; height: 200px; flex-shrink: 0; margin-top: 15px; font-size: 13px; padding: 10px; border-radius: 8px; width:100%; line-height: 1.5; resize:none; font-family: 'Montserrat', sans-serif;}
         `;
 
-        // RENDER BẢNG NGÀNH HÀNG
         let tableRowsHtml = '';
         groups.forEach((g, index) => {
             let fName = rutGonTenNhom(g.name);
@@ -992,7 +992,7 @@
             tableRowsHtml += `
                 <tr style="background:${rowBg}; font-size:12px;">
                     <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:center; font-weight:900; color:#000;">${index + 1}</td>
-                    <td style="padding:8px 6px; border-bottom:1px solid #eee; font-weight:800; color:#111; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${fName}</td>
+                    <td style="padding:8px 6px; border-bottom:1px solid #eee; font-weight:800; color:#111; text-transform:uppercase;">${fName}</td>
                     <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; font-weight:800;">${formatMoney(tDisp)}</td>
                     <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; font-weight:900; color:#004a99;">${formatMoney(rDisp)}</td>
                     <td style="padding:8px 6px; border-bottom:1px solid #eee; text-align:right; ${pCl}">${pRounded}%</td>
@@ -1032,12 +1032,14 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-shrink:0;">
                         <h2 style="margin:0; color:#004a99; font-weight:900; font-size:18px;">🚀 ĐIỀU KHIỂN XUẤT ẢNH</h2>
                         <div style="display:flex; gap:8px;">
+                            <button onclick="document.getElementById('dtht-commander-overlay').remove(); window.startFSM(window.currentReportMode || 'REALTIME');" style="background:#28a745; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;" title="Tải lại số liệu mới nhất">🔄 LÀM MỚI BẢNG</button>
                             <button onclick="document.getElementById('dtht-commander-overlay').remove()" style="background:#dc3545; color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:800; cursor:pointer; font-family: 'Montserrat', sans-serif;">❌ ĐÓNG</button>
-                        </div>
+                    </div>
                     </div>
 
                     <div style="flex:1; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column;">
                         ${viewSwitchHtml}
+                        ${timeModeHtml}
                         <div id="capture-zone">
                             ${headerStatsHtml}
                             ${window.currentCommanderView === 'nv' ? (() => {
@@ -1054,41 +1056,62 @@
                                             <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
                                             <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
                                             <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; color:#004a99;">${nv.donGia > 0 ? nv.donGia.toFixed(1) : '-'}</td>
                                             <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
                                             <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
-                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dtTg)}</td>
-                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900;">${nv.pctTg}</td>
+                                            <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#27ae60;">${nv.pctTg}</td>
                                         </tr>
                                     `;
                                 });
                                 let titleNvLabel = isLuyKe ? `🏆 DOANH THU NHÂN VIÊN LŨY KẾ ĐẾN NGÀY ${layNgayHienTai()}` : `🏆 DOANH THU NHÂN VIÊN HIỆN TẠI - ${dateTimeReal}`;
-                                return `
-                                    <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase; line-height: 1.4;">${titleNvLabel}</div>
-                                    <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
-                                        <thead>
-                                            <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
-                                                <th style="padding:8px 6px; text-align:center; width:45px;">Top</th>
-                                                <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
-                                                <th style="padding:8px 6px; text-align:right;">SL</th>
-                                                <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
-                                                <th style="padding:8px 6px; text-align:right;">DT</th>
-                                                <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
-                                                <th style="padding:8px 6px; text-align:right;">%TG</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${nvRowsHtml}
-                                        </tbody>
-                                    </table>
-                                `;
+            return `
+                <div style="text-align: center; color: #fff; background: #004a99; padding: 10px; font-size: 13px; font-weight: 900; border-radius: 6px; margin-bottom: 10px; text-transform: uppercase; line-height: 1.4;">${titleNvLabel}</div>
+                <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+                    <thead>
+                        <tr style="background:#004a99; color:#fff; font-size:11px; font-weight:900;">
+                            <th style="padding:8px 6px; text-align:center; width:35px;">Top</th>
+                            <th style="padding:8px 6px; text-align:left;">Nhân viên</th>
+                            <th style="padding:8px 6px; text-align:right;">SL</th>
+                            <th style="padding:8px 6px; text-align:right;">ĐƠN GIÁ</th>
+                            <th style="padding:8px 6px; text-align:right;">DTQĐ</th>
+                            <th style="padding:8px 6px; text-align:right;">DT</th>
+                            <th style="padding:8px 6px; text-align:right;">Tr.Góp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${targetNvList.map((nv, index) => {
+                            let rowBg = nv.tier === 'green' ? '#e8f8f5' : (nv.tier === 'yellow' ? '#fef9e7' : '#ffd2d2');
+                            let rankDisplay = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `${index + 1}`));
+                            let rankStyle = index < 3 ? 'font-size:20px; text-align:center;' : 'font-size:13px; font-weight:900; text-align:center; color:#333;';
+
+                            let pTgVal = parseFloat(nv.pctTg) || 0;
+                            let pTgRatio = (pTgVal / 50) * 100;
+                            let tgColor = pTgRatio >= 100 ? '#28a745' : (pTgRatio >= 70 ? '#f1c40f' : (pTgRatio >= 40 ? '#e67e22' : '#dc3545'));
+
+                            return `
+                                <tr style="background:${rowBg}; font-size:13px;">
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; ${rankStyle}">${rankDisplay}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; font-weight:900; font-size:13px; color:#111;">${nv.name}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.sl)}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800; color:#004a99;">${nv.donGia > 0 ? nv.donGia.toFixed(1) : '-'}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:#004a99;">${formatMoney(nv.dtQd)}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:800;">${formatMoney(nv.dt)}</td>
+                                    <td style="padding:8px 6px; border-bottom:1px solid #e0e0e0; text-align:right; font-weight:900; color:${tgColor};">${nv.pctTg}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
                             })() : groupTableHtml}
                         </div>
                         <textarea id="lienText" readonly></textarea>
                     </div>
 
-                    <div style="display:flex; gap:10px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
-                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY CHỮ</button>
-                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:12px; border-radius:8px; font-weight:900; font-size: 14px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 CHỤP ẢNH </button>
+                    <div style="display:flex; gap:8px; margin-top:12px; flex-shrink:0; background:#fff; padding-top:10px; border-top:1px solid #eee;">
+                        <button onclick="window.copyTextReport()" style="flex:1; background:#000; color:#ffc107; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 12px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📋 COPY</button>
+                        <button onclick="window.captureReportImg()" style="flex:1; background:#e67e22; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 12px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 1 BẢNG</button>
+                        <button onclick="window.captureBothImg()" style="flex:1; background:#8e44ad; color:white; border:none; padding:10px; border-radius:8px; font-weight:900; font-size: 12px; cursor:pointer; font-family: 'Montserrat', sans-serif;">📸 DT+NV</button>
                     </div>
                 </div>
             </div>
@@ -1157,7 +1180,8 @@
             txt = `🏆 BÁO CÁO DOANH THU NHÂN SỰ (${titleMode}):\n\n`;
             filteredNvList.forEach((nv, idx) => {
                 let rank = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : `Top ${idx + 1}`));
-                txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
+                let dgStr = nv.donGia > 0 ? ` | ĐG ${nv.donGia.toFixed(1)}TR` : '';
+                txt += `${rank} ${nv.name}: SL ${formatMoney(nv.sl)}${dgStr} | DTQĐ ${formatMoney(nv.dtQd)}TR | TRG ${nv.pctTg}\n`;
             });
             txt += `\n🔥 Team tiếp tục nỗ lực bứt phá số nhé! 🔥`;
 
@@ -1294,6 +1318,75 @@
             alert("❌ Lỗi chụp ảnh: " + err.message);
             btn.innerText = oldText;
         });
+    };
+
+    window.captureBothImg = async function() {
+        let btn = event.target;
+        let oldText = btn.innerText;
+        btn.innerText = "⏳ ĐANG CHỤP 2 BẢNG...";
+
+        try {
+            window.currentCommanderView = 'groups';
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+            await delay(900);
+
+            let zone1 = document.getElementById('capture-zone');
+            let isLuyKe = window.currentReportMode === 'LUYKE';
+            let dateStr = new Date().toISOString().slice(0,10);
+            let fileName1 = isLuyKe ? `SKST_${dateStr}.png` : `REALTIME_${dateStr}.png`;
+
+            let canvas1 = await window.html2canvas(zone1, {
+                scale: 3, useCORS: true, backgroundColor: "#f0f2f5",
+                ignoreElements: (el) => {
+                    if (el.tagName === 'STYLE' || el.tagName === 'LINK') {
+                        if (el.id === 'font-montserrat') return false;
+                        if (el.innerHTML && el.innerHTML.includes('th-container')) return false;
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            const link1 = document.createElement('a');
+            link1.download = fileName1;
+            link1.href = canvas1.toDataURL("image/png");
+            link1.click();
+
+            await delay(1200);
+
+            window.currentCommanderView = 'nv';
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+            await delay(900);
+
+            let zone2 = document.getElementById('capture-zone');
+            let fileName2 = isLuyKe ? `LUYKE_NV_${dateStr}.png` : `REALTIME_NV_${dateStr}.png`;
+
+            let canvas2 = await window.html2canvas(zone2, {
+                scale: 3, useCORS: true, backgroundColor: "#f0f2f5",
+                ignoreElements: (el) => {
+                    if (el.tagName === 'STYLE' || el.tagName === 'LINK') {
+                        if (el.id === 'font-montserrat') return false;
+                        if (el.innerHTML && el.innerHTML.includes('th-container')) return false;
+                        return true;
+                    }
+                    return false;
+                }
+            });
+            const link2 = document.createElement('a');
+            link2.download = fileName2;
+            link2.href = canvas2.toDataURL("image/png");
+            link2.click();
+
+            window.currentCommanderView = 'groups';
+            hienThiCommanderPanel(window.currentSummaryData, window.currentParsedGroups);
+
+            btn.innerText = "✅ XONG CẢ 2!";
+            setTimeout(() => { btn.innerText = oldText; }, 2000);
+        } catch (err) {
+            alert("❌ Lỗi chụp ảnh: " + err.message);
+            btn.innerText = oldText;
+        }
     };
 
     window.copyTextReport = function() {
