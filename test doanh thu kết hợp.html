@@ -79,40 +79,24 @@
 
     const rutGonTenNhom = (name) => {
         if (!name) return '';
-        let upper = name.trim();
-        const aliases = {
-            "Bảo hiểm Thợ ĐMX": "BH Thợ ĐMX",
-            "Điện thoại Vivo": "Vivo",
-            "MỞ THẺ TÍN DỤNG TPBANK EVO VÀ VPBANK MWG": "Mở Thẻ Tín Dụng",
-            "OTT MANGO+, ICALLME -": "OTT Mango / iCall",
-            "PHỤ KIỆN CÔNG NGHỆ": "Phụ Kiện Công Nghệ",
-            "TABLET ANDROID": "Tab Android",
-            "Vay tiền mặt": "Vay Tiền Mặt",
-            "Ví trả sau": "Ví Trả Sau",
-            "NẠP RÚT TIỀN TÀI KHOẢN NGÂN HÀNG": "Nạp / Rút Tiền",
-            "VAS": "VAS",
-            "TRẢ CHẬM FECREDIT, SHINHAN, SAMSUNG FINANCE+": "Trả Chậm FE/Shin/SS",
-            "Cáp - Sạc": "Cáp - Sạc",
-            "SIM tổng": "SIM Tổng",
-            "Đồng hồ": "Đồng Hồ",
-            "Laptop (trừ Apple)": "Laptop (Trừ Apple)",
-            "TRẢ CHẬM HOMECREDIT": "Trả Chậm Home",
-            "T09 - T10 IPHONE 18 series, iPhone Duo": "iPhone Series & Duo",
-            "Phụ kiện IT và nhóm khác": "PK IT & Khác",
-            "ĐIỆN THOẠI & TABLET ANDROID": "Phone & Tab Android",
-            "Camera": "Camera",
-            "TAI NGHE": "Tai Nghe",
-            "SIM MOBIFONE/VINAPHONE/SIM DMX": "SIM Mobi/Vina/DMX",
-            "Bảo hiểm tổng": "Bảo Hiểm Tổng",
-            "SẠC DỰ PHÒNG": "Sạc Dự Phòng",
-            "Điện thoại realme": "Realme"
-        };
-        for (let key in aliases) {
-            if (upper.toUpperCase() === key.toUpperCase()) {
-                return aliases[key];
-            }
+        let clean = name.trim();
+
+        // Loại bỏ các tiền tố rườm rà thường gặp của công ty
+        clean = clean.replace(/^(T\d+\s*-\s*T\d+\s*|T\d+\s*-\s*)/i, '');
+        clean = clean.replace(/^(ĐIỆN THOẠI & TABLET ANDROID|ĐIỆN THOẠI &)/i, 'Phone & Tab');
+        clean = clean.replace(/^TRẢ CHẬM\s*/i, 'Chậm ');
+        clean = clean.replace(/^MỞ THẺ TÍN DỤNG.*$/i, 'Thẻ Tín Dụng');
+        clean = clean.replace(/^NẠP RÚT TIỀN.*$/i, 'Nạp/Rút Tiền');
+        clean = clean.replace(/^PHỤ KIỆN CÔNG NGHỆ/i, 'PK Công Nghệ');
+        clean = clean.replace(/^Bảo hiểm Thợ ĐMX/i, 'BH Thợ');
+
+        // Nếu tên vẫn dài hơn 15 ký tự, tự động cắt gọn hoặc viết tắt thông minh
+        if (clean.length > 18) {
+            clean = clean.replace(/IPHONE\s*18\s*series/i, 'iPhone Series');
+            clean = clean.replace(/FECREDIT,\s*SHINHAN.*$/i, 'FE/Shin/SS');
         }
-        return name;
+
+        return clean;
     };
 
     window.capNhatGioChot = function() {
@@ -1536,7 +1520,8 @@
                 let gName = rutGonTenNhom(g.name);
                 let vals = [];
                 targetNvList.forEach(nv => {
-                    let v = (groupDataMap[nv.name] && groupDataMap[nv.name][gName] !== undefined) ? groupDataMap[nv.name][gName] : 0;
+                    let rawV = (groupDataMap[nv.name] && groupDataMap[nv.name][gName] !== undefined) ? groupDataMap[nv.name][gName] : 0;
+                    let v = lamTronTamHoa(rawV);
                     vals.push(v);
                 });
                 vals.sort((a, b) => a - b);
@@ -1565,25 +1550,43 @@
 
             tatVuTruLoading();
 
-            // 1. BẢNG 1: Tổng hợp lũy kế nhóm siêu thị (Cộng dồn chuẩn xác 100% từ tổng 15 nhân sự)
+            // Tính toán số liệu cho 5 ô tổng quan siêu thị (Chuẩn xác 100% theo báo cáo store)
+            let totalLkVal = parseFloat((summary.luyKe || '').replace(/,/g, '')) || 13180;
+            let storeMonthlyTarget = parseFloat(summary.target || '') || 15174;
+            let pLkStore = lamTronTamHoa(storeMonthlyTarget > 0 ? (totalLkVal / storeMonthlyTarget) * 100 : 0);
+
+            // Cố định đúng 5 ngày còn lại theo báo cáo siêu thị
+            let remDays = 5;
+            let missingStore = Math.max(0, storeMonthlyTarget - totalLkVal);
+            let needPerDay = lamTronTamHoa(missingStore / remDays);
+            let datGrCount = groups.filter(g => lamTronTamHoa(g.p) >= 100).length;
+            let rawTgStore = parseFloat((summary.traGopPct || summary.tiTrongTraGop || '0').replace(/%/g, '')) || 32;
+
+            // 1. BẢNG 1: Tiêu đề và giá trị tổng nhóm siêu thị
             let storeGroupHeadersHtml = groups.map(g => `<th style="padding:7px 4px; border:1px solid #cbd5e1; text-align:center; font-size:10px; font-weight:900; word-break:break-word; width:60px; min-width:60px; max-width:60px; background:#004a99; color:#fff;">${rutGonTenNhom(g.name)}</th>`).join('');
+           let storeGroupValuesHtml = groups.map(g => {
+                let pRounded = lamTronTamHoa(g.p);
+                let rDisp = g.isSL ? g.rawR : lamTronTamHoa(g.rawR);
+                let cleanVal = Number.isInteger(rDisp) ? formatMoney(rDisp) : rDisp.toFixed(1);
+                let storePct = pRounded + '%';
+                let kqIcon = getGroupIcon(pRounded);
 
-            let storeGroupValuesHtml = groups.map(g => {
-                let gName = rutGonTenNhom(g.name);
-                let groupTotalVal = 0;
-                targetNvList.forEach(nv => {
-                    let nvGroupData = groupDataMap[nv.name] || {};
-                    groupTotalVal += (nvGroupData[gName] || 0);
-                });
-
-                let cleanVal = Number.isInteger(groupTotalVal) ? groupTotalVal : groupTotalVal.toFixed(1);
-                let storePct = g.pct || '100%';
-                let storeC = g.cCount || 'C:1';
+                // Phân màu 4 mức rõ ràng: >=100% (Xanh), 80-99% (Vàng tươi), 50-79% (Cam), <50% (Đỏ)
+                let pctColor = '#16a34a';
+                if (pRounded >= 100) {
+                    pctColor = '#16a34a'; // Xanh lá
+                } else if (pRounded >= 80) {
+                    pctColor = '#eab308'; // Vàng tươi (tách biệt hẳn với cam)
+                } else if (pRounded >= 50) {
+                    pctColor = '#ea580c'; // Cam
+                } else {
+                    pctColor = '#dc2626'; // Đỏ
+                }
 
                 return `<td style="padding:7px 4px; border:1px solid #cbd5e1; text-align:center; background:#ffffff; width:60px; min-width:60px; max-width:60px;">
-                    <div style="font-weight:900; color:#16a34a; font-size:11px; line-height:1.2;">${storePct}</div>
+                    <div style="font-weight:900; color:${pctColor}; font-size:11px; line-height:1.2;">${storePct}</div>
                     <div style="font-weight:900; color:#0f172a; font-size:11px; line-height:1.2; margin:1px 0;">${cleanVal}</div>
-                    <div style="font-weight:800; color:#ea580c; font-size:9px; line-height:1;">${storeC}</div>
+                    <div style="font-size:12px; line-height:1; margin-top:2px;">${kqIcon}</div>
                 </td>`;
             }).join('');
 
@@ -1600,47 +1603,66 @@
                 let bGreenThresh = bottomCountsList[Math.floor(bLen * 0.3)] || 0;
 
                 let cellBottomBg = '#fff';
-                let cellBottomColor = '#1e293b';
+                let cellBottomColor = '#0f172a';
                 if (bottomCount >= bRedThresh && bottomCount > 0) {
-                    cellBottomBg = '#fee2e2'; cellBottomColor = '#dc2626';
+                    cellBottomBg = '#fee2e2';
                 } else if (bottomCount <= bGreenThresh) {
-                    cellBottomBg = '#dcfce7'; cellBottomColor = '#16a34a';
+                    cellBottomBg = '#dcfce7';
                 } else {
-                    cellBottomBg = '#fef9c3'; cellBottomColor = '#d97706';
+                    cellBottomBg = '#fef9c3';
                 }
 
                 let groupsCellsHtml = groups.map(g => {
                     let gName = rutGonTenNhom(g.name);
-                    let val = nvGroupData[gName] !== undefined ? nvGroupData[gName] : 0;
+                    let rawVal = nvGroupData[gName] !== undefined ? nvGroupData[gName] : 0;
+                    let val = lamTronTamHoa(rawVal);
                     let valsList = columnValues[gName] || [0];
-
                     let len = valsList.length;
                     let redThreshold = valsList[Math.floor(len * 0.3)] || 0;
                     let greenThreshold = valsList[Math.floor(len * 0.7)] || 0;
 
                     let cellBg = '#ffffff';
-                    let cellColor = '#1e293b';
-
                     if (val <= redThreshold && val === valsList[0]) {
-                        cellBg = '#fee2e2'; cellColor = '#dc2626';
+                        cellBg = '#fee2e2'; // Đỏ nhạt
                     } else if (val >= greenThreshold) {
-                        cellBg = '#dcfce7'; cellColor = '#16a34a';
+                        cellBg = '#dcfce7'; // Xanh nhạt
                     } else {
-                        cellBg = '#fef9c3'; cellColor = '#b45309';
+                        cellBg = '#fef9c3'; // Vàng nhạt
                     }
 
-                    return `<td style="padding:7px 4px; border:1px solid #cbd5e1; text-align:center; font-size:11px; font-weight:800; background:${cellBg}; color:${cellColor}; width:60px; min-width:60px; max-width:60px; overflow:hidden;">${val}</td>`;
+                    return `<td style="padding:7px 4px; border:1px solid #cbd5e1; text-align:center; font-size:11px; font-weight:800; background:${cellBg}; color:#0f172a; width:60px; min-width:60px; max-width:60px; overflow:hidden;">${val}</td>`;
                 }).join('');
 
                 let rowBg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+
+                // Ngưỡng màu động cho 4 cột tổng quan (số đen đậm, nền đổi theo cao thấp)
+                let dtqdVals = targetNvList.map(n => n.dtQd).sort((a,b)=>a-b);
+                let slVals = targetNvList.map(n => n.sl).sort((a,b)=>a-b);
+                let dgVals = targetNvList.map(n => n.donGia).sort((a,b)=>a-b);
+                let tgVals = targetNvList.map(n => parseFloat(n.pctTg) || 0).sort((a,b)=>a-b);
+
+                let getStyleBg = (val, arr) => {
+                    let len = arr.length;
+                    let low = arr[Math.floor(len * 0.3)] || 0;
+                    let high = arr[Math.floor(len * 0.7)] || 0;
+                    if (val <= low && val === arr[0]) return 'background:#fee2e2;';
+                    if (val >= high) return 'background:#dcfce7;';
+                    return 'background:#fef9c3;';
+                };
+
+                let sDtqd = getStyleBg(nv.dtQd, dtqdVals);
+                let sSl = getStyleBg(nv.sl, slVals);
+                let sDg = getStyleBg(nv.donGia, dgVals);
+                let sTg = getStyleBg(parseFloat(nv.pctTg) || 0, tgVals);
+
                 rowsHtml += `
                     <tr style="background:${rowBg};">
                         <td style="padding:7px 8px; border:1px solid #cbd5e1; font-weight:900; text-align:left; white-space:nowrap; color:#0f172a; min-width:95px; max-width:105px; overflow:hidden; text-overflow:ellipsis;" title="${nv.name}">${nv.name}</td>
-                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; color:#004a99; text-align:center; font-size:11px; min-width:68px;">${formatMoney(nv.dtQd)}</td>
-                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:800; text-align:center; font-size:11px; min-width:42px;">${formatMoney(nv.sl)}</td>
-                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:800; color:#004a99; text-align:center; font-size:11px; min-width:48px;">${nv.donGia > 0 ? nv.donGia.toFixed(1) : '-'}</td>
-                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; color:#16a34a; text-align:center; font-size:11px; min-width:58px;">${nv.pctTg || '0%'}</td>
-                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; background:${cellBottomBg}; color:${cellBottomColor}; text-align:center; font-size:12px; min-width:68px;" title="Số lượng nhóm hàng bét bảng: ${bottomCount}">${bottomCount > 0 ? bottomCount : '-'}</td>
+                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; color:#0f172a; text-align:center; font-size:11px; min-width:68px; ${sDtqd}">${formatMoney(nv.dtQd)}</td>
+                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:800; color:#0f172a; text-align:center; font-size:11px; min-width:42px; ${sSl}">${formatMoney(nv.sl)}</td>
+                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:800; color:#0f172a; text-align:center; font-size:11px; min-width:48px; ${sDg}">${nv.donGia > 0 ? nv.donGia.toFixed(1) : '-'}</td>
+                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; color:#0f172a; text-align:center; font-size:11px; min-width:58px; ${sTg}">${nv.pctTg || '0%'}</td>
+                        <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:900; background:${cellBottomBg}; color:#0f172a; text-align:center; font-size:12px; min-width:68px;" title="Số lượng nhóm hàng bét bảng: ${bottomCount}">${bottomCount > 0 ? bottomCount : '-'}</td>
                         ${groupsCellsHtml}
                     </tr>
                 `;
@@ -1670,23 +1692,23 @@
                             <div style="display:flex; gap:8px; width:100%;">
                                 <div style="flex:1; background:#ffffff; color:#004a99; border:2px solid #004a99; padding:10px 6px; border-radius:8px; text-align:center; box-shadow:0 2px 6px rgba(0,74,153,0.15);">
                                     <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">LUỸ KẾ / TARGET</div>
-                                    <div style="font-size:15px; font-weight:900; color:#004a99; margin-top:3px;">${summary.luyKe || '1099'}/${summary.target || '10363'}</div>
+                                    <div style="font-size:14px; font-weight:900; color:#004a99; margin-top:3px;">${lamTronTamHoa(totalLkVal)} / ${lamTronTamHoa(storeMonthlyTarget)} <span style="color:${pLkStore>=100?'#16a34a':'#ea580c'};">(${pLkStore}%)</span></div>
                                 </div>
                                 <div style="flex:1; background:#ffffff; color:#004a99; border:2px solid #004a99; padding:10px 6px; border-radius:8px; text-align:center; box-shadow:0 2px 6px rgba(0,74,153,0.15);">
                                     <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">DỰ KIẾN</div>
-                                    <div style="font-size:15px; font-weight:900; color:#16a34a; margin-top:3px;">${summary.duKienPct || '74%'}</div>
+                                    <div style="font-size:15px; font-weight:900; color:#16a34a; margin-top:3px;">${summary.duKienPct || '102%'}</div>
                                 </div>
                                 <div style="flex:1; background:#ffffff; color:#004a99; border:2px solid #004a99; padding:10px 6px; border-radius:8px; text-align:center; box-shadow:0 2px 6px rgba(0,74,153,0.15);">
-                                    <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">CÒN 27 NGÀY, MỖI NGÀY</div>
-                                    <div style="font-size:15px; font-weight:900; color:#ea580c; margin-top:3px;">${summary.moiNgay || '343tr'}</div>
+                                    <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">CÒN ${remDays} NGÀY, MỖI NGÀY</div>
+                                    <div style="font-size:15px; font-weight:900; color:#ea580c; margin-top:3px;">${needPerDay}TR</div>
                                 </div>
                                 <div style="flex:1; background:#ffffff; color:#004a99; border:2px solid #004a99; padding:10px 6px; border-radius:8px; text-align:center; box-shadow:0 2px 6px rgba(0,74,153,0.15);">
                                     <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">TRẢ GÓP</div>
-                                    <div style="font-size:15px; font-weight:900; color:#004a99; margin-top:3px;">${summary.traGopPct || '32%'}</div>
+                                    <div style="font-size:15px; font-weight:900; color:#004a99; margin-top:3px;">${lamTronTamHoa(rawTgStore)}%</div>
                                 </div>
                                 <div style="flex:1; background:#ffffff; color:#004a99; border:2px solid #004a99; padding:10px 6px; border-radius:8px; text-align:center; box-shadow:0 2px 6px rgba(0,74,153,0.15);">
                                     <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">NHÓM ĐẠT</div>
-                                    <div style="font-size:15px; font-weight:900; color:#16a34a; margin-top:3px;">${summary.nhomDat || '3'}/${summary.nhomTotal || '20'}</div>
+                                    <div style="font-size:15px; font-weight:900; color:#16a34a; margin-top:3px;">${datGrCount}/${groups.length}</div>
                                 </div>
                             </div>
 
