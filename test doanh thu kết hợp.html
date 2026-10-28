@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        🚀 SIÊU TOOL TAM HÒA thử nghiệm ok
 // @namespace    http://tampermonkey.net/
-// @version      33
-// @description Bản chuẩn V33: Cân chỉnh cột Nhân viên hoàn hảo, đổi tên DT TRẢ GÓP chuyên nghiệp & dọn sạch nhóm #.
+// @version      33.1
+// @description Bản chuẩn V33.1: Cân chỉnh cột Nhân viên hoàn hảo, đổi tên DT TRẢ GÓP chuyên nghiệp & dọn sạch nhóm #.
 // @match        *://baocao.dienmayxanh.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @grant        none
@@ -78,43 +78,60 @@
     };
 
     const rutGonTenNhom = (name) => {
-        if (!name) return '';
-        let upper = name.trim();
-        const aliases = {
-            "Bảo hiểm Thợ ĐMX": "BH Thợ ĐMX",
-            "Điện thoại Vivo": "Vivo",
-            "MỞ THẺ TÍN DỤNG TPBANK EVO VÀ VPBANK MWG": "Mở Thẻ Tín Dụng",
-            "OTT MANGO+, ICALLME -": "OTT Mango / iCall",
-            "PHỤ KIỆN CÔNG NGHỆ": "Phụ Kiện Công Nghệ",
-            "TABLET ANDROID": "Tab Android",
-            "Vay tiền mặt": "Vay Tiền Mặt",
-            "Ví trả sau": "Ví Trả Sau",
-            "NẠP RÚT TIỀN TÀI KHOẢN NGÂN HÀNG": "Nạp / Rút Tiền",
-            "VAS": "VAS",
-            "TRẢ CHẬM FECREDIT, SHINHAN, SAMSUNG FINANCE+": "Trả Chậm FE/Shin/SS",
-            "Cáp - Sạc": "Cáp - Sạc",
-            "SIM tổng": "SIM Tổng",
-            "Đồng hồ": "Đồng Hồ",
-            "Laptop (trừ Apple)": "Laptop (Trừ Apple)",
-            "TRẢ CHẬM HOMECREDIT": "Trả Chậm Home",
-            "T09 - T10 IPHONE 18 series, iPhone Duo": "iPhone Series & Duo",
-            "Phụ kiện IT và nhóm khác": "PK IT & Khác",
-            "ĐIỆN THOẠI & TABLET ANDROID": "Phone & Tab Android",
-            "Camera": "Camera",
-            "TAI NGHE": "Tai Nghe",
-            "SIM MOBIFONE/VINAPHONE/SIM DMX": "SIM Mobi/Vina/DMX",
-            "Bảo hiểm tổng": "Bảo Hiểm Tổng",
-            "SẠC DỰ PHÒNG": "Sạc Dự Phòng",
-            "Điện thoại realme": "Realme"
-        };
-        for (let key in aliases) {
-            if (upper.toUpperCase() === key.toUpperCase()) {
-                return aliases[key];
-            }
-        }
-        return name;
+    if (!name) return '';
+    let rawName = name.trim();
+    let upper = rawName.toUpperCase();
+    
+    // 1. Kiểm tra trong từ điển cứng ưu tiên trước
+    const aliases = {
+        "Bảo hiểm Thợ ĐMX": "BH Thợ ĐMX",
+        "Điện thoại Vivo": "Vivo",
+        "MỞ THẺ TÍN DỤNG TPBANK EVO VÀ VPBANK MWG": "Mở Thẻ Tín Dụng",
+        "OTT MANGO+, ICALLME -": "OTT Mango / iCall",
+        "PHỤ KIỆN CÔNG NGHỆ": "Phụ Kiện Công Nghệ",
+        "TABLET ANDROID": "Tab Android",
+        "Vay tiền mặt": "Vay Tiền Mặt",
+        "Ví trả sau": "Ví Trả Sau",
+        "NẠP RÚT TIỀN TÀI KHOẢN NGÂN HÀNG": "Nạp / Rút Tiền",
+        "VAS": "VAS",
+        "TRẢ CHẬM FECREDIT, SHINHAN, SAMSUNG FINANCE+": "Trả Chậm FE/Shin/SS",
+        "Cáp - Sạc": "Cáp - Sạc",
+        "SIM tổng": "SIM Tổng",
+        "Đồng hồ": "Đồng Hồ",
+        "Laptop (trừ Apple)": "Laptop (Trừ Apple)",
+        "TRẢ CHẬM HOMECREDIT": "Trả Chậm Home",
+        "T09 - T10 IPHONE 18 series, iPhone Duo": "iPhone Series & Duo",
+        "Phụ kiện IT và nhóm khác": "PK IT & Khác",
+        "ĐIỆN THOẠI & TABLET ANDROID": "Phone & Tab Android",
+        "Camera": "Camera",
+        "TAI NGHE": "Tai Nghe",
+        "SIM MOBIFONE/VINAPHONE/SIM DMX": "SIM Mobi/Vina/DMX",
+        "Bảo hiểm tổng": "Bảo Hiểm Tổng",
+        "SẠC DỰ PHÒNG": "Sạc Dự Phòng",
+        "Điện thoại realme": "Realme"
     };
 
+    for (let key in aliases) {
+        if (upper === key.toUpperCase()) {
+            return aliases[key];
+        }
+    }
+
+    // 2. TỰ ĐỘNG THÔNG MINH: Nếu không có trong từ điển, tự động làm sạch tên nhóm lạ
+    let cleaned = rawName
+        .replace(/ĐIỆN THOẠI/gi, 'ĐT')
+        .replace(/PHỤ KIỆN/gi, 'PK')
+        .replace(/TRẢ CHẬM/gi, 'TC')
+        .replace(/CHÍNH HÃNG/gi, '')
+        .trim();
+
+    // Nếu tên quá dài (trên 18 ký tự), tự động cắt gọn để không vỡ bảng
+    if (cleaned.length > 18) {
+        return cleaned.substring(0, 16) + '..';
+    }
+
+    return cleaned;
+};
     window.capNhatGioChot = function() {
         const timeEl = document.getElementById('realtime-header');
         if(timeEl) {
